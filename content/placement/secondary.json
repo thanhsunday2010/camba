@@ -1,0 +1,496 @@
+{
+  "test_metadata": {
+    "test_id": "secondary_placement_002",
+    "title": "Secondary Placement Test (KET A2 - PET B1)",
+    "duration_minutes": 30,
+    "total_questions": 30,
+    "max_score": 30,
+    "target_audience": "Secondary Students (Grade 6-9)",
+    "skills_covered": ["Listening", "Reading", "Writing"]
+  },
+  "questions": [
+    {
+      "id": "q01",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Listening",
+      "question_type": "short_dialogue_info",
+      "audio_script": "Boy: What time does the film start, Mum? Woman: Well, the adverts start at 6:15, but the actual movie doesn't begin until 6:45.",
+      "question_text": "What time does the movie start?",
+      "options": [
+        {"id": "A", "text": "6:15", "is_correct": false},
+        {"id": "B", "text": "6:30", "is_correct": false},
+        {"id": "C", "text": "6:45", "is_correct": true}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q02",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Listening",
+      "question_type": "short_dialogue_price",
+      "audio_script": "Girl: How much are these T-shirts? Man: They are usually 20 pounds, but they are on sale today for 15 pounds.",
+      "question_text": "How much does the girl pay for the T-shirt?",
+      "options": [
+        {"id": "A", "text": "£20", "is_correct": false},
+        {"id": "B", "text": "£15", "is_correct": true},
+        {"id": "C", "text": "£5", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q03",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Listening",
+      "question_type": "short_dialogue_activity",
+      "audio_script": "Boy: Are you going to play tennis this afternoon, Sarah? Girl: I wanted to, but I have to help my dad clean the garage instead.",
+      "question_text": "What will Sarah do this afternoon?",
+      "options": [
+        {"id": "A", "text": "Play tennis", "is_correct": false},
+        {"id": "B", "text": "Clean the garage", "is_correct": true},
+        {"id": "C", "text": "Visit her dad at work", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q04",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "notice_matching",
+      "question_text": "Sign text: 'Do not feed the animals. Max fine £50.' - What does this sign mean?",
+      "options": [
+        {"id": "A", "text": "You can feed animals if you pay £50.", "is_correct": false},
+        {"id": "B", "text": "You must not give food to the animals.", "is_correct": true},
+        {"id": "C", "text": "Feeding animals is allowed for 50 minutes.", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q05",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "email_comprehension",
+      "question_text": "Text from Sam: 'Hi Ben, can you bring my football boots to school today? I left them under your kitchen table after yesterday's match.' - Why is Sam writing?",
+      "options": [
+        {"id": "A", "text": "To invite Ben to a football match today.", "is_correct": false},
+        {"id": "B", "text": "To ask Ben to return something he forgot.", "is_correct": true},
+        {"id": "C", "text": "To tell Ben where to buy new boots.", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q06",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "grammar_pronoun",
+      "question_text": "My sister and I love photography. Our parents bought ______ a new camera for Christmas.",
+      "options": [
+        {"id": "A", "text": "us", "is_correct": true},
+        {"id": "B", "text": "them", "is_correct": false},
+        {"id": "C", "text": "we", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q07",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "grammar_tense",
+      "question_text": "While we ______ a board game, the lights suddenly went out.",
+      "options": [
+        {"id": "A", "text": "play", "is_correct": false},
+        {"id": "B", "text": "were playing", "is_correct": true},
+        {"id": "C", "text": "are playing", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q08",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "vocabulary_context",
+      "question_text": "The school trip was cancelled because the weather was absolutely ______.",
+      "options": [
+        {"id": "A", "text": "terrible", "is_correct": true},
+        {"id": "B", "text": "fabulous", "is_correct": false},
+        {"id": "C", "text": "frightened", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q09",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "grammar_comparative",
+      "question_text": "This biology homework is much ______ than the one we did last week.",
+      "options": [
+        {"id": "A", "text": "easy", "is_correct": false},
+        {"id": "B", "text": "easier", "is_correct": true},
+        {"id": "C", "text": "more easy", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q10",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "grammar_modals",
+      "question_text": "You ______ run near the swimming pool. The floor is wet and slippery.",
+      "options": [
+        {"id": "A", "text": "mustn't", "is_correct": true},
+        {"id": "B", "text": "don't have to", "is_correct": false},
+        {"id": "C", "text": "couldn't", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q11",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "grammar_present_perfect",
+      "question_text": "Have you ______ visited the science museum in London?",
+      "options": [
+        {"id": "A", "text": "yet", "is_correct": false},
+        {"id": "B", "text": "ever", "is_correct": true},
+        {"id": "C", "text": "already", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q12",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "vocabulary_collocation",
+      "question_text": "I need to ______ an appointment with the dentist this afternoon.",
+      "options": [
+        {"id": "A", "text": "make", "is_correct": true},
+        {"id": "B", "text": "do", "is_correct": false},
+        {"id": "C", "text": "give", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q13",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Writing",
+      "question_type": "sentence_transformation",
+      "question_text": "Complete the second sentence so it means the same: 'There are twenty students in this classroom.' -> 'This classroom ______ twenty students.'",
+      "options": [
+        {"id": "A", "text": "is having", "is_correct": false},
+        {"id": "B", "text": "has", "is_correct": true},
+        {"id": "C", "text": "have", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q14",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Writing",
+      "question_type": "conjunctions",
+      "question_text": "Tom missed the school bus ______ he woke up late this morning.",
+      "options": [
+        {"id": "A", "text": "so", "is_correct": false},
+        {"id": "B", "text": "but", "is_correct": false},
+        {"id": "C", "text": "because", "is_correct": true}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q15",
+      "level": "KET",
+      "cefr_equivalent": "A2",
+      "skill": "Writing",
+      "question_type": "preposition_time",
+      "question_text": "Our school final examinations usually take place ______ June.",
+      "options": [
+        {"id": "A", "text": "in", "is_correct": true},
+        {"id": "B", "text": "on", "is_correct": false},
+        {"id": "C", "text": "at", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q16",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Listening",
+      "question_type": "monologue_announcement",
+      "audio_script": "Man: Attention passengers, the 14:30 train to Manchester has been delayed by 20 minutes due to track maintenance. It will now depart from platform 4 instead of platform 2.",
+      "question_text": "Where should passengers catch the train to Manchester?",
+      "options": [
+        {"id": "A", "text": "Platform 2", "is_correct": false},
+        {"id": "B", "text": "Platform 4", "is_correct": true},
+        {"id": "C", "text": "Platform 14", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q17",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Listening",
+      "question_type": "dialogue_opinion",
+      "audio_script": "Girl: Did you see the new art exhibition? Boy: Yeah, the paintings were okay, but the gallery was so crowded I couldn't really enjoy it. Girl: True, we should go on a weekday next time.",
+      "question_text": "What did the boy dislike about the exhibition?",
+      "options": [
+        {"id": "A", "text": "The quality of the paintings", "is_correct": false},
+        {"id": "B", "text": "The size of the gallery", "is_correct": false},
+        {"id": "C", "text": "The number of visitors", "is_correct": true}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q18",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "complex_notice",
+      "question_text": "Notice: 'Library users wishing to reserve a study room must book online at least 24 hours in advance. Same-day walk-ins are no longer permitted.' - What is true?",
+      "options": [
+        {"id": "A", "text": "You can only secure a room by booking a day beforehand.", "is_correct": true},
+        {"id": "B", "text": "You can book a room directly at the library desk today.", "is_correct": false},
+        {"id": "C", "text": "Study rooms are unavailable for booking online.", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q19",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "grammar_passive",
+      "question_text": "The dynamic design of this city skyscraper ______ by a famous architectural firm in 2024.",
+      "options": [
+        {"id": "A", "text": "designed", "is_correct": false},
+        {"id": "B", "text": "was designed", "is_correct": true},
+        {"id": "C", "text": "has designed", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q20",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "grammar_conditional_2",
+      "question_text": "If I ______ more free time, I would definitely sign up for the advanced robotics club.",
+      "options": [
+        {"id": "A", "text": "have", "is_correct": false},
+        {"id": "B", "text": "had", "is_correct": true},
+        {"id": "C", "text": "would have", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q21",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "vocabulary_phrasal_verbs",
+      "question_text": "We had to ______ the camping trip until next weekend because of the heavy rain forecast.",
+      "options": [
+        {"id": "A", "text": "put off", "is_correct": true},
+        {"id": "B", "text": "call off", "is_correct": false},
+        {"id": "C", "text": "take up", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q22",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "relative_clauses_advanced",
+      "question_text": "The historic town, ______ we spent our summer vacation, is famous for its ancient castle.",
+      "options": [
+        {"id": "A", "text": "which", "is_correct": false},
+        {"id": "B", "text": "where", "is_correct": true},
+        {"id": "C", "text": "that", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q23",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "vocabulary_precision",
+      "question_text": "The local council is trying to ______ young people to participate more in community sports.",
+      "options": [
+        {"id": "A", "text": "encourage", "is_correct": true},
+        {"id": "B", "text": "insist", "is_correct": false},
+        {"id": "C", "text": "suggest", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q24",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "grammar_reporting_verbs",
+      "question_text": "Our science teacher reminded us ______ our project reports by Friday afternoon.",
+      "options": [
+        {"id": "A", "text": "submitting", "is_correct": false},
+        {"id": "B", "text": "to submit", "is_correct": true},
+        {"id": "C", "text": "submit", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q25",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "grammar_gerund_infinitive",
+      "question_text": "I really don't mind ______ the dishes, but I hate cooking dinner.",
+      "options": [
+        {"id": "A", "text": "to wash", "is_correct": false},
+        {"id": "B", "text": "wash", "is_correct": false},
+        {"id": "C", "text": "washing", "is_correct": true}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q26",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Writing",
+      "question_type": "sentence_transformation_passive",
+      "question_text": "Rewrite: 'They are building a new sports center downtown.' -> 'A new sports center ______ downtown.'",
+      "options": [
+        {"id": "A", "text": "is built", "is_correct": false},
+        {"id": "B", "text": "is being built", "is_correct": true},
+        {"id": "C", "text": "has been built", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q27",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Writing",
+      "question_type": "grammar_modals_deduction",
+      "question_text": "You've been practicing the piano all afternoon. You ______ be very exhausted.",
+      "options": [
+        {"id": "A", "text": "must", "is_correct": true},
+        {"id": "B", "text": "can", "is_correct": false},
+        {"id": "C", "text": "mightn't", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q28",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Writing",
+      "question_type": "grammar_linkers",
+      "question_text": "______ having a severe headache, she still managed to pass the English exam.",
+      "options": [
+        {"id": "A", "text": "Although", "is_correct": false},
+        {"id": "B", "text": "Despite", "is_correct": true},
+        {"id": "C", "text": "However", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q29",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Writing",
+      "question_type": "grammar_past_perfect",
+      "question_text": "By the time the school play started, we ______ all the tickets.",
+      "options": [
+        {"id": "A", "text": "had already sold", "is_correct": true},
+        {"id": "B", "text": "already sold", "is_correct": false},
+        {"id": "C", "text": "have already sold", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q30",
+      "level": "PET",
+      "cefr_equivalent": "B1",
+      "skill": "Writing",
+      "question_type": "grammar_used_to",
+      "question_text": "When I was a child, I ______ go swimming in the river every single day.",
+      "options": [
+        {"id": "A", "text": "used to", "is_correct": true},
+        {"id": "B", "text": "am used to", "is_correct": false},
+        {"id": "C", "text": "get used to", "is_correct": false}
+      ],
+      "points": 1
+    }
+  ],
+  "scoring_schema": [
+    {
+      "min_score": 0,
+      "max_score": 5,
+      "recommended_cambridge_level": "Below KET (Need Flyers Review)",
+      "recommended_cefr_level": "A1",
+      "sub_level_position": "Cuối level A1",
+      "feedback_vn": "Học sinh chưa đạt nền tảng A2 cơ bản. Kiến thức ngữ pháp và từ vựng còn hổng nhiều. Khuyên học bổ trợ nâng cao hệ Flyers trước khi bắt đầu chặng KET."
+    },
+    {
+      "min_score": 6,
+      "max_score": 9,
+      "recommended_cambridge_level": "KET",
+      "recommended_cefr_level": "A2",
+      "sub_level_position": "Đầu level",
+      "feedback_vn": "Học sinh bắt đầu chặng KET (A2). Nhận biết được các thì cơ bản và các đoạn hội thoại ngắn. Thích hợp xếp lớp Đầu KET."
+    },
+    {
+      "min_score": 10,
+      "max_score": 13,
+      "recommended_cambridge_level": "KET",
+      "recommended_cefr_level": "A2",
+      "sub_level_position": "Giữa level",
+      "feedback_vn": "Năng lực xử lý cấu trúc câu KET khá ổn, nắm vững so sánh hơn và quá khứ tiếp diễn. Phù hợp xếp lớp Giữa KET để tăng tốc."
+    },
+    {
+      "min_score": 14,
+      "max_score": 15,
+      "recommended_cambridge_level": "KET",
+      "recommended_cefr_level": "A2",
+      "sub_level_position": "Cuối level",
+      "feedback_vn": "Học sinh hoàn thành xuất sắc chặng A2, có thể xử lý mượt mà cấu trúc câu KET. Khuyên dùng khóa học Cuối KET (Luyện đề) hoặc nhảy cấp sớm."
+    },
+    {
+      "min_score": 16,
+      "max_score": 20,
+      "recommended_cambridge_level": "PET",
+      "recommended_cefr_level": "B1",
+      "sub_level_position": "Đầu level",
+      "feedback_vn": "Học sinh có tư duy ngôn ngữ tốt, bước đầu làm quen và xử lý được thể bị động, câu điều kiện loại 2 của PET. Phù hợp xếp lộ trình Đầu PET."
+    },
+    {
+      "min_score": 21,
+      "max_score": 25,
+      "recommended_cambridge_level": "PET",
+      "recommended_cefr_level": "B1",
+      "sub_level_position": "Giữa level",
+      "feedback_vn": "Học sinh làm chủ tốt từ vựng (phrasal verbs) và ngữ pháp phức tạp (mệnh đề quan hệ, câu gián tiếp). Phù hợp học lộ trình Giữa PET nâng cao."
+    },
+    {
+      "min_score": 26,
+      "max_score": 30,
+      "recommended_cambridge_level": "PET",
+      "recommended_cefr_level": "B1",
+      "sub_level_position": "Cuối level",
+      "feedback_vn": "Năng lực ngôn ngữ xuất sắc vượt trội cấp THCS. Học sinh xử lý mượt mà các bẫy liên từ (Despite/Although) và quá khứ hoàn thành. Xếp lớp Cuối PET (Luyện đề chuyên sâu hướng tới target Merit/Distinction hoặc chuyển tiếp FCE B2)."
+    }
+  ]
+}

@@ -217,7 +217,11 @@ export async function submitAttemptAction(
       total: s.total,
       percent: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
     }));
-    const track = attempt.paper.title.includes("YLE") ? "YLE" : "SECONDARY";
+    const track = attempt.paper.title.includes("YLE")
+      ? "YLE"
+      : attempt.paper.title.includes("Adult")
+        ? "ADULT"
+        : "SECONDARY";
     placementReport = evaluatePlacement(skillResults, track);
   }
 

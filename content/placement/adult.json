@@ -1,0 +1,510 @@
+{
+  "test_metadata": {
+    "test_id": "adult_placement_30q",
+    "title": "Comprehensive Adult & Professional English Placement Test",
+    "duration_minutes": 25,
+    "total_questions": 30,
+    "max_score": 30,
+    "target_audience": "Adults & Working Professionals",
+    "skills_covered": ["Listening", "Reading", "Writing"]
+  },
+  "questions": [
+    {
+      "id": "q01",
+      "level": "Beginner",
+      "cefr_equivalent": "A1",
+      "skill": "Listening",
+      "question_type": "dialogue_personal_info",
+      "audio_script": "Man: Welcome to the conference. Can I have your name, please? Woman: Yes, it's Sarah Jenkins. That's J-E-N-K-I-N-S.",
+      "question_text": "What is the correct spelling of the woman's last name?",
+      "options": [
+        {"id": "A", "text": "Jankins", "is_correct": false},
+        {"id": "B", "text": "Jenkins", "is_correct": true},
+        {"id": "C", "text": "Jenkin", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q02",
+      "level": "Beginner",
+      "cefr_equivalent": "A1",
+      "skill": "Reading",
+      "question_type": "workplace_notice",
+      "question_text": "Email notice: 'The cafeteria on the 3rd floor is closed for repairs today. Free coffee is available in the main lobby.' Where can employees get free coffee today?",
+      "options": [
+        {"id": "A", "text": "On the 3rd floor", "is_correct": false},
+        {"id": "B", "text": "In the main lobby", "is_correct": true},
+        {"id": "C", "text": "In the cafeteria", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q03",
+      "level": "Beginner",
+      "cefr_equivalent": "A1",
+      "skill": "Reading",
+      "question_type": "grammar_present_simple",
+      "question_text": "Our team manager usually ______ the weekly sales reports every Monday morning.",
+      "options": [
+        {"id": "A", "text": "check", "is_correct": false},
+        {"id": "B", "text": "checks", "is_correct": true},
+        {"id": "C", "text": "checking", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q04",
+      "level": "Beginner",
+      "cefr_equivalent": "A1",
+      "skill": "Reading",
+      "question_type": "grammar_possessive",
+      "question_text": "Mr. David and Ms. Anna are working on ______ new project proposal for the board meeting.",
+      "options": [
+        {"id": "A", "text": "their", "is_correct": true},
+        {"id": "B", "text": "they", "is_correct": false},
+        {"id": "C", "text": "them", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q05",
+      "level": "Beginner",
+      "cefr_equivalent": "A1",
+      "skill": "Writing",
+      "question_type": "sentence_completion",
+      "question_text": "Choose the correct question to complete the dialogue: 'A: ___________________?' - 'B: I am a software engineer at FPT.'",
+      "options": [
+        {"id": "A", "text": "What do you do?", "is_correct": true},
+        {"id": "B", "text": "Where are you doing?", "is_correct": false},
+        {"id": "C", "text": "What is your job doing?", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q06",
+      "level": "Beginner",
+      "cefr_equivalent": "A1",
+      "skill": "Reading",
+      "question_type": "vocabulary_time_place",
+      "question_text": "The marketing presentation will start ______ 2:00 PM ______ Room 402.",
+      "options": [
+        {"id": "A", "text": "on / at", "is_correct": false},
+        {"id": "B", "text": "at / in", "is_correct": true},
+        {"id": "C", "text": "in / on", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q07",
+      "level": "Elementary",
+      "cefr_equivalent": "A2",
+      "skill": "Listening",
+      "question_type": "dialogue_arrangement",
+      "audio_script": "Woman: Mark, are we still meeting the clients on Thursday afternoon? Man: Actually, they requested to change it to Friday morning because their flight was delayed.",
+      "question_text": "When is the meeting with the clients going to take place?",
+      "options": [
+        {"id": "A", "text": "Thursday afternoon", "is_correct": false},
+        {"id": "B", "text": "Friday morning", "is_correct": true},
+        {"id": "C", "text": "Thursday morning", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q08",
+      "level": "Elementary",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "grammar_past_simple",
+      "question_text": "Two weeks ago, our CEO ______ to Singapore to attend the regional Tech Summit.",
+      "options": [
+        {"id": "A", "text": "fly", "is_correct": false},
+        {"id": "B", "text": "flew", "is_correct": true},
+        {"id": "C", "text": "flied", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q09",
+      "level": "Elementary",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "grammar_comparatives",
+      "question_text": "The new AI software is much ______ to use than the old version we had last year.",
+      "options": [
+        {"id": "A", "text": "easy", "is_correct": false},
+        {"id": "B", "text": "easier", "is_correct": true},
+        {"id": "C", "text": "more easy", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q10",
+      "level": "Elementary",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "grammar_modals",
+      "question_text": "All visitors ______ show their identification cards at the security desk before entering the building.",
+      "options": [
+        {"id": "A", "text": "must", "is_correct": true},
+        {"id": "B", "text": "can", "is_correct": false},
+        {"id": "C", "text": "may", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q11",
+      "level": "Elementary",
+      "cefr_equivalent": "A2",
+      "skill": "Reading",
+      "question_type": "vocabulary_office",
+      "question_text": "If you want to apply for a annual leave, you need to submit the request form to the ______ department.",
+      "options": [
+        {"id": "A", "text": "Human Resources", "is_correct": true},
+        {"id": "B", "text": "Customer Service", "is_correct": false},
+        {"id": "C", "text": "Public Relations", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q12",
+      "level": "Elementary",
+      "cefr_equivalent": "A2",
+      "skill": "Writing",
+      "question_type": "sentence_transformation",
+      "question_text": "Select the correct formal rewrite for: 'Tell me when you are free.'",
+      "options": [
+        {"id": "A", "text": "Please let me know your availability.", "is_correct": true},
+        {"id": "B", "text": "Give me your free time now.", "is_correct": false},
+        {"id": "C", "text": "When are you free tell me please.", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q13",
+      "level": "Intermediate",
+      "cefr_equivalent": "B1",
+      "skill": "Listening",
+      "question_type": "monologue_project_update",
+      "audio_script": "Man: We have successfully launched the beta version of the app. However, we've received some complaints regarding the payment gateway loading slowly. We must prioritize fixing this bug before the grand launch next month.",
+      "question_text": "What is the speaker's main priority right now?",
+      "options": [
+        {"id": "A", "text": "Launching the beta version", "is_correct": false},
+        {"id": "B", "text": "Resolving the payment gateway speed issue", "is_correct": true},
+        {"id": "C", "text": "Marketing for the grand launch", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q14",
+      "level": "Intermediate",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "grammar_present_perfect",
+      "question_text": "Our company ______ more than 500 new employees since we relocated our headquarters to Ho Chi Minh City.",
+      "options": [
+        {"id": "A", "text": "hired", "is_correct": false},
+        {"id": "B", "text": "has hired", "is_correct": true},
+        {"id": "C", "text": "is hiring", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q15",
+      "level": "Intermediate",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "grammar_conditionals",
+      "question_text": "If we invested more budget into international marketing campaigns, our sales volume ______ increase dramatically.",
+      "options": [
+        {"id": "A", "text": "will", "is_correct": false},
+        {"id": "B", "text": "would", "is_correct": true},
+        {"id": "C", "text": "had", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q16",
+      "level": "Intermediate",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "vocabulary_phrasal_verbs",
+      "question_text": "The board of directors decided to ______ the annual strategic meeting until next month due to unforeseen circumstances.",
+      "options": [
+        {"id": "A", "text": "put off", "is_correct": true},
+        {"id": "B", "text": "call off", "is_correct": false},
+        {"id": "C", "text": "take over", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q17",
+      "level": "Intermediate",
+      "cefr_equivalent": "B1",
+      "skill": "Reading",
+      "question_type": "grammar_linkers",
+      "question_text": "______ the severe economic downturn, our company still achieved its annual revenue target.",
+      "options": [
+        {"id": "A", "text": "Although", "is_correct": false},
+        {"id": "B", "text": "In spite of", "is_correct": true},
+        {"id": "C", "text": "However", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q18",
+      "level": "Intermediate",
+      "cefr_equivalent": "B1",
+      "skill": "Writing",
+      "question_type": "email_closing",
+      "question_text": "Choose the most appropriate phrase to close a formal business email sent to a potential investor.",
+      "options": [
+        {"id": "A", "text": "See ya later,", "is_correct": false},
+        {"id": "B", "text": "I look forward to hearing from you soon.", "is_correct": true},
+        {"id": "C", "text": "Cheers,", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q19",
+      "level": "Upper-Intermediate",
+      "cefr_equivalent": "B2",
+      "skill": "Listening",
+      "question_type": "dialogue_negotiation",
+      "audio_script": "Woman: Your pricing is slightly above our projected budget. If you could offer a 5% discount, we'd be willing to sign a two-year contract immediately. Man: That seems reasonable, provided that the initial deposit is transferred this week.",
+      "question_text": "Under what condition will the man accept the 5% discount request?",
+      "options": [
+        {"id": "A", "text": "The contract duration is extended to five years.", "is_correct": false},
+        {"id": "B", "text": "The initial deposit is paid within the current week.", "is_correct": true},
+        {"id": "C", "text": "The woman pays the full amount in cash upfront.", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q20",
+      "level": "Upper-Intermediate",
+      "cefr_equivalent": "B2",
+      "skill": "Reading",
+      "question_type": "grammar_passive_voice",
+      "question_text": "The financial audit reports ______ by the external auditing firm before the final quarter begins.",
+      "options": [
+        {"id": "A", "text": "must be completed", "is_correct": true},
+        {"id": "B", "text": "have completed", "is_correct": false},
+        {"id": "C", "text": "must complete", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q21",
+      "level": "Upper-Intermediate",
+      "cefr_equivalent": "B2",
+      "skill": "Reading",
+      "question_type": "grammar_conditional_3",
+      "question_text": "If the development team had detected the software glitch earlier, the system crash ______.",
+      "options": [
+        {"id": "A", "text": "would avoid", "is_correct": false},
+        {"id": "B", "text": "would have been avoided", "is_correct": true},
+        {"id": "C", "text": "will have been avoided", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q22",
+      "level": "Upper-Intermediate",
+      "cefr_equivalent": "B2",
+      "skill": "Reading",
+      "question_type": "vocabulary_advanced_idiom",
+      "question_text": "Before finalizing the corporate merger, we need to ensure both organizations are on the ______ regarding long-term objectives.",
+      "options": [
+        {"id": "A", "text": "same page", "is_correct": true},
+        {"id": "B", "text": "same boat", "is_correct": false},
+        {"id": "C", "text": "equal ground", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q23",
+      "level": "Upper-Intermediate",
+      "cefr_equivalent": "B2",
+      "skill": "Reading",
+      "question_type": "grammar_relative_clauses",
+      "question_text": "The framework ______ our current digital marketing strategy is constructed needs significant adjustment.",
+      "options": [
+        {"id": "A", "text": "on which", "is_correct": true},
+        {"id": "B", "text": "by that", "is_correct": false},
+        {"id": "C", "text": "where", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q24",
+      "level": "Upper-Intermediate",
+      "cefr_equivalent": "B2",
+      "skill": "Writing",
+      "question_type": "formal_phrasing",
+      "question_text": "Complete the email sentence professionally: 'We regret ______ you that your application for the position has not been successful.'",
+      "options": [
+        {"id": "A", "text": "to inform", "is_correct": true},
+        {"id": "B", "text": "informing", "is_correct": false},
+        {"id": "C", "text": "about telling", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q25",
+      "level": "Advanced",
+      "cefr_equivalent": "C1",
+      "skill": "Listening",
+      "question_type": "monologue_economic_analysis",
+      "audio_script": "Woman: Given the pervasive volatility in global markets, corporate entities must cultivate resilience. This entails diversifying supply chains to mitigate downstream operational disruptions, rather than merely implementing superficial cost-cutting measures which often yield diminishing returns in the long run.",
+      "question_text": "According to the speaker, what should corporate entities do to tackle market volatility?",
+      "options": [
+        {"id": "A", "text": "Focus heavily on immediate, aggressive cost-cutting measures.", "is_correct": false},
+        {"id": "B", "text": "Diversify supply chains to lower downstream operational risks.", "is_correct": true},
+        {"id": "C", "text": "Accept diminishing returns as an inevitable long-term market reality.", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q26",
+      "level": "Advanced",
+      "cefr_equivalent": "C1",
+      "skill": "Reading",
+      "question_type": "grammar_inversion",
+      "question_text": "Not only ______ to downsize the department, but they also cut the quarterly R&D budget entirely.",
+      "options": [
+        {"id": "A", "text": "did the management decide", "is_correct": true},
+        {"id": "B", "text": "the management decided", "is_correct": false},
+        {"id": "C", "text": "had the management decide", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q27",
+      "level": "Advanced",
+      "cefr_equivalent": "C1",
+      "skill": "Reading",
+      "question_type": "grammar_mixed_conditional",
+      "question_text": "If he ______ the contract terms more thoroughly last week, he ______ in this legal dispute right now.",
+      "options": [
+        {"id": "A", "text": "had negotiated / wouldn't be involved", "is_correct": true},
+        {"id": "B", "text": "negotiated / wouldn't have been involved", "is_correct": false},
+        {"id": "C", "text": "had negotiated / wouldn't have been involved", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q28",
+      "level": "Advanced",
+      "cefr_equivalent": "C1",
+      "skill": "Reading",
+      "question_type": "vocabulary_nuance",
+      "question_text": "The management implemented strict guidelines to ______ potential risks associated with the aggressive global expansion.",
+      "options": [
+        {"id": "A", "text": "mitigate", "is_correct": true},
+        {"id": "B", "text": "exacerbate", "is_correct": false},
+        {"id": "C", "text": "instigate", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q29",
+      "level": "Advanced",
+      "cefr_equivalent": "C1",
+      "skill": "Reading",
+      "question_type": "grammar_subjunctive",
+      "question_text": "It is imperative that the CEO ______ a public statement immediately to address the data breach rumors.",
+      "options": [
+        {"id": "A", "text": "issue", "is_correct": true},
+        {"id": "B", "text": "issues", "is_correct": false},
+        {"id": "C", "text": "issued", "is_correct": false}
+      ],
+      "points": 1
+    },
+    {
+      "id": "q30",
+      "level": "Advanced",
+      "cefr_equivalent": "C1",
+      "skill": "Writing",
+      "question_type": "advanced_discourse_marker",
+      "question_text": "______ the macroeconomic headwinds, our enterprise managed to sustain profitable operations throughout the fiscal year.",
+      "options": [
+        {"id": "A", "text": "Notwithstanding", "is_correct": true},
+        {"id": "B", "text": "Concurrently", "is_correct": false},
+        {"id": "C", "text": "Furthermore", "is_correct": false}
+      ],
+      "points": 1
+    }
+  ],
+  "scoring_schema": [
+    {
+      "min_score": 0,
+      "max_score": 3,
+      "recommended_cefr_level": "A1",
+      "sub_level_position": "Đầu level",
+      "feedback_vn": "Bạn đang ở bước khởi đầu của Tiếng Anh. Lộ trình học nên tập trung vào từ vựng giao tiếp cơ bản, giới thiệu bản thân và cách đặt câu hỏi đơn giản."
+    },
+    {
+      "min_score": 4,
+      "max_score": 6,
+      "recommended_cefr_level": "A1",
+      "sub_level_position": "Giữa/Cuối level",
+      "feedback_vn": "Bạn đã biết một số cấu trúc câu và từ vựng cơ bản nhưng phản xạ giao tiếp công sở còn hạn chế. Phù hợp với lớp củng cố cuối bậc A1."
+    },
+    {
+      "min_score": 7,
+      "max_score": 9,
+      "recommended_cefr_level": "A2",
+      "sub_level_position": "Đầu level",
+      "feedback_vn": "Bạn có nền tảng ngữ pháp cơ bản (thì quá khứ, hiện tại đơn). Bắt đầu lộ trình A2 để làm quen với Tiếng Anh công sở căn bản (viết email ngắn, đặt lịch hẹn)."
+    },
+    {
+      "min_score": 10,
+      "max_score": 12,
+      "recommended_cefr_level": "A2",
+      "sub_level_position": "Giữa/Cuối level",
+      "feedback_vn": "Năng lực xử lý các tình huống văn phòng cơ bản khá ổn. Khóa học cuối bậc A2 sẽ giúp bạn tối ưu hóa từ vựng ngành nghề và cấu trúc so sánh."
+    },
+    {
+      "min_score": 13,
+      "max_score": 15,
+      "recommended_cefr_level": "B1",
+      "sub_level_position": "Đầu level",
+      "feedback_vn": "Bạn có khả năng hiểu và diễn đạt các ý kiến cá nhân cơ bản. Lộ trình Đầu B1 giúp bạn nâng cao năng lực viết báo cáo ngắn và đàm phán nhẹ nhàng."
+    },
+    {
+      "min_score": 16,
+      "max_score": 18,
+      "recommended_cefr_level": "B1",
+      "sub_level_position": "Giữa/Cuối level",
+      "feedback_vn": "Khả năng sử dụng Tiếng Anh độc lập tương đối tốt. Bạn cần tập trung vào các liên từ phức tạp và cụm động từ (phrasal verbs) để giao tiếp tự nhiên hơn."
+    },
+    {
+      "min_score": 19,
+      "max_score": 21,
+      "recommended_cefr_level": "B2",
+      "sub_level_position": "Đầu level",
+      "feedback_vn": "Trình độ của bạn đạt mức Trung cấp khá. Phù hợp học lộ trình Đầu B2 để xử lý tốt thể bị động phức tạp, câu điều kiện loại 3 trong công việc."
+    },
+    {
+      "min_score": 22,
+      "max_score": 24,
+      "recommended_cefr_level": "B2",
+      "sub_level_position": "Giữa/Cuối level",
+      "feedback_vn": "Bạn giao tiếp mượt mà, hiểu được các thuật ngữ kinh doanh. Khóa học Cuối B2 sẽ mài giũa tư duy phản biện và viết văn bản thương mại chuyên sâu."
+    },
+    {
+      "min_score": 25,
+      "max_score": 27,
+      "recommended_cefr_level": "C1",
+      "sub_level_position": "Đầu level",
+      "feedback_vn": "Năng lực ngôn ngữ xuất sắc. Bạn có thể sử dụng các cấu trúc đảo ngữ, giả định. Lộ trình Đầu C1 giúp bạn làm chủ hoàn toàn các buổi thuyết trình và đàm phán cấp cao."
+    },
+    {
+      "min_score": 28,
+      "max_score": 30,
+      "recommended_cefr_level": "C1",
+      "sub_level_position": "Giữa/Cuối level",
+      "feedback_vn": "Trình độ Tiếng Anh của bạn tương đương người bản xứ chuyên nghiệp. Bạn có khả năng cảm nhận sắc thái ngôn ngữ tinh tế và đọc dịch tài liệu vĩ mô mượt mà."
+    }
+  ]
+}

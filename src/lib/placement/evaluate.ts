@@ -13,7 +13,7 @@ export interface PlacementReport {
   cefrLevel: string;
   cambridgeLevel: string;
   cambridgeExam: string;
-  track: "YLE" | "SECONDARY";
+  track: "YLE" | "SECONDARY" | "ADULT";
   strengths: string[];
   weaknesses: string[];
   recommendation: string;
@@ -53,9 +53,17 @@ function mapCambridgeSecondary(percent: number): { level: string; exam: string }
   return { level: "C1 Advanced (CAE)", exam: "Cambridge C1 Advanced preparation" };
 }
 
+function mapCambridgeAdult(percent: number): { level: string; exam: string } {
+  if (percent < 40) return { level: "A2 Key (KET)", exam: "Cambridge A2 Key" };
+  if (percent < 55) return { level: "B1 Preliminary (PET)", exam: "Cambridge B1 Preliminary" };
+  if (percent < 70) return { level: "B2 First (FCE)", exam: "Cambridge B2 First" };
+  if (percent < 85) return { level: "C1 Advanced (CAE)", exam: "Cambridge C1 Advanced" };
+  return { level: "C2 Proficiency (CPE prep)", exam: "Cambridge C2 Proficiency preparation" };
+}
+
 export function evaluatePlacement(
   skillResults: SkillResult[],
-  track: "YLE" | "SECONDARY" = "SECONDARY"
+  track: "YLE" | "SECONDARY" | "ADULT" = "SECONDARY"
 ): PlacementReport {
   const objective = skillResults.filter((s) =>
     ["READING", "LISTENING", "USE_OF_ENGLISH"].includes(s.skill)
@@ -71,7 +79,9 @@ export function evaluatePlacement(
   const cambridge =
     track === "YLE"
       ? mapCambridgeYle(overallPercent)
-      : mapCambridgeSecondary(overallPercent);
+      : track === "ADULT"
+        ? mapCambridgeAdult(overallPercent)
+        : mapCambridgeSecondary(overallPercent);
 
   const strengths = skillResults
     .filter((s) => s.percent >= 70 && s.total > 0)

@@ -11,6 +11,8 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "content:import-placement": "tsx scripts/import-placement.ts",
+    "content:clear-placement": "tsx scripts/clear-placement.ts",
     "audio:generate": "node scripts/generate-listening-audio.mjs",
     "db:deploy": "node scripts/migrate-deploy.mjs && npm run db:seed",
     "db:baseline": "prisma migrate resolve --applied 20250101000000_init",

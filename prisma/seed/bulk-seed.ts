@@ -1,15 +1,13 @@
 import { PrismaClient, ExamLevel } from "@prisma/client";
 import {
   generateListening,
-  generatePlacementPool,
-  generatePlacementPoolYle,
   generateReading,
   generateSpeaking,
   generateUoe,
   generateWriting,
   questionCounts,
 } from "./generators/bulk-data";
-import { seedBulkLevel, seedPlacementTests } from "./helpers";
+import { seedBulkLevel } from "./helpers";
 
 export const ALL_LEVELS: ExamLevel[] = [
   "STARTERS",
@@ -35,6 +33,5 @@ export async function seedAllBulkContent(db: PrismaClient) {
     });
   }
 
-  console.log("  → Placement tests...");
-  await seedPlacementTests(db);
+  // Placement tests: import via `npm run content:import-placement`
 }
