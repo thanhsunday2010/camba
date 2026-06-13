@@ -1,8 +1,11 @@
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/auth-session";
 import { db } from "@/lib/db";
+import { getCachedPlacementPaper } from "@/lib/exam/cached-practice";
 import { PracticeClient } from "@/components/exam/practice-client";
 import { parseSections } from "@/lib/exam/paper-sections";
+
+export const revalidate = 300;
 
 export default async function PlacementTakePage({
   params,
@@ -11,30 +14,22 @@ export default async function PlacementTakePage({
   params: Promise<{ paperId: string }>;
   searchParams: Promise<{ attemptId?: string }>;
 }) {
-  const { paperId } = await params;
-  const { attemptId } = await searchParams;
+  const [{ paperId }, { attemptId }] = await Promise.all([params, searchParams]);
 
   if (!attemptId) {
     redirect("/placement");
   }
 
-  const session = await auth();
-
-  const paper = await db.examPaper.findFirst({
-    where: { id: paperId, paperKind: "PLACEMENT", published: true },
-    include: {
-      questions: {
-        include: { question: true },
-        orderBy: { orderIndex: "asc" },
-      },
-    },
-  });
+  const [session, paper, attempt] = await Promise.all([
+    getSession(),
+    getCachedPlacementPaper(paperId),
+    db.attempt.findUnique({
+      where: { id: attemptId, paperId },
+      select: { id: true, userId: true, status: true },
+    }),
+  ]);
 
   if (!paper) notFound();
-
-  const attempt = await db.attempt.findUnique({
-    where: { id: attemptId, paperId },
-  });
 
   if (!attempt || attempt.status !== "IN_PROGRESS") {
     redirect("/placement");

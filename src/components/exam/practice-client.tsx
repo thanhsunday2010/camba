@@ -17,10 +17,10 @@ import { QuestionType } from "@prisma/client";
 import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import {
+  mascotGradingWaitMessage,
   mascotHalfProgressMessage,
   mascotSpeakingDoneMessage,
   mascotStreakMessage,
-  mascotTestCompleteMessage,
 } from "@/lib/kids/mascot-messages";
 
 interface PaperQuestion {
@@ -85,7 +85,7 @@ export function PracticeClient({
 }: PracticeClientProps) {
   const router = useRouter();
   const { play } = useKidSound();
-  const { showMascot } = useMascotToast();
+  const { showMascot, hideMascot } = useMascotToast();
   const [attemptId, setAttemptId] = useState<string | null>(initialAttemptId ?? null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -176,11 +176,13 @@ export function PracticeClient({
     setSubmitting(true);
     play("celebrate");
     setShowConfetti(true);
+    showMascot(mascotGradingWaitMessage());
 
     const timeSpent = Math.floor((Date.now() - startedAt.getTime()) / 1000);
     const result = await submitAttemptAction(attemptId, answers, timeSpent);
 
     if (result.error) {
+      hideMascot();
       toast.error(result.error);
       setSubmitting(false);
       setShowConfetti(false);
@@ -210,17 +212,16 @@ export function PracticeClient({
       }
     }
 
+    hideMascot();
     toast.success("Tuyệt vời! Nộp bài thành công! 🎉");
-    showMascot(mascotTestCompleteMessage(paperKind));
     router.refresh();
-    await new Promise((r) => setTimeout(r, 900));
 
     if (paperKind === "PLACEMENT") {
       router.push(`/placement/results/${attemptId}`);
     } else {
       router.push(`/results/${attemptId}`);
     }
-  }, [attemptId, answers, startedAt, questions, router, paperKind, play, showMascot]);
+  }, [attemptId, answers, startedAt, questions, router, paperKind, play, showMascot, hideMascot]);
 
   const goNext = () => {
     stopAllListeningPlayback();

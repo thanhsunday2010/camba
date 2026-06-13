@@ -4,6 +4,8 @@ export type MascotToastPayload = {
   message: string;
   mood?: MascotMood;
   durationMs?: number;
+  /** Keep visible until hideMascot() or navigation */
+  persist?: boolean;
 };
 
 export const MASCOT_DEFAULT_DURATION_MS = 3000;
@@ -91,5 +93,21 @@ export function mascotSpeakingDoneMessage(): MascotToastPayload {
   return {
     message: "Nghe rõ rồi! Thỏ gửi bài nói đi chấm AI 🎤",
     mood: "happy",
+  };
+}
+
+export function mascotGradingWaitMessage(): MascotToastPayload {
+  return {
+    message: "Bạn chờ chút để mình chấm và nhận xét nhé. Chỉ 30 giây thôi!",
+    mood: "think",
+    persist: true,
+  };
+}
+
+export function mascotPageLoadingMessage(): MascotToastPayload {
+  return {
+    message: "Chờ chút xíu nha",
+    mood: "wave",
+    persist: true,
   };
 }

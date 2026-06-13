@@ -51,6 +51,12 @@ enum PaperKind {
   PLACEMENT
 }
 
+enum BugReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -68,6 +74,7 @@ model User {
   aiFeedbacks   AIFeedback[]
   assignedBy    Assignment[] @relation("AssignedBy")
   assignments   Assignment[] @relation("AssignedTo")
+  bugReports    BugReport[]
 }
 
 model Question {
@@ -188,4 +195,21 @@ model Assignment {
   paper   ExamPaper @relation(fields: [paperId], references: [id], onDelete: Cascade)
   teacher User      @relation("AssignedBy", fields: [teacherId], references: [id], onDelete: Cascade)
   student User      @relation("AssignedTo", fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model BugReport {
+  id        String           @id @default(cuid())
+  userId    String?
+  userEmail String?
+  userName  String?
+  pageUrl   String?
+  message   String           @db.Text
+  imageData String?          @db.Text
+  status    BugReportStatus  @default(OPEN)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
 }

@@ -1,12 +1,6 @@
 import { PrismaClient, ExamLevel } from "@prisma/client";
-import {
-  generateListening,
-  generateReading,
-  generateSpeaking,
-  generateUoe,
-  generateWriting,
-  questionCounts,
-} from "./generators/bulk-data";
+import { getCuratedLevelData } from "./curated";
+import { questionCounts } from "./generators/bulk-data";
 import { seedBulkLevel } from "./helpers";
 
 export const ALL_LEVELS: ExamLevel[] = [
@@ -24,12 +18,13 @@ export async function seedAllBulkContent(db: PrismaClient) {
     console.log(
       `  → ${level} (${counts.reading + counts.listening + counts.writing + counts.speaking + counts.uoe} câu)...`
     );
+    const curated = getCuratedLevelData(level);
     await seedBulkLevel(db, level, {
-      reading: generateReading(level, counts.reading),
-      listening: generateListening(level, counts.listening),
-      writing: generateWriting(level, counts.writing),
-      speaking: generateSpeaking(level, counts.speaking),
-      uoe: generateUoe(level, counts.uoe),
+      reading: curated.reading,
+      listening: curated.listening,
+      writing: curated.writing,
+      speaking: curated.speaking,
+      uoe: curated.uoe,
     });
   }
 

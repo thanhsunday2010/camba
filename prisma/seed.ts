@@ -5,7 +5,7 @@ import { seedAllBulkContent } from "./seed/bulk-seed";
 const db = new PrismaClient();
 
 async function main() {
-  console.log("Seeding Camba database (bulk content 100+ câu/level)...");
+  console.log("Seeding Camba database (curated Cambridge-style content)...");
 
   const adminHash = await bcrypt.hash("admin123", 10);
   const teacherHash = await bcrypt.hash("teacher123", 10);

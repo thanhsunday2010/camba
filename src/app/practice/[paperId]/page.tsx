@@ -1,29 +1,20 @@
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { db } from "@/lib/db";
+import { getSession } from "@/lib/auth-session";
+import { getCachedPracticePaper } from "@/lib/exam/cached-practice";
 import { PracticeClient } from "@/components/exam/practice-client";
 import { parseSections } from "@/lib/exam/paper-sections";
+
+export const revalidate = 300;
 
 export default async function PracticePage({
   params,
 }: {
   params: Promise<{ paperId: string }>;
 }) {
-  const session = await auth();
+  const [{ paperId }, session] = await Promise.all([params, getSession()]);
   if (!session) redirect("/login");
 
-  const { paperId } = await params;
-
-  const paper = await db.examPaper.findUnique({
-    where: { id: paperId, published: true },
-    include: {
-      questions: {
-        include: { question: true },
-        orderBy: { orderIndex: "asc" },
-      },
-    },
-  });
-
+  const paper = await getCachedPracticePaper(paperId);
   if (!paper) notFound();
 
   const instantFeedback = paper.paperKind === "PRACTICE" && !paper.isMockTest;

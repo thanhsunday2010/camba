@@ -13,6 +13,7 @@ import type {
   SpeakingContent,
 } from "@/lib/exam/scoring";
 import { resolveMcqMedia } from "@/lib/exam/question-media";
+import { stripListeningScriptFromQuestion, normalizeListeningTranscript } from "@/lib/exam/listening-display";
 import { cn } from "@/lib/utils";
 
 interface QuestionData {
@@ -49,7 +50,11 @@ export function QuestionRenderer({
   const content = question.content as McqContent | GapFillContent | FreeTextContent | SpeakingContent;
   const mcqContent = content as McqContent;
   const audioSrc = question.audioUrl;
-  const transcript = mcqContent.transcript;
+  const transcript = mcqContent.transcript
+    ? isListening
+      ? normalizeListeningTranscript(mcqContent.transcript)
+      : mcqContent.transcript
+    : undefined;
   const media =
     question.type === "MCQ"
       ? resolveMcqMedia({
@@ -62,7 +67,9 @@ export function QuestionRenderer({
           questionType: mcqContent.questionType,
         })
       : null;
-  const displayQuestion = media?.question ?? mcqContent.question;
+  const displayQuestion = isListening
+    ? stripListeningScriptFromQuestion(media?.question ?? mcqContent.question ?? "")
+    : (media?.question ?? mcqContent.question);
 
   return (
     <div className="space-y-4 rounded-3xl border-2 border-purple-200 bg-white/95 p-6 shadow-lg">

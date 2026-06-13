@@ -4,6 +4,7 @@ import { AppToaster } from "@/components/layout/app-toaster";
 import { Navbar } from "@/components/layout/navbar";
 import { FloatingDecor } from "@/components/kids/floating-decor";
 import { MascotProviderWrapper } from "@/components/kids/mascot-buddy-wrapper";
+import { BugReportButton } from "@/components/feedback/bug-report-button";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { SoundProvider } from "@/components/kids/sound-provider";
 import "./globals.css";
@@ -35,6 +36,7 @@ export default function RootLayout({
                 <Navbar />
                 <main>{children}</main>
               </div>
+              <BugReportButton />
             </MascotProviderWrapper>
             <AppToaster />
           </SoundProvider>

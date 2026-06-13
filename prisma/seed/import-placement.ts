@@ -17,6 +17,7 @@ import {
   type McqSeed,
 } from "./helpers";
 import { inferQuestionMedia } from "../../src/lib/exam/question-media";
+import { splitListeningScriptAndQuestion } from "../../src/lib/exam/listening-display";
 
 const VALID_LEVELS = new Set<string>([
   "STARTERS",
@@ -212,22 +213,6 @@ function resolveOptionAnswer(
   throw new Error(`Câu ${qid}: đáp án "${answer}" không khớp options`);
 }
 
-function extractListeningTranscript(question: string, audioScript?: string): string {
-  if (audioScript?.trim()) return audioScript.trim();
-
-  const quoted = question.match(/['"]([^'"]+)['"]/);
-  if (quoted) {
-    const beforeQuote = question.slice(0, question.indexOf(quoted[0])).trim();
-    if (beforeQuote) return `${beforeQuote} '${quoted[1]}'`;
-    return quoted[1];
-  }
-
-  const beforeFollowUp = question.split(
-    /\.\s+(?:What|Who|Where|When|Why|How|Which)\b/
-  )[0];
-  return beforeFollowUp?.trim() || question;
-}
-
 function productionToMcq(q: ProductionQuestion): McqSeed {
   const answer = resolveOptionAnswer(q.options, q.answer, q.id);
   const media = inferQuestionMedia({
@@ -252,10 +237,15 @@ function productionToMcq(q: ProductionQuestion): McqSeed {
 }
 
 function productionToListening(q: ProductionQuestion): ListeningSeed {
-  const mcq = productionToMcq(q);
+  const { transcript, displayQuestion } = splitListeningScriptAndQuestion(
+    q.question,
+    q.audio_script
+  );
+  const mcq = productionToMcq({ ...q, question: displayQuestion });
   return {
     ...mcq,
-    transcript: extractListeningTranscript(q.question, q.audio_script),
+    question: displayQuestion,
+    transcript,
   };
 }
 

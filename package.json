@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "content:reseed-practice": "tsx scripts/reseed-practice.ts",
     "content:import-placement": "tsx scripts/import-placement.ts",
     "content:clear-placement": "tsx scripts/clear-placement.ts",
     "content:prune-placement": "tsx scripts/prune-placement.ts",

@@ -2,11 +2,12 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "/admin", label: "Tổng quan", exact: true },
+  { href: "/admin", label: "Dashboard", exact: true },
   { href: "/admin/questions", label: "Câu hỏi" },
   { href: "/admin/papers", label: "Đề thi" },
   { href: "/admin/users", label: "Tài khoản" },
-  { href: "/admin/placement", label: "Placement KQ" },
+  { href: "/admin/placement", label: "Placement" },
+  { href: "/admin/reports", label: "Báo lỗi" },
 ];
 
 export function AdminNav({ currentPath }: { currentPath: string }) {

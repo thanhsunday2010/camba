@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth-session";
 import { db } from "@/lib/db";
+import { getCachedLeaderboard } from "@/lib/dashboard/cached-stats";
 import { formatExamLevel, formatSkill, SKILLS } from "@/lib/constants";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,64 +11,78 @@ import { Button } from "@/components/ui/button";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { LevelPicker } from "@/components/exam/level-picker";
 import { Flame, Target, TrendingUp, ClipboardList, CalendarClock } from "lucide-react";
-import { redirect } from "next/navigation";
+
+export const revalidate = 60;
 
 export default async function DashboardPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session) redirect("/login");
 
   const userId = session.user.id;
 
-  const [user, totalAttempts, skillStats, recentScores, leaderboard] = await Promise.all([
-    db.user.findUnique({
-      where: { id: userId },
-      include: {
-        attempts: {
-          where: { status: { in: ["GRADED", "SUBMITTED"] } },
-          include: { paper: { select: { title: true, skill: true, level: true } } },
-          orderBy: { submittedAt: "desc" },
-          take: 10,
+  const [user, totalAttempts, skillStats, recentScores, recentAttempts, assignments, leaderboard] =
+    await Promise.all([
+      db.user.findUnique({
+        where: { id: userId },
+        select: {
+          name: true,
+          targetExam: true,
+          grade: true,
+          streak: true,
         },
-        assignments: {
-          where: { completed: false },
-          include: {
-            paper: { select: { title: true, skill: true } },
-            teacher: { select: { name: true } },
-          },
-          orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
-          take: 10,
+      }),
+      db.attempt.count({
+        where: {
+          userId,
+          status: { in: ["GRADED", "SUBMITTED"] },
         },
-      },
-    }),
-    db.attempt.count({
-      where: {
-        userId,
-        status: { in: ["GRADED", "SUBMITTED"] },
-      },
-    }),
-    db.attempt.findMany({
-      where: { userId, status: "GRADED", score: { not: null } },
-      select: {
-        score: true,
-        maxScore: true,
-        paper: { select: { skill: true } },
-      },
-      orderBy: { submittedAt: "desc" },
-      take: 80,
-    }),
-    db.attempt.findMany({
-      where: { userId, status: "GRADED", score: { not: null }, maxScore: { not: null } },
-      include: { paper: { select: { title: true } } },
-      orderBy: { submittedAt: "desc" },
-      take: 5,
-    }),
-    db.user.findMany({
-      where: { role: "STUDENT" },
-      orderBy: { streak: "desc" },
-      take: 5,
-      select: { name: true, streak: true },
-    }),
-  ]);
+      }),
+      db.attempt.findMany({
+        where: { userId, status: "GRADED", score: { not: null } },
+        select: {
+          score: true,
+          maxScore: true,
+          paper: { select: { skill: true } },
+        },
+        orderBy: { submittedAt: "desc" },
+        take: 50,
+      }),
+      db.attempt.findMany({
+        where: { userId, status: "GRADED", score: { not: null }, maxScore: { not: null } },
+        select: {
+          id: true,
+          score: true,
+          maxScore: true,
+          paper: { select: { title: true } },
+        },
+        orderBy: { submittedAt: "desc" },
+        take: 5,
+      }),
+      db.attempt.findMany({
+        where: { userId, status: { in: ["GRADED", "SUBMITTED"] } },
+        select: {
+          id: true,
+          score: true,
+          maxScore: true,
+          paper: { select: { title: true, skill: true, level: true } },
+        },
+        orderBy: { submittedAt: "desc" },
+        take: 10,
+      }),
+      db.assignment.findMany({
+        where: { studentId: userId, completed: false },
+        select: {
+          id: true,
+          paperId: true,
+          dueDate: true,
+          paper: { select: { title: true, skill: true } },
+          teacher: { select: { name: true } },
+        },
+        orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
+        take: 10,
+      }),
+      getCachedLeaderboard(),
+    ]);
 
   if (!user) redirect("/login");
 
@@ -127,17 +143,17 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {user.assignments.length > 0 && (
+      {assignments.length > 0 && (
         <Card className="mb-8 border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-extrabold">
               <ClipboardList className="h-5 w-5 text-purple-600" />
-              📋 Bài được giao ({user.assignments.length})
+              📋 Bài được giao ({assignments.length})
             </CardTitle>
             <CardDescription>Giáo viên đã giao — hoàn thành để đánh dấu xong</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {user.assignments.map((a) => (
+            {assignments.map((a) => (
               <div
                 key={a.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-white p-3"
@@ -213,11 +229,11 @@ export default async function DashboardPage() {
               <CardTitle>Bài làm gần đây</CardTitle>
             </CardHeader>
             <CardContent>
-              {user.attempts.length === 0 ? (
+              {recentAttempts.length === 0 ? (
                 <p className="text-muted-foreground">Chưa có bài làm nào.</p>
               ) : (
                 <div className="space-y-3">
-                  {user.attempts.map((a) => (
+                  {recentAttempts.map((a) => (
                     <Link
                       key={a.id}
                       href={`/results/${a.id}`}

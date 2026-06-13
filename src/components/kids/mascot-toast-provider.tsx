@@ -19,10 +19,12 @@ const HIDDEN_PREFIXES = ["/admin", "/login", "/register", "/teacher"];
 
 type MascotToastContextValue = {
   showMascot: (payload: MascotToastPayload | string) => void;
+  hideMascot: () => void;
 };
 
 const MascotToastContext = createContext<MascotToastContextValue>({
   showMascot: () => {},
+  hideMascot: () => {},
 });
 
 export function useMascotToast() {
@@ -46,6 +48,14 @@ export function MascotToastProvider({
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
 
+  const hideMascot = useCallback(() => {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+    setToast(null);
+  }, []);
+
   const showMascot = useCallback(
     (payload: MascotToastPayload | string) => {
       if (hidden) return;
@@ -62,10 +72,12 @@ export function MascotToastProvider({
       setToast({ message, mood: normalized.mood ?? "happy" });
       play("pop");
 
-      hideTimerRef.current = setTimeout(() => {
-        setToast(null);
-        hideTimerRef.current = null;
-      }, normalized.durationMs ?? MASCOT_DEFAULT_DURATION_MS);
+      if (!normalized.persist) {
+        hideTimerRef.current = setTimeout(() => {
+          setToast(null);
+          hideTimerRef.current = null;
+        }, normalized.durationMs ?? MASCOT_DEFAULT_DURATION_MS);
+      }
     },
     [hidden, play, userName]
   );
@@ -77,15 +89,11 @@ export function MascotToastProvider({
   }, []);
 
   useEffect(() => {
-    setToast(null);
-    if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = null;
-    }
-  }, [pathname]);
+    hideMascot();
+  }, [pathname, hideMascot]);
 
   return (
-    <MascotToastContext.Provider value={{ showMascot }}>
+    <MascotToastContext.Provider value={{ showMascot, hideMascot }}>
       {children}
       {!hidden && toast && (
         <div
