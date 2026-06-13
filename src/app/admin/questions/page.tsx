@@ -9,7 +9,6 @@ export default async function AdminQuestionsPage() {
 
   const questions = await db.question.findMany({
     orderBy: { createdAt: "desc" },
-    take: 200,
     select: {
       id: true,
       type: true,

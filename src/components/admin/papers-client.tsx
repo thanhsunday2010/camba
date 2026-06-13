@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,13 @@ import {
 } from "@/lib/actions/exam";
 import { ExamLevel, PaperKind, Skill } from "@prisma/client";
 import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
+import { QuestionForm, type QuestionFormData } from "@/components/admin/question-form";
+
+type PaperQuestionRow = {
+  id: string;
+  orderIndex: number;
+  question: QuestionFormData;
+};
 
 type PaperRow = {
   id: string;
@@ -39,11 +47,7 @@ type PaperRow = {
   isMockTest: boolean;
   published: boolean;
   sections: unknown;
-  questions: {
-    id: string;
-    orderIndex: number;
-    question: { id: string; title: string | null; type: string };
-  }[];
+  questions: PaperQuestionRow[];
 };
 
 type QuestionRow = {
@@ -201,10 +205,12 @@ export function AdminPapersClient({
   papers: PaperRow[];
   questions: QuestionRow[];
 }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<string | null>(papers[0]?.id ?? null);
   const [addQuestionId, setAddQuestionId] = useState("");
   const [editingPaper, setEditingPaper] = useState<PaperRow | null>(null);
+  const [editingQuestion, setEditingQuestion] = useState<QuestionFormData | null>(null);
   const [kindFilter, setKindFilter] = useState<string>("ALL");
 
   const filteredPapers = useMemo(() => {
@@ -217,6 +223,7 @@ export function AdminPapersClient({
     const result = await addQuestionToPaperAction(selectedPaper, addQuestionId);
     if (result.error) toast.error(result.error);
     else toast.success("Đã thêm câu vào đề");
+    router.refresh();
   }
 
   const activePaper = papers.find((p) => p.id === selectedPaper);
@@ -257,7 +264,10 @@ export function AdminPapersClient({
               paper={editingPaper ?? undefined}
               loading={loading}
               setLoading={setLoading}
-              onDone={() => setEditingPaper(null)}
+              onDone={() => {
+                setEditingPaper(null);
+                router.refresh();
+              }}
             />
           </CardContent>
         </Card>
@@ -343,42 +353,76 @@ export function AdminPapersClient({
                 </div>
               </div>
               {paper.questions.length > 0 && (
-                <ol className="mt-3 space-y-1 text-sm">
+                <ol className="mt-3 space-y-2 text-sm">
                   {paper.questions.map((pq, i) => (
-                    <li key={pq.id} className="flex items-center justify-between rounded bg-slate-50 px-2 py-1">
-                      <span>
-                        {i + 1}. {pq.question.title ?? pq.question.type}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          className="p-1 text-purple-600 hover:bg-purple-100 rounded"
-                          onClick={async () => {
-                            await movePaperQuestionAction(pq.id, "up");
-                          }}
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          className="p-1 text-purple-600 hover:bg-purple-100 rounded"
-                          onClick={async () => {
-                            await movePaperQuestionAction(pq.id, "down");
-                          }}
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          className="px-2 text-red-600 hover:underline"
-                          onClick={async () => {
-                            await removeQuestionFromPaperAction(pq.id);
-                            toast.success("Đã gỡ câu");
-                          }}
-                        >
-                          Gỡ
-                        </button>
+                    <li key={pq.id}>
+                      <div className="flex items-center justify-between rounded bg-slate-50 px-2 py-1">
+                        <span>
+                          {i + 1}. {pq.question.title ?? pq.question.type}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            className="p-1 text-purple-600 hover:bg-purple-100 rounded"
+                            title="Sửa nội dung câu"
+                            onClick={() =>
+                              setEditingQuestion(
+                                editingQuestion?.id === pq.question.id ? null : pq.question
+                              )
+                            }
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            className="p-1 text-purple-600 hover:bg-purple-100 rounded"
+                            onClick={async () => {
+                              await movePaperQuestionAction(pq.id, "up");
+                              router.refresh();
+                            }}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            className="p-1 text-purple-600 hover:bg-purple-100 rounded"
+                            onClick={async () => {
+                              await movePaperQuestionAction(pq.id, "down");
+                              router.refresh();
+                            }}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            className="px-2 text-red-600 hover:underline"
+                            onClick={async () => {
+                              await removeQuestionFromPaperAction(pq.id);
+                              toast.success("Đã gỡ câu");
+                              router.refresh();
+                            }}
+                          >
+                            Gỡ
+                          </button>
+                        </div>
                       </div>
+                      {editingQuestion?.id === pq.question.id && (
+                        <div className="mt-2 rounded-lg border border-purple-200 bg-white p-3">
+                          <p className="mb-2 text-xs font-semibold text-purple-700">
+                            Sửa câu {i + 1} · {paper.title}
+                          </p>
+                          <QuestionForm
+                            key={pq.question.id}
+                            question={pq.question}
+                            mode="edit"
+                            compact
+                            onDone={() => {
+                              setEditingQuestion(null);
+                              router.refresh();
+                            }}
+                          />
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ol>

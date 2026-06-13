@@ -19,7 +19,7 @@ export default async function AdminPapersPage() {
     }),
     db.question.findMany({
       orderBy: { createdAt: "desc" },
-      take: 200,
+      select: { id: true, title: true, type: true, level: true, skill: true },
     }),
   ]);
 

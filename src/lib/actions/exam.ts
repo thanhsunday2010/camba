@@ -18,7 +18,7 @@ const questionSchema = z.object({
   title: z.string().optional(),
   content: z.string(),
   correctAnswer: z.string().optional(),
-  points: z.coerce.number().min(1).default(1),
+  points: z.coerce.number().min(1).optional(),
   audioUrl: z.string().optional(),
 });
 
@@ -68,6 +68,37 @@ function parseSectionsJson(
   }
 }
 
+function parseQuestionJsonField(
+  raw: string | undefined,
+  fieldName: string
+): { ok: true; value: Prisma.InputJsonValue } | { ok: false; error: string } {
+  if (!raw?.trim()) {
+    return { ok: false, error: `${fieldName} không được để trống` };
+  }
+  try {
+    return { ok: true, value: JSON.parse(raw) as Prisma.InputJsonValue };
+  } catch {
+    return { ok: false, error: `${fieldName} JSON không hợp lệ` };
+  }
+}
+
+async function revalidateQuestionPaths(questionId: string) {
+  revalidatePath("/admin/questions");
+  revalidatePath("/admin/papers");
+  revalidatePath("/placement");
+  revalidatePath("/exams", "layout");
+  revalidatePath("/dashboard");
+
+  const links = await db.paperQuestion.findMany({
+    where: { questionId },
+    select: { paperId: true },
+  });
+  for (const { paperId } of links) {
+    revalidatePath(`/practice/${paperId}`);
+    revalidatePath(`/placement/take/${paperId}`);
+  }
+}
+
 export async function createQuestionAction(formData: FormData) {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") {
@@ -81,28 +112,41 @@ export async function createQuestionAction(formData: FormData) {
     title: formData.get("title") || undefined,
     content: formData.get("content"),
     correctAnswer: formData.get("correctAnswer") || undefined,
-    points: formData.get("points") || 1,
+    points: formData.get("points") || undefined,
     audioUrl: formData.get("audioUrl") || undefined,
   });
 
   if (!parsed.success) return { error: "Dữ liệu không hợp lệ" };
 
+  const contentResult = parseQuestionJsonField(parsed.data.content, "Nội dung");
+  if (!contentResult.ok) return { error: contentResult.error };
+
+  let correctAnswer: Prisma.InputJsonValue | typeof Prisma.JsonNull = Prisma.JsonNull;
+  const correctAnswerRaw = (formData.get("correctAnswer") as string | null)?.trim() ?? "";
+  if (correctAnswerRaw) {
+    try {
+      correctAnswer = JSON.parse(correctAnswerRaw) as Prisma.InputJsonValue;
+    } catch {
+      return { error: "Đáp án JSON không hợp lệ" };
+    }
+  }
+
+  const audioUrlRaw = (formData.get("audioUrl") as string | null)?.trim();
+
   try {
-    await db.question.create({
+    const question = await db.question.create({
       data: {
         type: parsed.data.type as QuestionType,
         level: parsed.data.level as ExamLevel,
         skill: parsed.data.skill as Skill,
-        title: parsed.data.title,
-        content: JSON.parse(parsed.data.content),
-        correctAnswer: parsed.data.correctAnswer
-          ? JSON.parse(parsed.data.correctAnswer)
-          : null,
-        points: parsed.data.points,
-        audioUrl: parsed.data.audioUrl,
+        title: parsed.data.title?.trim() || null,
+        content: contentResult.value,
+        correctAnswer,
+        points: parsed.data.points ?? 1,
+        audioUrl: audioUrlRaw || null,
       },
     });
-    revalidatePath("/admin/questions");
+    await revalidateQuestionPaths(question.id);
     return { success: true };
   } catch {
     return { error: "Không thể tạo câu hỏi. Kiểm tra JSON content." };
@@ -129,6 +173,9 @@ export async function updateQuestionAction(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return { error: "Thiếu ID câu hỏi" };
 
+  const existing = await db.question.findUnique({ where: { id } });
+  if (!existing) return { error: "Không tìm thấy câu hỏi" };
+
   const parsed = questionSchema.safeParse({
     type: formData.get("type"),
     level: formData.get("level"),
@@ -136,11 +183,37 @@ export async function updateQuestionAction(formData: FormData) {
     title: formData.get("title") || undefined,
     content: formData.get("content"),
     correctAnswer: formData.get("correctAnswer") || undefined,
-    points: formData.get("points") || 1,
+    points: formData.get("points") || undefined,
     audioUrl: formData.get("audioUrl") || undefined,
   });
 
   if (!parsed.success) return { error: "Dữ liệu không hợp lệ" };
+
+  const contentResult = parseQuestionJsonField(parsed.data.content, "Nội dung");
+  if (!contentResult.ok) return { error: contentResult.error };
+
+  const correctAnswerRaw = (formData.get("correctAnswer") as string | null)?.trim() ?? "";
+  let correctAnswer: Prisma.InputJsonValue | typeof Prisma.JsonNull =
+    existing.correctAnswer ?? Prisma.JsonNull;
+  if (correctAnswerRaw) {
+    try {
+      correctAnswer = JSON.parse(correctAnswerRaw) as Prisma.InputJsonValue;
+    } catch {
+      return { error: "Đáp án JSON không hợp lệ" };
+    }
+  }
+
+  const audioUrlRaw = formData.get("audioUrl") as string | null;
+  const audioUrl =
+    audioUrlRaw !== null && audioUrlRaw.trim() !== ""
+      ? audioUrlRaw.trim()
+      : audioUrlRaw !== null && audioUrlRaw.trim() === ""
+        ? null
+        : existing.audioUrl;
+
+  const titleRaw = formData.get("title") as string | null;
+  const title =
+    titleRaw !== null ? titleRaw.trim() || null : existing.title;
 
   try {
     await db.question.update({
@@ -149,16 +222,14 @@ export async function updateQuestionAction(formData: FormData) {
         type: parsed.data.type as QuestionType,
         level: parsed.data.level as ExamLevel,
         skill: parsed.data.skill as Skill,
-        title: parsed.data.title,
-        content: JSON.parse(parsed.data.content),
-        correctAnswer: parsed.data.correctAnswer
-          ? JSON.parse(parsed.data.correctAnswer)
-          : null,
-        points: parsed.data.points,
-        audioUrl: parsed.data.audioUrl,
+        title,
+        content: contentResult.value,
+        correctAnswer,
+        points: parsed.data.points ?? existing.points,
+        audioUrl,
       },
     });
-    revalidatePath("/admin/questions");
+    await revalidateQuestionPaths(id);
     return { success: true };
   } catch {
     return { error: "Không thể cập nhật câu hỏi. Kiểm tra JSON content." };
