@@ -8,6 +8,10 @@ import { QuestionRenderer } from "@/components/exam/question-renderer";
 import { ExamTimer } from "@/components/exam/exam-timer";
 import { ConfettiBurst } from "@/components/kids/confetti-burst";
 import { useKidSound } from "@/components/kids/sound-provider";
+import {
+  stopAllListeningPlayback,
+  unlockListeningAudio,
+} from "@/lib/audio/listening-audio-client";
 import { startAttemptAction, submitAttemptAction } from "@/lib/actions/exam";
 import { QuestionType } from "@prisma/client";
 
@@ -93,6 +97,10 @@ export function PracticeClient({
     });
   }, [paperId, initialAttemptId]);
 
+  useEffect(() => {
+    stopAllListeningPlayback();
+  }, [currentIndex]);
+
   const setAnswer = useCallback(
     (questionId: string, value: unknown) => {
       setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -151,11 +159,13 @@ export function PracticeClient({
   }, [attemptId, answers, startedAt, questions, router, paperKind, play]);
 
   const goNext = () => {
+    stopAllListeningPlayback();
     play("whoosh");
     setCurrentIndex((i) => Math.min(i + 1, questions.length - 1));
   };
 
   const goPrev = () => {
+    stopAllListeningPlayback();
     play("click");
     setCurrentIndex((i) => Math.max(i - 1, 0));
   };
@@ -168,7 +178,10 @@ export function PracticeClient({
   const progressPct = Math.round((answeredCount / questions.length) * 100);
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div
+      className="container mx-auto px-4 py-6"
+      onPointerDown={() => unlockListeningAudio()}
+    >
       <ConfettiBurst active={showConfetti} />
 
       {paperKind === "PLACEMENT" && (

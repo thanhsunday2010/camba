@@ -56,12 +56,15 @@ export function QuestionRenderer({
         </span>
       </div>
 
-      {(audioSrc || (isListening && transcript)) && (
+      {(isListening || audioSrc || transcript) && (
         <AudioPlayer
+          key={question.id}
+          questionId={question.id}
           src={audioSrc}
           transcript={transcript}
           title="Nghe audio"
           autoPlay={isListening}
+          isListening={isListening}
         />
       )}
 

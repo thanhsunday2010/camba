@@ -39,6 +39,7 @@ export const GEMINI_MODELS = {
   speaking: process.env.GEMINI_MODEL_SPEAKING ?? "gemini-2.5-flash",
   explain: process.env.GEMINI_MODEL_EXPLAIN ?? "gemini-2.5-flash",
   audio: process.env.GEMINI_MODEL_AUDIO ?? "gemini-2.5-flash",
+  tts: process.env.GEMINI_MODEL_TTS ?? "gemini-2.5-flash-preview-tts",
 } as const;
 
 export type SpeechToTextMode = "browser" | "gemini";
