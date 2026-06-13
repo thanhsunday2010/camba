@@ -26,20 +26,61 @@ export default async function ExamsLevelPage({
 
   const papers = await db.examPaper.findMany({
     where: { level: level as ExamLevel, published: true },
-    orderBy: [{ skill: "asc" }, { title: "asc" }],
+    orderBy: [{ paperKind: "asc" }, { skill: "asc" }, { isMockTest: "desc" }, { title: "asc" }],
   });
+
+  const fullMocks = papers.filter((p) => p.paperKind === "MOCK_FULL");
+  const practicePapers = papers.filter((p) => p.paperKind !== "MOCK_FULL" && p.paperKind !== "PLACEMENT");
+
+  const mockCount = practicePapers.filter((p) => p.isMockTest).length;
 
   const grouped = SKILLS.map((skill) => ({
     skill,
-    papers: papers.filter((p) => p.skill === skill.value),
+    papers: practicePapers.filter((p) => p.skill === skill.value),
   }));
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">{formatExamLevel(level)}</h1>
-        <p className="text-muted-foreground">Chọn kỹ năng và bộ đề để luyện tập</p>
+        <p className="text-muted-foreground">
+          {practicePapers.length} đề luyện tập · {mockCount} mock test
+          {fullMocks.length > 0 && ` · ${fullMocks.length} full mock`}
+        </p>
       </div>
+
+      {fullMocks.length > 0 && (
+        <section className="mb-10">
+          <h2 className="mb-4 text-xl font-semibold text-cambridge-800">
+            Full Mock Test — Tất cả kỹ năng
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {fullMocks.map((paper) => (
+              <Link key={paper.id} href={`/practice/${paper.id}`}>
+                <Card className="h-full border-amber-200 bg-amber-50/50 transition-shadow hover:shadow-md">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-lg">{paper.title}</CardTitle>
+                      <Badge className="bg-amber-600">Full Mock</Badge>
+                    </div>
+                    {paper.description && (
+                      <CardDescription>{paper.description}</CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    {paper.timeLimit && (
+                      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        {Math.floor(paper.timeLimit / 60)} phút
+                      </span>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="space-y-10">
         {grouped.map(({ skill, papers: skillPapers }) => {

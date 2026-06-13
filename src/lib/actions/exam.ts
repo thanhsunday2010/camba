@@ -7,7 +7,8 @@ import { db } from "@/lib/db";
 import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
 import { markAssignmentsComplete } from "@/lib/exam/assignments";
-import { QuestionType, ExamLevel, Skill } from "@prisma/client";
+import { evaluatePlacement } from "@/lib/placement/evaluate";
+import { QuestionType, ExamLevel, Skill, PaperKind, Prisma } from "@prisma/client";
 
 const questionSchema = z.object({
   type: z.enum(["MCQ", "GAP_FILL", "FREE_TEXT", "SPEAKING_PROMPT"]),
@@ -150,6 +151,7 @@ export async function submitAttemptAction(
   let totalScore = 0;
   let maxScore = 0;
   const needsAI: string[] = [];
+  const skillStats = new Map<Skill, { correct: number; total: number }>();
 
   for (const pq of attempt.paper.questions) {
     const q = pq.question;
@@ -176,6 +178,11 @@ export async function submitAttemptAction(
     const score = result.score * q.points;
     totalScore += score;
 
+    const stat = skillStats.get(q.skill) ?? { correct: 0, total: 0 };
+    stat.total += 1;
+    if (result.isCorrect) stat.correct += 1;
+    skillStats.set(q.skill, stat);
+
     await db.attemptAnswer.upsert({
       where: { attemptId_questionId: { attemptId, questionId: q.id } },
       create: {
@@ -195,14 +202,29 @@ export async function submitAttemptAction(
 
   const status = needsAI.length > 0 ? "SUBMITTED" : "GRADED";
 
+  let placementReport = undefined;
+  if (attempt.paper.paperKind === PaperKind.PLACEMENT) {
+    const skillResults = Array.from(skillStats.entries()).map(([skill, s]) => ({
+      skill,
+      correct: s.correct,
+      total: s.total,
+      percent: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
+    }));
+    const track = attempt.paper.title.includes("YLE") ? "YLE" : "SECONDARY";
+    placementReport = evaluatePlacement(skillResults, track);
+  }
+
   await db.attempt.update({
     where: { id: attemptId },
     data: {
       status,
-      score: needsAI.length > 0 ? totalScore : totalScore,
+      score: totalScore,
       maxScore,
       submittedAt: new Date(),
       timeSpent,
+      ...(placementReport
+        ? { placementReport: placementReport as unknown as Prisma.InputJsonValue }
+        : {}),
     },
   });
 
@@ -212,7 +234,8 @@ export async function submitAttemptAction(
   }
 
   revalidatePath("/dashboard");
-  return { attemptId, needsAI, score: totalScore, maxScore };
+  revalidatePath("/placement");
+  return { attemptId, needsAI, score: totalScore, maxScore, placementReport };
 }
 
 export async function assignPaperAction(formData: FormData): Promise<void> {

@@ -15,6 +15,15 @@ interface PaperQuestion {
   content: unknown;
   audioUrl?: string | null;
   points: number;
+  skill?: string;
+}
+
+interface PaperSection {
+  skill: string;
+  label: string;
+  startIndex: number;
+  endIndex: number;
+  timeLimit?: number;
 }
 
 interface PracticeClientProps {
@@ -22,6 +31,8 @@ interface PracticeClientProps {
   paperTitle: string;
   timeLimit?: number | null;
   isMockTest?: boolean;
+  paperKind?: string;
+  sections?: PaperSection[] | null;
   questions: PaperQuestion[];
 }
 
@@ -30,6 +41,8 @@ export function PracticeClient({
   paperTitle,
   timeLimit,
   isMockTest = false,
+  paperKind,
+  sections,
   questions,
 }: PracticeClientProps) {
   const router = useRouter();
@@ -92,14 +105,27 @@ export function PracticeClient({
     }
 
     toast.success("Nộp bài thành công!");
-    router.push(`/results/${attemptId}`);
-  }, [attemptId, answers, startedAt, questions, router]);
+    if (paperKind === "PLACEMENT") {
+      router.push(`/placement/results/${attemptId}`);
+    } else {
+      router.push(`/results/${attemptId}`);
+    }
+  }, [attemptId, answers, startedAt, questions, router, paperKind]);
 
   const current = questions[currentIndex];
+  const currentSection = sections?.find(
+    (s) => currentIndex >= s.startIndex && currentIndex < s.endIndex
+  );
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {isMockTest && (
+      {paperKind === "PLACEMENT" && (
+        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          <strong>Bài test trình độ:</strong> Làm hết các phần Reading, Listening và Use of English.
+          Kết quả sẽ đánh giá trình độ CEFR và đề xuất cấp độ Cambridge phù hợp.
+        </div>
+      )}
+      {(isMockTest && paperKind !== "PLACEMENT") && (
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <strong>Chế độ thi thử:</strong> Làm tuần tự từng câu, không nhảy câu tự do. Hết giờ sẽ tự nộp bài.
         </div>
@@ -107,6 +133,11 @@ export function PracticeClient({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{paperTitle}</h1>
+          {currentSection && (
+            <p className="text-sm font-medium text-cambridge-700">
+              Phần: {currentSection.label}
+            </p>
+          )}
           <p className="text-sm text-muted-foreground">
             Câu {currentIndex + 1}/{questions.length}
           </p>
@@ -119,10 +150,13 @@ export function PracticeClient({
           <div className="sticky top-20 rounded-xl border bg-white p-4">
             <p className="mb-3 text-sm font-medium">Danh sách câu</p>
             <div className="grid grid-cols-5 gap-2 lg:grid-cols-4">
-              {questions.map((q, i) => (
+              {questions.map((q, i) => {
+                const sec = sections?.find((s) => i >= s.startIndex && i < s.endIndex);
+                return (
                 <button
                   key={q.id}
                   type="button"
+                  title={sec?.label}
                   onClick={() => {
                     if (!isMockTest) setCurrentIndex(i);
                   }}
@@ -137,7 +171,7 @@ export function PracticeClient({
                 >
                   {i + 1}
                 </button>
-              ))}
+              );})}
             </div>
             <Button
               className="mt-4 w-full"
@@ -156,6 +190,7 @@ export function PracticeClient({
               index={currentIndex}
               value={answers[current.id]}
               onChange={(v) => setAnswer(current.id, v)}
+              isListening={currentSection?.skill === "LISTENING"}
               onSpeakingTranscript={async (text) => {
                 if (!attemptId) return;
                 try {

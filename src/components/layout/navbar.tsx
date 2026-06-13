@@ -22,6 +22,9 @@ export async function Navbar() {
               <Link href="/dashboard" className="text-sm font-medium hover:text-cambridge-600">
                 Dashboard
               </Link>
+              <Link href="/placement" className="text-sm font-medium hover:text-cambridge-600">
+                Test trình độ
+              </Link>
               <Link href="/exams/KET" className="text-sm font-medium hover:text-cambridge-600">
                 Luyện thi
               </Link>

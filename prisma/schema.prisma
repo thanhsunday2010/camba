@@ -44,6 +44,13 @@ enum AttemptStatus {
   GRADED
 }
 
+enum PaperKind {
+  PRACTICE
+  MOCK_SKILL
+  MOCK_FULL
+  PLACEMENT
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -89,6 +96,8 @@ model ExamPaper {
   description String?
   level       ExamLevel
   skill       Skill
+  paperKind   PaperKind @default(PRACTICE)
+  sections    Json?
   timeLimit   Int?
   isMockTest  Boolean   @default(false)
   published   Boolean   @default(true)
@@ -113,15 +122,16 @@ model PaperQuestion {
 }
 
 model Attempt {
-  id          String        @id @default(cuid())
-  userId      String
-  paperId     String
-  status      AttemptStatus @default(IN_PROGRESS)
-  score       Float?
-  maxScore    Float?
-  startedAt   DateTime      @default(now())
-  submittedAt DateTime?
-  timeSpent   Int?
+  id              String        @id @default(cuid())
+  userId          String
+  paperId         String
+  status          AttemptStatus @default(IN_PROGRESS)
+  score           Float?
+  maxScore        Float?
+  placementReport Json?
+  startedAt       DateTime      @default(now())
+  submittedAt     DateTime?
+  timeSpent       Int?
 
   user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   paper   ExamPaper       @relation(fields: [paperId], references: [id], onDelete: Cascade)

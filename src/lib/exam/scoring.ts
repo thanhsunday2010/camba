@@ -4,6 +4,7 @@ export interface McqContent {
   passage?: string;
   question: string;
   options: string[];
+  transcript?: string;
 }
 
 export interface GapFillContent {

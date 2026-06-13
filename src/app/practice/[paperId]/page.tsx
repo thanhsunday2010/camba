@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { PracticeClient } from "@/components/exam/practice-client";
+import { parseSections } from "@/lib/exam/paper-sections";
 
 export default async function PracticePage({
   params,
@@ -31,14 +32,23 @@ export default async function PracticePage({
     content: pq.question.content,
     audioUrl: pq.question.audioUrl,
     points: pq.question.points,
+    skill: pq.question.skill,
   }));
+
+  const sections = parseSections(paper.sections);
+  const isSequential =
+    paper.isMockTest ||
+    paper.paperKind === "MOCK_FULL" ||
+    paper.paperKind === "PLACEMENT";
 
   return (
     <PracticeClient
       paperId={paper.id}
       paperTitle={paper.title}
       timeLimit={paper.timeLimit}
-      isMockTest={paper.isMockTest}
+      isMockTest={isSequential}
+      paperKind={paper.paperKind}
+      sections={sections}
       questions={questions}
     />
   );

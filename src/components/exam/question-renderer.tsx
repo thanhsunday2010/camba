@@ -28,6 +28,7 @@ interface QuestionRendererProps {
   onChange: (value: unknown) => void;
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
+  isListening?: boolean;
 }
 
 export function QuestionRenderer({
@@ -37,8 +38,12 @@ export function QuestionRenderer({
   onChange,
   onSpeakingTranscript,
   disabled,
+  isListening = false,
 }: QuestionRendererProps) {
   const content = question.content as McqContent | GapFillContent | FreeTextContent | SpeakingContent;
+  const mcqContent = content as McqContent;
+  const audioSrc = question.audioUrl;
+  const transcript = mcqContent.transcript;
 
   return (
     <div className="space-y-4 rounded-xl border bg-white p-6 shadow-sm">
@@ -49,8 +54,13 @@ export function QuestionRenderer({
         <span className="text-sm text-muted-foreground">{question.points} điểm</span>
       </div>
 
-      {question.audioUrl && (
-        <AudioPlayer src={question.audioUrl} title="Nghe audio" />
+      {(audioSrc || (isListening && transcript)) && (
+        <AudioPlayer
+          src={audioSrc}
+          transcript={transcript}
+          title="Nghe audio"
+          autoPlay={isListening}
+        />
       )}
 
       {question.type === "MCQ" && (
