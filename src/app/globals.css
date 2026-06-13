@@ -93,6 +93,12 @@
   .animate-mascot-shadow {
     animation: mascotShadow 2.5s ease-in-out infinite;
   }
+  .animate-mascot-ear-left {
+    animation: mascotEarLeft 2s ease-in-out infinite;
+  }
+  .animate-mascot-ear-right {
+    animation: mascotEarRight 1s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -142,7 +148,17 @@
   75% { transform: rotate(4deg); }
 }
 
+@keyframes mascotEarLeft {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(-14deg); }
+}
+
+@keyframes mascotEarRight {
+  0%, 100% { transform: rotate(8deg); }
+  50% { transform: rotate(22deg); }
+}
+
 @keyframes mascotShadow {
-  0%, 100% { transform: scaleX(1); opacity: 0.12; }
-  50% { transform: scaleX(0.85); opacity: 0.08; }
+  0%, 100% { transform: scaleX(1); opacity: 0.1; }
+  50% { transform: scaleX(0.85); opacity: 0.06; }
 }

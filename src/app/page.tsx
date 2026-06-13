@@ -106,7 +106,7 @@ export default async function HomePage() {
             </div>
             <div className="shrink-0">
               <MascotHero
-                message="Mình là Camba 🦉 — cùng bạn chinh phục tiếng Anh Cambridge nhé!"
+                message="Mình là Camba 🐰 — thỏ thông minh cùng bạn chinh phục tiếng Anh Cambridge!"
                 mood="wave"
               />
             </div>

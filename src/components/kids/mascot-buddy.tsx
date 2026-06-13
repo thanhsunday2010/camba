@@ -8,14 +8,14 @@ import { cn } from "@/lib/utils";
 
 const MESSAGES: Record<string, string[]> = {
   "/": [
-    "Chào bạn! Mình là Camba 🦉",
-    "Cùng học tiếng Anh vui nhé!",
-    "Nhấn vào mình để nghe lời khuyên!",
+    "Chào bạn! Mình là Camba 🐰",
+    "Thỏ thông minh — cùng học tiếng Anh nhé!",
+    "Nhấn vào mình để nghe mẹo hay!",
   ],
   "/dashboard": [
     "Chào {name}! Học 1 chút mỗi ngày nhé!",
-    "Giữ streak 🔥 — bạn làm được mà!",
-    "Chọn kỹ năng yếu để luyện thêm!",
+    "Giữ streak 🔥 — thỏ tin bạn làm được!",
+    "Lém một chút cũng được, miễn là học! 😄",
   ],
   "/exams": [
     "Chọn level phù hợp với bạn!",
@@ -23,10 +23,10 @@ const MESSAGES: Record<string, string[]> = {
     "Cố lên, mình tin bạn! 💪",
   ],
   "/practice": [
-    "Đọc kỹ câu hỏi nhé!",
+    "Đọc kỹ câu hỏi — thỏ không bị lừa đâu! 🐰",
     "Nghe audio 2 lần nếu cần 🎧",
-    "Bạn làm rất tốt! Tiếp tục!",
-    "Hết giờ là tự nộp — đừng lo!",
+    "Hehe, câu này dễ mà — thử xem!",
+    "Hết giờ tự nộp — đừng lo nhé!",
   ],
   "/placement": [
     "Làm hết bài để biết level nhé!",
@@ -39,8 +39,8 @@ const MESSAGES: Record<string, string[]> = {
     "Lần sau sẽ giỏi hơn! ⭐",
   ],
   default: [
-    "Học tiếng Anh vui mỗi ngày!",
-    "Camba luôn ở đây với bạn!",
+    "Thỏ thông minh Camba luôn ở đây!",
+    "Học tiếng Anh vui mỗi ngày nhé!",
   ],
 };
 
