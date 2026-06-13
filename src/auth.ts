@@ -4,6 +4,9 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { authConfig } from "@/auth.config";
+import { ensureAuthPublicUrl } from "@/lib/auth-url";
+
+ensureAuthPublicUrl();
 
 const loginSchema = z.object({
   email: z.string().email(),
