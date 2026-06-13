@@ -22,7 +22,7 @@ function dbErrorMessage(error: unknown): string {
     message.includes("P1017") ||
     message.includes("Connection")
   ) {
-    return "Không kết nối được database. Kiểm tra DATABASE_URL trên Vercel (Supabase pooler :6543).";
+    return "Không kết nối được database. Trên Vercel: đặt DATABASE_URL = pooler :6543 (Transaction mode), DIRECT_URL = direct :5432, kiểm tra Supabase project không bị pause, và đã chạy npm run db:deploy.";
   }
   if (message.includes("does not exist") || message.includes("P2021")) {
     return "Database chưa có bảng. Chạy: npx prisma migrate deploy && npm run db:seed";
