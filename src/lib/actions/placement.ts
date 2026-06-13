@@ -113,3 +113,38 @@ export async function getPlacementAttemptAction(attemptId: string) {
     savedAnswers,
   };
 }
+
+export async function savePlacementAnswerAction(
+  attemptId: string,
+  questionId: string,
+  answer: unknown
+) {
+  const session = await auth();
+
+  const attempt = await db.attempt.findUnique({
+    where: { id: attemptId },
+    include: { paper: true },
+  });
+
+  if (
+    !attempt ||
+    attempt.status !== "IN_PROGRESS" ||
+    attempt.paper.paperKind !== PaperKind.PLACEMENT
+  ) {
+    return { error: "Bài làm không hợp lệ" };
+  }
+
+  if (attempt.userId) {
+    if (!session || session.user.id !== attempt.userId) {
+      return { error: "Không có quyền" };
+    }
+  }
+
+  await db.attemptAnswer.upsert({
+    where: { attemptId_questionId: { attemptId, questionId } },
+    create: { attemptId, questionId, answer: answer ?? "" },
+    update: { answer: answer ?? "" },
+  });
+
+  return { ok: true };
+}

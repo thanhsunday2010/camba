@@ -22,6 +22,19 @@ export const QUESTION_TYPES = [
   { value: "SPEAKING_PROMPT", label: "Nói (AI chấm)" },
 ] as const;
 
+export const PAPER_KINDS = [
+  { value: "PRACTICE", label: "Luyện tập", description: "Đề luyện theo kỹ năng" },
+  { value: "MOCK_SKILL", label: "Mock theo kỹ năng", description: "Thi thử 1 kỹ năng" },
+  { value: "MOCK_FULL", label: "Mock full test", description: "Thi thử đầy đủ" },
+  { value: "PLACEMENT", label: "Placement test", description: "Test trình độ" },
+] as const;
+
+export const USER_ROLES = [
+  { value: "STUDENT", label: "Học sinh" },
+  { value: "TEACHER", label: "Giáo viên" },
+  { value: "ADMIN", label: "Quản trị" },
+] as const;
+
 export type ExamLevelValue = (typeof EXAM_LEVELS)[number]["value"];
 export type SkillValue = (typeof SKILLS)[number]["value"];
 
@@ -31,6 +44,10 @@ export function formatExamLevel(level: string): string {
 
 export function formatSkill(skill: string): string {
   return SKILLS.find((s) => s.value === skill)?.label ?? skill;
+}
+
+export function formatPaperKind(kind: string): string {
+  return PAPER_KINDS.find((k) => k.value === kind)?.label ?? kind;
 }
 
 export function formatDuration(seconds: number): string {

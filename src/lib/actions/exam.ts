@@ -30,7 +30,40 @@ const paperSchema = z.object({
   timeLimit: z.coerce.number().min(60).optional(),
   isMockTest: z.coerce.boolean().optional(),
   published: z.coerce.boolean().optional(),
+  paperKind: z.enum(["PRACTICE", "MOCK_SKILL", "MOCK_FULL", "PLACEMENT"]).optional(),
+  sections: z.string().optional(),
 });
+
+function parsePaperFormData(formData: FormData) {
+  return {
+    title: formData.get("title"),
+    description: formData.get("description") || undefined,
+    level: formData.get("level"),
+    skill: formData.get("skill"),
+    timeLimit: formData.get("timeLimit") || undefined,
+    isMockTest: formData.get("isMockTest") === "on",
+    published: formData.get("published") === "on",
+    paperKind: formData.get("paperKind") || "PRACTICE",
+    sections: formData.get("sections") || undefined,
+  };
+}
+
+function paperKindDefaults(kind: PaperKind) {
+  return {
+    isMockTest: kind !== PaperKind.PRACTICE,
+  };
+}
+
+function parseSectionsJson(raw?: string): Prisma.InputJsonValue | undefined {
+  if (!raw?.trim()) return undefined;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return undefined;
+    return parsed as Prisma.InputJsonValue;
+  } catch {
+    return undefined;
+  }
+}
 
 export async function createQuestionAction(formData: FormData) {
   const session = await auth();
@@ -82,6 +115,51 @@ export async function deleteQuestionAction(id: string) {
   await db.question.delete({ where: { id } });
   revalidatePath("/admin/questions");
   return { success: true };
+}
+
+export async function updateQuestionAction(formData: FormData) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Không có quyền" };
+  }
+
+  const id = formData.get("id") as string;
+  if (!id) return { error: "Thiếu ID câu hỏi" };
+
+  const parsed = questionSchema.safeParse({
+    type: formData.get("type"),
+    level: formData.get("level"),
+    skill: formData.get("skill"),
+    title: formData.get("title") || undefined,
+    content: formData.get("content"),
+    correctAnswer: formData.get("correctAnswer") || undefined,
+    points: formData.get("points") || 1,
+    audioUrl: formData.get("audioUrl") || undefined,
+  });
+
+  if (!parsed.success) return { error: "Dữ liệu không hợp lệ" };
+
+  try {
+    await db.question.update({
+      where: { id },
+      data: {
+        type: parsed.data.type as QuestionType,
+        level: parsed.data.level as ExamLevel,
+        skill: parsed.data.skill as Skill,
+        title: parsed.data.title,
+        content: JSON.parse(parsed.data.content),
+        correctAnswer: parsed.data.correctAnswer
+          ? JSON.parse(parsed.data.correctAnswer)
+          : null,
+        points: parsed.data.points,
+        audioUrl: parsed.data.audioUrl,
+      },
+    });
+    revalidatePath("/admin/questions");
+    return { success: true };
+  } catch {
+    return { error: "Không thể cập nhật câu hỏi. Kiểm tra JSON content." };
+  }
 }
 
 export async function startAttemptAction(paperId: string) {
@@ -276,17 +354,13 @@ export async function createPaperAction(formData: FormData) {
     return { error: "Không có quyền" };
   }
 
-  const parsed = paperSchema.safeParse({
-    title: formData.get("title"),
-    description: formData.get("description") || undefined,
-    level: formData.get("level"),
-    skill: formData.get("skill"),
-    timeLimit: formData.get("timeLimit") || undefined,
-      isMockTest: formData.get("isMockTest") === "on",
-      published: formData.get("published") === "on",
-  });
+  const parsed = paperSchema.safeParse(parsePaperFormData(formData));
 
   if (!parsed.success) return { error: "Dữ liệu không hợp lệ" };
+
+  const paperKind = (parsed.data.paperKind ?? "PRACTICE") as PaperKind;
+  const defaults = paperKindDefaults(paperKind);
+  const sections = parseSectionsJson(parsed.data.sections);
 
   const paper = await db.examPaper.create({
     data: {
@@ -295,13 +369,52 @@ export async function createPaperAction(formData: FormData) {
       level: parsed.data.level as ExamLevel,
       skill: parsed.data.skill as Skill,
       timeLimit: parsed.data.timeLimit,
-      isMockTest: parsed.data.isMockTest ?? false,
+      isMockTest: parsed.data.isMockTest ?? defaults.isMockTest,
       published: parsed.data.published ?? true,
+      paperKind,
+      sections,
     },
   });
 
   revalidatePath("/admin/papers");
+  revalidatePath("/placement");
   return { success: true, paperId: paper.id };
+}
+
+export async function updatePaperAction(formData: FormData) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Không có quyền" };
+  }
+
+  const id = formData.get("id") as string;
+  if (!id) return { error: "Thiếu ID đề thi" };
+
+  const parsed = paperSchema.safeParse(parsePaperFormData(formData));
+  if (!parsed.success) return { error: "Dữ liệu không hợp lệ" };
+
+  const paperKind = (parsed.data.paperKind ?? "PRACTICE") as PaperKind;
+  const defaults = paperKindDefaults(paperKind);
+  const sections = parseSectionsJson(parsed.data.sections);
+
+  await db.examPaper.update({
+    where: { id },
+    data: {
+      title: parsed.data.title,
+      description: parsed.data.description,
+      level: parsed.data.level as ExamLevel,
+      skill: parsed.data.skill as Skill,
+      timeLimit: parsed.data.timeLimit,
+      isMockTest: parsed.data.isMockTest ?? defaults.isMockTest,
+      published: parsed.data.published ?? true,
+      paperKind,
+      sections,
+    },
+  });
+
+  revalidatePath("/admin/papers");
+  revalidatePath("/placement");
+  return { success: true };
 }
 
 export async function addQuestionToPaperAction(paperId: string, questionId: string) {
@@ -328,6 +441,45 @@ export async function removeQuestionFromPaperAction(paperQuestionId: string) {
   }
 
   await db.paperQuestion.delete({ where: { id: paperQuestionId } });
+  revalidatePath("/admin/papers");
+  return { success: true };
+}
+
+export async function movePaperQuestionAction(
+  paperQuestionId: string,
+  direction: "up" | "down"
+) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Không có quyền" };
+  }
+
+  const current = await db.paperQuestion.findUnique({
+    where: { id: paperQuestionId },
+  });
+  if (!current) return { error: "Không tìm thấy câu trong đề" };
+
+  const siblings = await db.paperQuestion.findMany({
+    where: { paperId: current.paperId },
+    orderBy: { orderIndex: "asc" },
+  });
+
+  const idx = siblings.findIndex((s) => s.id === paperQuestionId);
+  const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= siblings.length) return { success: true };
+
+  const other = siblings[swapIdx];
+  await db.$transaction([
+    db.paperQuestion.update({
+      where: { id: current.id },
+      data: { orderIndex: other.orderIndex },
+    }),
+    db.paperQuestion.update({
+      where: { id: other.id },
+      data: { orderIndex: current.orderIndex },
+    }),
+  ]);
+
   revalidatePath("/admin/papers");
   return { success: true };
 }

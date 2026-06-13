@@ -47,15 +47,15 @@ export async function Navbar() {
                 </Link>
                 {user.role === "ADMIN" && (
                   <>
-                    <Link href="/admin/questions" className="text-sm font-medium hover:text-purple-600">
-                      Câu hỏi
+                    <Link href="/admin" className="text-sm font-medium hover:text-purple-600">
+                      Admin
                     </Link>
-                  <Link href="/admin/papers" className="text-sm font-medium hover:text-purple-600">
-                    Đề thi
-                  </Link>
-                  <Link href="/admin/placement" className="text-sm font-medium hover:text-purple-600">
-                    Placement
-                  </Link>
+                    <Link href="/admin/papers" className="text-sm font-medium hover:text-purple-600">
+                      Đề thi
+                    </Link>
+                    <Link href="/admin/users" className="text-sm font-medium hover:text-purple-600">
+                      Tài khoản
+                    </Link>
                   </>
                 )}
                 {user.role === "TEACHER" && (

@@ -52,6 +52,14 @@ const SECTION_EMOJI: Record<string, string> = {
   SPEAKING: "🎤",
 };
 
+function isAnswered(value: unknown): boolean {
+  if (value === null || value === undefined || value === "") return false;
+  if (Array.isArray(value)) {
+    return value.some((v) => v !== null && v !== undefined && String(v).trim() !== "");
+  }
+  return true;
+}
+
 export function PracticeClient({
   paperId,
   paperTitle,
@@ -105,8 +113,14 @@ export function PracticeClient({
     (questionId: string, value: unknown) => {
       setAnswers((prev) => ({ ...prev, [questionId]: value }));
       play("pop");
+
+      if (paperKind === "PLACEMENT" && attemptId) {
+        import("@/lib/actions/placement").then(({ savePlacementAnswerAction }) => {
+          savePlacementAnswerAction(attemptId, questionId, value);
+        });
+      }
     },
-    [play]
+    [play, paperKind, attemptId]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -175,8 +189,20 @@ export function PracticeClient({
   const currentSection = sections?.find(
     (s) => currentIndex >= s.startIndex && currentIndex < s.endIndex
   );
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = questions.filter((q) => isAnswered(answers[q.id])).length;
   const progressPct = Math.round((answeredCount / questions.length) * 100);
+  const strictSequential = isMockTest && paperKind !== "PLACEMENT";
+  const firstUnansweredIndex = questions.findIndex((q) => !isAnswered(answers[q.id]));
+
+  const jumpToQuestion = (index: number) => {
+    stopAllListeningPlayback();
+    play("click");
+    setCurrentIndex(index);
+  };
+
+  const jumpToFirstUnanswered = () => {
+    if (firstUnansweredIndex >= 0) jumpToQuestion(firstUnansweredIndex);
+  };
 
   return (
     <div
@@ -187,7 +213,8 @@ export function PracticeClient({
 
       {paperKind === "PLACEMENT" && (
         <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-sky-300 bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-3 text-sm font-semibold text-sky-900">
-          🎯 <strong>Bài test trình độ:</strong> Làm hết các phần để biết level Cambridge của bạn!
+          🎯 <strong>Bài test trình độ:</strong> Bạn có thể nhảy tới bất kỳ câu nào trên bản đồ
+          để làm hoặc sửa câu đã bỏ qua.
         </div>
       )}
       {isMockTest && paperKind !== "PLACEMENT" && (
@@ -221,28 +248,37 @@ export function PracticeClient({
         <aside className="lg:col-span-1">
           <div className="sticky top-20 rounded-2xl border-2 border-purple-200 bg-white/90 p-4 shadow-md backdrop-blur-sm">
             <p className="mb-3 text-sm font-extrabold text-purple-700">🗺️ Bản đồ câu hỏi</p>
+            {paperKind === "PLACEMENT" && firstUnansweredIndex >= 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mb-3 w-full rounded-full border-amber-300 text-amber-900"
+                onClick={jumpToFirstUnanswered}
+              >
+                ↩ Câu chưa làm ({questions.length - answeredCount})
+              </Button>
+            )}
             <div className="grid grid-cols-5 gap-2 lg:grid-cols-4">
               {questions.map((q, i) => {
                 const sec = sections?.find((s) => i >= s.startIndex && i < s.endIndex);
+                const answered = isAnswered(answers[q.id]);
                 return (
                   <button
                     key={q.id}
                     type="button"
                     title={sec?.label}
                     onClick={() => {
-                      if (!isMockTest) {
-                        play("click");
-                        setCurrentIndex(i);
-                      }
+                      if (!strictSequential) jumpToQuestion(i);
                     }}
-                    disabled={isMockTest && i !== currentIndex}
+                    disabled={strictSequential && i !== currentIndex}
                     className={`h-9 rounded-xl text-sm font-bold transition-all duration-200 ${
                       i === currentIndex
                         ? "scale-110 bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md"
-                        : answers[q.id]
+                        : answered
                           ? "bg-mint-200 text-mint-900 ring-2 ring-mint-400"
-                          : "bg-purple-50 text-purple-700 hover:bg-purple-100"
-                    } ${isMockTest && i !== currentIndex ? "cursor-not-allowed opacity-50" : "hover:scale-105"}`}
+                          : "bg-amber-50 text-amber-900 ring-2 ring-amber-300 hover:bg-amber-100"
+                    } ${strictSequential && i !== currentIndex ? "cursor-not-allowed opacity-50" : "hover:scale-105"}`}
                   >
                     {i + 1}
                   </button>
@@ -296,10 +332,19 @@ export function PracticeClient({
             </div>
           )}
 
-          <div className="mt-4 flex justify-between">
-            <Button variant="outline" disabled={currentIndex === 0 || isMockTest} onClick={goPrev}>
+          <div className="mt-4 flex flex-wrap justify-between gap-2">
+            <Button
+              variant="outline"
+              disabled={currentIndex === 0 || strictSequential}
+              onClick={goPrev}
+            >
               ← Câu trước
             </Button>
+            {paperKind === "PLACEMENT" && firstUnansweredIndex >= 0 && (
+              <Button variant="secondary" onClick={jumpToFirstUnanswered}>
+                ↩ Câu chưa làm
+              </Button>
+            )}
             <Button
               variant="fun"
               disabled={currentIndex >= questions.length - 1}

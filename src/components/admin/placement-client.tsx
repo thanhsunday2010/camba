@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminNav } from "@/components/admin/admin-nav";
 import type { PlacementReport } from "@/lib/placement/evaluate";
 
 interface PlacementAttemptRow {
@@ -20,6 +21,7 @@ interface PlacementAttemptRow {
 export function AdminPlacementClient({ attempts }: { attempts: PlacementAttemptRow[] }) {
   return (
     <div className="container mx-auto px-4 py-8">
+      <AdminNav currentPath="/admin/placement" />
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Kết quả Placement Test</h1>
         <p className="text-muted-foreground">

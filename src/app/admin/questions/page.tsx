@@ -9,7 +9,18 @@ export default async function AdminQuestionsPage() {
 
   const questions = await db.question.findMany({
     orderBy: { createdAt: "desc" },
-    take: 100,
+    take: 200,
+    select: {
+      id: true,
+      type: true,
+      level: true,
+      skill: true,
+      title: true,
+      points: true,
+      content: true,
+      correctAnswer: true,
+      audioUrl: true,
+    },
   });
 
   return <AdminQuestionsClient questions={questions} />;
