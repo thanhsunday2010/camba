@@ -82,6 +82,29 @@ type ExternalPlacementJson = {
   questions: ExternalQuestion[];
 };
 
+type ProductionQuestion = {
+  id: number | string;
+  section: string;
+  type: string;
+  question: string;
+  options: string[];
+  answer: string;
+  level?: string;
+  audio_script?: string;
+  image_description?: string;
+  image_url?: string;
+  passage?: string;
+};
+
+type ProductionPlacementJson = {
+  id: string;
+  title: string;
+  durationMinutes: number;
+  totalQuestions?: number;
+  questions: ProductionQuestion[];
+  placementRules?: unknown[];
+};
+
 function isLegacyFormat(data: unknown): data is PlacementJson {
   const d = data as PlacementJson;
   return Boolean(d?.paper?.title && d?.paper?.sections?.length);
@@ -92,10 +115,34 @@ function isExternalFormat(data: unknown): data is ExternalPlacementJson {
   return Boolean(d?.test_metadata?.title && Array.isArray(d?.questions));
 }
 
-function inferTrack(filePath: string, testId: string): string {
-  const base = path.basename(filePath, ".json").toLowerCase();
-  if (base.includes("yle") || testId.includes("yle")) return "YLE";
-  if (base.includes("adult") || testId.includes("adult")) return "ADULT";
+function isProductionFormat(data: unknown): data is ProductionPlacementJson {
+  const d = data as ProductionPlacementJson;
+  return Boolean(
+    d?.id &&
+      d?.title &&
+      Array.isArray(d?.questions) &&
+      d.questions.length > 0 &&
+      typeof d.questions[0]?.section === "string" &&
+      !("test_metadata" in (data as object)) &&
+      !("paper" in (data as object))
+  );
+}
+
+function inferTrack(filePath: string, testId: string, title?: string): string {
+  const hay = `${path.basename(filePath, ".json")} ${testId} ${title ?? ""}`.toLowerCase();
+  if (
+    hay.includes("yle") ||
+    hay.includes("starters") ||
+    hay.includes("movers") ||
+    hay.includes("flyers")
+  ) {
+    return "YLE";
+  }
+  if (hay.includes("adult")) return "ADULT";
+  if (hay.includes("secondary") || hay.includes("ket") || hay.includes("pet")) {
+    return "SECONDARY";
+  }
+  if (hay.includes("cambridge")) return "YLE";
   return "SECONDARY";
 }
 
@@ -148,11 +195,141 @@ function externalToListening(q: ExternalQuestion): ListeningSeed {
   };
 }
 
+function resolveOptionAnswer(
+  options: string[],
+  answer: string,
+  qid: string | number
+): string {
+  const trimmed = answer.trim();
+  if (/^[A-D]$/i.test(trimmed)) {
+    const idx = trimmed.toUpperCase().charCodeAt(0) - 65;
+    if (idx >= 0 && idx < options.length) return options[idx];
+  }
+  const match = options.find(
+    (o) => o.trim().toLowerCase() === trimmed.toLowerCase()
+  );
+  if (match) return match;
+  throw new Error(`Câu ${qid}: đáp án "${answer}" không khớp options`);
+}
+
+function extractListeningTranscript(question: string, audioScript?: string): string {
+  if (audioScript?.trim()) return audioScript.trim();
+
+  const quoted = question.match(/['"]([^'"]+)['"]/);
+  if (quoted) {
+    const beforeQuote = question.slice(0, question.indexOf(quoted[0])).trim();
+    if (beforeQuote) return `${beforeQuote} '${quoted[1]}'`;
+    return quoted[1];
+  }
+
+  const beforeFollowUp = question.split(
+    /\.\s+(?:What|Who|Where|When|Why|How|Which)\b/
+  )[0];
+  return beforeFollowUp?.trim() || question;
+}
+
+function productionToMcq(q: ProductionQuestion): McqSeed {
+  const answer = resolveOptionAnswer(q.options, q.answer, q.id);
+  const media = inferQuestionMedia({
+    question: q.question,
+    questionType: q.type,
+    audioScript: q.audio_script,
+    imageDescription: q.image_description,
+    imageUrl: q.image_url,
+  });
+
+  return {
+    title: `${q.id} — ${q.section} / ${q.type}`,
+    ...(q.passage ? { passage: q.passage } : {}),
+    question: media.question,
+    options: q.options,
+    answer,
+    imageUrl: media.imageUrl,
+    imageDescription: media.imageDescription,
+    sceneEmoji: media.sceneEmoji,
+    questionType: q.type,
+  };
+}
+
+function productionToListening(q: ProductionQuestion): ListeningSeed {
+  const mcq = productionToMcq(q);
+  return {
+    ...mcq,
+    transcript: extractListeningTranscript(q.question, q.audio_script),
+  };
+}
+
+function buildSectionsFromCounts(
+  totalMinutes: number,
+  blocks: { skill: string; label: string; count: number }[]
+): SectionInput[] {
+  const totalCount = blocks.reduce((sum, b) => sum + b.count, 0);
+  return blocks
+    .filter((b) => b.count > 0)
+    .map((b) => ({
+      skill: b.skill,
+      label: b.label,
+      questionCount: b.count,
+      timeLimit:
+        totalCount > 0
+          ? Math.round((b.count / totalCount) * totalMinutes * 60)
+          : undefined,
+    }));
+}
+
+function convertProductionFormat(
+  data: ProductionPlacementJson,
+  filePath: string
+): PlacementJson {
+  const track = inferTrack(filePath, data.id, data.title);
+  const paperLevel = defaultPaperLevel(track);
+
+  const readingQs = data.questions.filter(
+    (q) => q.section.toLowerCase() === "reading"
+  );
+  const grammarQs = data.questions.filter((q) => {
+    const section = q.section.toLowerCase();
+    return (
+      section === "grammar" ||
+      section === "use of english" ||
+      section === "writing"
+    );
+  });
+  const listeningQs = data.questions.filter(
+    (q) => q.section.toLowerCase() === "listening"
+  );
+
+  const totalMinutes = data.durationMinutes ?? 25;
+  const sections = buildSectionsFromCounts(totalMinutes, [
+    { skill: "READING", label: "Reading", count: readingQs.length },
+    {
+      skill: "USE_OF_ENGLISH",
+      label: "Grammar & Use of English",
+      count: grammarQs.length,
+    },
+    { skill: "LISTENING", label: "Listening", count: listeningQs.length },
+  ]);
+
+  return {
+    paper: {
+      title: paperTitle(track, data.title),
+      description: `${data.id} · ${data.totalQuestions ?? data.questions.length} câu`,
+      level: paperLevel,
+      track,
+      timeLimit: totalMinutes * 60,
+      sections,
+    },
+    reading: readingQs.map(productionToMcq),
+    listening: listeningQs.map(productionToListening),
+    writing: grammarQs.map(productionToMcq),
+  };
+}
+
 function convertExternalFormat(
   data: ExternalPlacementJson,
   filePath: string
 ): PlacementJson {
-  const track = inferTrack(filePath, data.test_metadata.test_id);
+  const track = inferTrack(filePath, data.test_metadata.test_id, data.test_metadata.title);
   const paperLevel = defaultPaperLevel(track);
 
   const readingQs = data.questions.filter((q) => q.skill === "Reading");
@@ -213,9 +390,10 @@ function convertExternalFormat(
 
 function normalizePlacementJson(raw: unknown, filePath: string): PlacementJson {
   if (isLegacyFormat(raw)) return raw;
+  if (isProductionFormat(raw)) return convertProductionFormat(raw, filePath);
   if (isExternalFormat(raw)) return convertExternalFormat(raw, filePath);
   throw new Error(
-    `${filePath}: format không hợp lệ — cần { paper, reading/listening } hoặc { test_metadata, questions }`
+    `${filePath}: format không hợp lệ — hỗ trợ: { paper }, { test_metadata, questions }, hoặc { id, title, durationMinutes, questions }`
   );
 }
 
