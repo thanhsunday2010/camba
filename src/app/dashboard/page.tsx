@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { CambaMascot } from "@/components/kids/camba-mascot";
+import { LevelPicker } from "@/components/exam/level-picker";
 import { Flame, Target, TrendingUp, ClipboardList, CalendarClock } from "lucide-react";
 import { redirect } from "next/navigation";
 
@@ -240,6 +241,21 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-6">
+          <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
+            <CardHeader>
+              <CardTitle className="font-extrabold">🐰 Đổi level luyện tập</CardTitle>
+              <CardDescription>
+                Chọn level bất kỳ — không cần đăng ký tài khoản mới
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LevelPicker currentLevel={user.targetExam} variant="compact" />
+              <Button asChild className="mt-3 w-full" variant="outline" size="sm">
+                <Link href="/exams">Xem tất cả level →</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Bảng xếp hạng Streak</CardTitle>
@@ -259,7 +275,7 @@ export default async function DashboardPage() {
           </Card>
 
           <Button asChild className="w-full kid-btn-fun" size="lg">
-            <Link href={`/exams/${user.targetExam}`}>🚀 Bắt đầu luyện tập</Link>
+            <Link href="/exams">🚀 Chọn level & luyện tập</Link>
           </Button>
           <Button asChild className="w-full" size="lg" variant="outline">
             <Link href="/placement">🎯 Test trình độ</Link>

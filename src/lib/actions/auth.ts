@@ -1,10 +1,13 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import { ExamLevel } from "@prisma/client";
 
 const registerSchema = z.object({
   name: z.string().min(2),
@@ -124,4 +127,31 @@ export async function loginAction(formData: FormData) {
 export async function logoutAction() {
   const { signOut } = await import("@/auth");
   await signOut({ redirectTo: "/" });
+}
+
+const levelSchema = z.enum(["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"]);
+
+export async function updateTargetExamAction(level: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Chưa đăng nhập" };
+  }
+
+  const parsed = levelSchema.safeParse(level);
+  if (!parsed.success) {
+    return { error: "Level không hợp lệ" };
+  }
+
+  try {
+    await db.user.update({
+      where: { id: session.user.id },
+      data: { targetExam: parsed.data as ExamLevel },
+    });
+    revalidatePath("/dashboard");
+    revalidatePath("/exams");
+    return { success: true, level: parsed.data };
+  } catch (error) {
+    console.error("[updateTargetExamAction]", error);
+    return { error: "Không thể cập nhật level" };
+  }
 }

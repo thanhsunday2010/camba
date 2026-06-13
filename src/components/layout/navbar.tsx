@@ -40,10 +40,10 @@ export async function Navbar() {
                   🎯 Test trình độ
                 </Link>
                 <Link
-                  href="/exams/KET"
+                  href="/exams"
                   className="rounded-full px-3 py-1.5 text-sm font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
                 >
-                  📚 Luyện thi
+                  📚 Chọn level
                 </Link>
                 {user.role === "ADMIN" && (
                   <>

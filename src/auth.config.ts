@@ -11,13 +11,16 @@ export const authConfig = {
   },
   session: { strategy: "jwt" },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         const id = user.id ?? token.sub;
         if (id) token.id = id;
         const u = user as { role?: string; targetExam?: string };
         if (u.role) token.role = u.role;
         if (u.targetExam) token.targetExam = u.targetExam;
+      }
+      if (trigger === "update" && session?.targetExam) {
+        token.targetExam = session.targetExam as string;
       }
       return token;
     },

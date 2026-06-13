@@ -53,6 +53,12 @@ export default async function ExamsLevelPage({
   return (
     <div className="container mx-auto px-4 py-8">
       <div className={`mb-8 rounded-3xl border-2 ${theme.border} ${theme.bg} p-6 shadow-md`}>
+        <Link
+          href="/exams"
+          className="mb-3 inline-flex text-sm font-bold text-purple-600 hover:underline"
+        >
+          ← Đổi level khác
+        </Link>
         <div className="flex items-center gap-4">
           <span className="text-5xl">{theme.emoji}</span>
           <div>
