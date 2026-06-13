@@ -1,0 +1,26 @@
+import { db } from "@/lib/db";
+import { AttemptStatus } from "@prisma/client";
+
+export async function finalizeAttemptGrading(attemptId: string) {
+  const attempt = await db.attempt.findUnique({
+    where: { id: attemptId },
+    include: {
+      answers: { include: { question: true } },
+    },
+  });
+
+  if (!attempt) return;
+
+  const allGraded = attempt.answers.every((a) => a.score !== null);
+  const totalScore = attempt.answers.reduce((s, a) => s + (a.score ?? 0), 0);
+  const maxScore = attempt.answers.reduce((s, a) => s + a.question.points, 0);
+
+  await db.attempt.update({
+    where: { id: attemptId },
+    data: {
+      score: totalScore,
+      maxScore,
+      status: allGraded ? AttemptStatus.GRADED : AttemptStatus.SUBMITTED,
+    },
+  });
+}

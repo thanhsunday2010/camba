@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum ExamLevel {
+  STARTERS
+  MOVERS
+  FLYERS
+  KET
+  PET
+  FCE
+}
+
+enum Skill {
+  READING
+  WRITING
+  LISTENING
+  SPEAKING
+  USE_OF_ENGLISH
+}
+
+enum QuestionType {
+  MCQ
+  GAP_FILL
+  FREE_TEXT
+  SPEAKING_PROMPT
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  passwordHash  String?
+  role          Role      @default(STUDENT)
+  grade         String?
+  targetExam    ExamLevel @default(KET)
+  streak        Int       @default(0)
+  lastActiveAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  attempts      Attempt[]
+  aiFeedbacks   AIFeedback[]
+  assignedBy    Assignment[] @relation("AssignedBy")
+  assignments   Assignment[] @relation("AssignedTo")
+}
+
+model Question {
+  id            String       @id @default(cuid())
+  type          QuestionType
+  level         ExamLevel
+  skill         Skill
+  title         String?
+  content       Json
+  correctAnswer Json?
+  rubric        Json?
+  points        Int          @default(1)
+  orderIndex    Int          @default(0)
+  audioUrl      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  paperQuestions PaperQuestion[]
+  answers        AttemptAnswer[]
+  aiFeedbacks    AIFeedback[]
+}
+
+model ExamPaper {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  level       ExamLevel
+  skill       Skill
+  timeLimit   Int?
+  isMockTest  Boolean   @default(false)
+  published   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  questions   PaperQuestion[]
+  attempts    Attempt[]
+  assignments Assignment[]
+}
+
+model PaperQuestion {
+  id         String   @id @default(cuid())
+  paperId    String
+  questionId String
+  orderIndex Int      @default(0)
+
+  paper    ExamPaper @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  question Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([paperId, questionId])
+}
+
+model Attempt {
+  id          String        @id @default(cuid())
+  userId      String
+  paperId     String
+  status      AttemptStatus @default(IN_PROGRESS)
+  score       Float?
+  maxScore    Float?
+  startedAt   DateTime      @default(now())
+  submittedAt DateTime?
+  timeSpent   Int?
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paper   ExamPaper       @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  answers AttemptAnswer[]
+}
+
+model AttemptAnswer {
+  id         String   @id @default(cuid())
+  attemptId  String
+  questionId String
+  answer     Json
+  isCorrect  Boolean?
+  score      Float?
+  createdAt  DateTime @default(now())
+
+  attempt  Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+}
+
+model AIFeedback {
+  id             String   @id @default(cuid())
+  userId         String
+  questionId     String?
+  attemptId      String?
+  feedbackType   String
+  inputText      String   @db.Text
+  overallScore   Float?
+  cambridgeBand  String?
+  criteria       Json?
+  errors         Json?
+  suggestions    Json?
+  improvedVersion String? @db.Text
+  transcript     String?  @db.Text
+  rawResponse    Json?
+  createdAt      DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+}
+
+model Assignment {
+  id           String    @id @default(cuid())
+  paperId      String
+  teacherId    String
+  studentId    String
+  dueDate      DateTime?
+  completed    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+
+  paper   ExamPaper @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  teacher User      @relation("AssignedBy", fields: [teacherId], references: [id], onDelete: Cascade)
+  student User      @relation("AssignedTo", fields: [studentId], references: [id], onDelete: Cascade)
+}
