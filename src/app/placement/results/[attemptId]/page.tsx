@@ -3,6 +3,9 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { PlacementResultsClient } from "@/components/placement/placement-results-client";
 import type { PlacementReport } from "@/lib/placement/evaluate";
+import { ensurePlacementReport } from "@/lib/placement/build-report";
+
+export const dynamic = "force-dynamic";
 
 export default async function PlacementResultsPage({
   params,
@@ -27,6 +30,12 @@ export default async function PlacementResultsPage({
 
   if (attempt.status === "IN_PROGRESS") notFound();
 
+  const placementReport = await ensurePlacementReport(
+    db,
+    attemptId,
+    attempt.placementReport
+  );
+
   const displayName =
     attempt.guestFullName ?? (attempt.userId ? undefined : "Khách");
 
@@ -38,7 +47,7 @@ export default async function PlacementResultsPage({
         maxScore: attempt.maxScore,
         timeSpent: attempt.timeSpent,
         paper: { title: attempt.paper.title },
-        placementReport: attempt.placementReport as PlacementReport | null,
+        placementReport: placementReport as PlacementReport | null,
         guestFullName: attempt.guestFullName,
         guestPhone: attempt.guestPhone,
         displayName,

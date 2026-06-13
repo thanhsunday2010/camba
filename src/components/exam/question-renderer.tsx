@@ -5,12 +5,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AudioPlayer } from "./audio-player";
 import { AudioRecorder } from "./audio-recorder";
+import { QuestionIllustration } from "./question-illustration";
 import type {
   FreeTextContent,
   GapFillContent,
   McqContent,
   SpeakingContent,
 } from "@/lib/exam/scoring";
+import { resolveMcqMedia } from "@/lib/exam/question-media";
 import { cn } from "@/lib/utils";
 
 interface QuestionData {
@@ -44,6 +46,19 @@ export function QuestionRenderer({
   const mcqContent = content as McqContent;
   const audioSrc = question.audioUrl;
   const transcript = mcqContent.transcript;
+  const media =
+    question.type === "MCQ"
+      ? resolveMcqMedia({
+          question: mcqContent.question,
+          passage: mcqContent.passage,
+          transcript: mcqContent.transcript,
+          imageDescription: mcqContent.imageDescription,
+          imageUrl: mcqContent.imageUrl,
+          sceneEmoji: mcqContent.sceneEmoji,
+          questionType: mcqContent.questionType,
+        })
+      : null;
+  const displayQuestion = media?.question ?? mcqContent.question;
 
   return (
     <div className="space-y-4 rounded-3xl border-2 border-purple-200 bg-white/95 p-6 shadow-lg">
@@ -55,6 +70,14 @@ export function QuestionRenderer({
           ⭐ {question.points} điểm
         </span>
       </div>
+
+      {media && (media.imageDescription || media.imageUrl) && (
+        <QuestionIllustration
+          imageUrl={media.imageUrl}
+          imageDescription={media.imageDescription}
+          sceneEmoji={media.sceneEmoji}
+        />
+      )}
 
       {(isListening || audioSrc || transcript) && (
         <AudioPlayer
@@ -70,7 +93,7 @@ export function QuestionRenderer({
 
       {question.type === "MCQ" && (
         <McqQuestion
-          content={content as McqContent}
+          content={{ ...mcqContent, question: displayQuestion }}
           value={value as string}
           onChange={onChange}
           disabled={disabled}

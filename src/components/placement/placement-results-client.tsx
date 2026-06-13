@@ -40,7 +40,9 @@ export function PlacementResultsClient({ attempt, isGuest = false }: PlacementRe
   if (!report) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <p className="text-muted-foreground">Đang xử lý kết quả placement...</p>
+        <p className="text-muted-foreground">
+          Không thể tạo báo cáo placement. Vui lòng thử lại hoặc liên hệ hỗ trợ.
+        </p>
         <Button asChild className="mt-4">
           <Link href="/placement">Quay lại</Link>
         </Button>

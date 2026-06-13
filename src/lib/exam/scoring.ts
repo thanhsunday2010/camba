@@ -5,6 +5,10 @@ export interface McqContent {
   question: string;
   options: string[];
   transcript?: string;
+  imageUrl?: string;
+  imageDescription?: string;
+  sceneEmoji?: string;
+  questionType?: string;
 }
 
 export interface GapFillContent {

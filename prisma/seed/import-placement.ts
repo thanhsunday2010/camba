@@ -16,6 +16,7 @@ import {
   type ListeningSeed,
   type McqSeed,
 } from "./helpers";
+import { inferQuestionMedia } from "../../src/lib/exam/question-media";
 
 const VALID_LEVELS = new Set<string>([
   "STARTERS",
@@ -63,6 +64,8 @@ type ExternalQuestion = {
   question_type?: string;
   audio_script?: string;
   question_text: string;
+  image_description?: string;
+  image_url?: string;
   options: ExternalOption[];
   points?: number;
 };
@@ -113,11 +116,24 @@ function externalToMcq(q: ExternalQuestion): McqSeed {
   if (!correct) {
     throw new Error(`Câu ${q.id}: không có đáp án is_correct: true`);
   }
+
+  const media = inferQuestionMedia({
+    question: q.question_text,
+    questionType: q.question_type,
+    audioScript: q.audio_script,
+    imageDescription: q.image_description,
+    imageUrl: q.image_url,
+  });
+
   return {
     title: q.question_type ? `${q.id} — ${q.question_type}` : q.id,
-    question: q.question_text,
+    question: media.question,
     options: q.options.map((o) => o.text),
     answer: correct.text,
+    imageUrl: media.imageUrl,
+    imageDescription: media.imageDescription,
+    sceneEmoji: media.sceneEmoji,
+    questionType: q.question_type,
   };
 }
 

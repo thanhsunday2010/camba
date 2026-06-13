@@ -15,6 +15,10 @@ export type McqSeed = {
   question: string;
   options: string[];
   answer: string;
+  imageUrl?: string;
+  imageDescription?: string;
+  sceneEmoji?: string;
+  questionType?: string;
 };
 
 export type GapSeed = {
@@ -38,6 +42,10 @@ export type ListeningSeed = {
   options: string[];
   answer: string;
   audioSlug?: string;
+  imageUrl?: string;
+  imageDescription?: string;
+  sceneEmoji?: string;
+  questionType?: string;
 };
 
 export type SpeakingSeed = {
@@ -66,6 +74,10 @@ export async function createMcqs(
           ...(item.passage ? { passage: item.passage } : {}),
           question: item.question,
           options: item.options,
+          ...(item.imageUrl ? { imageUrl: item.imageUrl } : {}),
+          ...(item.imageDescription ? { imageDescription: item.imageDescription } : {}),
+          ...(item.sceneEmoji ? { sceneEmoji: item.sceneEmoji } : {}),
+          ...(item.questionType ? { questionType: item.questionType } : {}),
         },
         correctAnswer: item.answer,
         points: 1,
@@ -155,6 +167,10 @@ export async function createListenings(
           question: item.question,
           options: item.options,
           transcript: item.transcript,
+          ...(item.imageUrl ? { imageUrl: item.imageUrl } : {}),
+          ...(item.imageDescription ? { imageDescription: item.imageDescription } : {}),
+          ...(item.sceneEmoji ? { sceneEmoji: item.sceneEmoji } : {}),
+          ...(item.questionType ? { questionType: item.questionType } : {}),
         },
         correctAnswer: item.answer,
         points: 1,

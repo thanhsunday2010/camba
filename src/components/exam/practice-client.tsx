@@ -149,7 +149,8 @@ export function PracticeClient({
     }
 
     toast.success("Tuyệt vời! Nộp bài thành công! 🎉");
-    await new Promise((r) => setTimeout(r, 1200));
+    router.refresh();
+    await new Promise((r) => setTimeout(r, 400));
 
     if (paperKind === "PLACEMENT") {
       router.push(`/placement/results/${attemptId}`);

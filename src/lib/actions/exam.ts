@@ -8,6 +8,7 @@ import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
 import { markAssignmentsComplete } from "@/lib/exam/assignments";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
+import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
 import { QuestionType, ExamLevel, Skill, PaperKind, Prisma } from "@prisma/client";
 
 const questionSchema = z.object({
@@ -217,11 +218,7 @@ export async function submitAttemptAction(
       total: s.total,
       percent: s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0,
     }));
-    const track = attempt.paper.title.includes("YLE")
-      ? "YLE"
-      : attempt.paper.title.includes("Adult")
-        ? "ADULT"
-        : "SECONDARY";
+    const track = inferTrackFromPaperTitle(attempt.paper.title);
     placementReport = evaluatePlacement(skillResults, track);
   }
 
@@ -233,7 +230,7 @@ export async function submitAttemptAction(
       maxScore,
       submittedAt: new Date(),
       timeSpent,
-      ...(placementReport
+      ...(attempt.paper.paperKind === PaperKind.PLACEMENT && placementReport
         ? { placementReport: placementReport as unknown as Prisma.InputJsonValue }
         : {}),
     },
@@ -247,6 +244,7 @@ export async function submitAttemptAction(
   revalidatePath("/dashboard");
   revalidatePath("/placement");
   revalidatePath("/admin/placement");
+  revalidatePath(`/placement/results/${attemptId}`);
   return { attemptId, needsAI, score: totalScore, maxScore, placementReport };
 }
 
