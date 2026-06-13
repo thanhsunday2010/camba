@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getMiddlewareSession } from "@/lib/middleware-auth";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
-  });
+  const token = await getMiddlewareSession(req);
 
   const isLoggedIn = !!token;
   const role = (token?.role as string | undefined) ?? "";
