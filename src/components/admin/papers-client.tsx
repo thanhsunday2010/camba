@@ -95,7 +95,7 @@ function PaperForm({
       : "";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form key={paper?.id ?? "create"} onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="title">Tiêu đề</Label>
         <Input id="title" name="title" required defaultValue={paper?.title ?? ""} />
@@ -253,6 +253,7 @@ export function AdminPapersClient({
           </CardHeader>
           <CardContent>
             <PaperForm
+              key={editingPaper?.id ?? "create"}
               paper={editingPaper ?? undefined}
               loading={loading}
               setLoading={setLoading}

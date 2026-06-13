@@ -28,8 +28,8 @@ const paperSchema = z.object({
   level: z.enum(["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"]),
   skill: z.enum(["READING", "WRITING", "LISTENING", "SPEAKING", "USE_OF_ENGLISH"]),
   timeLimit: z.coerce.number().min(60).optional(),
-  isMockTest: z.coerce.boolean().optional(),
-  published: z.coerce.boolean().optional(),
+  isMockTest: z.boolean().optional(),
+  published: z.boolean().optional(),
   paperKind: z.enum(["PRACTICE", "MOCK_SKILL", "MOCK_FULL", "PLACEMENT"]).optional(),
   sections: z.string().optional(),
 });
@@ -54,14 +54,17 @@ function paperKindDefaults(kind: PaperKind) {
   };
 }
 
-function parseSectionsJson(raw?: string): Prisma.InputJsonValue | undefined {
-  if (!raw?.trim()) return undefined;
+function parseSectionsJson(
+  raw?: string
+): Prisma.InputJsonValue | typeof Prisma.JsonNull | undefined {
+  if (raw === undefined) return undefined;
+  if (!raw.trim()) return Prisma.JsonNull;
   try {
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return undefined;
+    if (!Array.isArray(parsed)) return Prisma.JsonNull;
     return parsed as Prisma.InputJsonValue;
   } catch {
-    return undefined;
+    return Prisma.JsonNull;
   }
 }
 
@@ -378,6 +381,8 @@ export async function createPaperAction(formData: FormData) {
 
   revalidatePath("/admin/papers");
   revalidatePath("/placement");
+  revalidatePath("/exams", "layout");
+  revalidatePath("/dashboard");
   return { success: true, paperId: paper.id };
 }
 
@@ -390,30 +395,37 @@ export async function updatePaperAction(formData: FormData) {
   const id = formData.get("id") as string;
   if (!id) return { error: "Thiếu ID đề thi" };
 
+  const existing = await db.examPaper.findUnique({ where: { id } });
+  if (!existing) return { error: "Không tìm thấy đề thi" };
+
   const parsed = paperSchema.safeParse(parsePaperFormData(formData));
   if (!parsed.success) return { error: "Dữ liệu không hợp lệ" };
 
-  const paperKind = (parsed.data.paperKind ?? "PRACTICE") as PaperKind;
+  const paperKind = (parsed.data.paperKind ?? existing.paperKind) as PaperKind;
   const defaults = paperKindDefaults(paperKind);
-  const sections = parseSectionsJson(parsed.data.sections);
+
+  const sectionsRaw = (formData.get("sections") as string | null)?.trim() ?? "";
+  const sectionsUpdate = sectionsRaw ? parseSectionsJson(sectionsRaw) : undefined;
 
   await db.examPaper.update({
     where: { id },
     data: {
       title: parsed.data.title,
-      description: parsed.data.description,
+      description: parsed.data.description ?? null,
       level: parsed.data.level as ExamLevel,
       skill: parsed.data.skill as Skill,
-      timeLimit: parsed.data.timeLimit,
+      timeLimit: parsed.data.timeLimit ?? existing.timeLimit,
       isMockTest: parsed.data.isMockTest ?? defaults.isMockTest,
-      published: parsed.data.published ?? true,
+      published: parsed.data.published ?? existing.published,
       paperKind,
-      sections,
+      ...(sectionsUpdate !== undefined && { sections: sectionsUpdate }),
     },
   });
 
   revalidatePath("/admin/papers");
   revalidatePath("/placement");
+  revalidatePath("/exams", "layout");
+  revalidatePath("/dashboard");
   return { success: true };
 }
 
