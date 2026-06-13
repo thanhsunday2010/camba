@@ -127,9 +127,9 @@ export default async function TeacherPage() {
 
       {session.user.role === "ADMIN" && (
         <div className="mt-4">
-          <Link href="/admin/questions">
-            <Button variant="outline">Quản lý câu hỏi</Button>
-          </Link>
+          <Button asChild variant="outline">
+            <Link href="/admin/questions">Quản lý câu hỏi</Link>
+          </Button>
         </div>
       )}
     </div>

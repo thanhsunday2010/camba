@@ -1,10 +1,11 @@
 import type { NextAuthConfig } from "next-auth";
 
 /**
- * Edge-safe auth config — used by middleware (no Prisma/bcrypt).
- * Full providers live in auth.ts (Node.js only).
+ * Shared auth config — no Prisma/bcrypt (safe for Edge).
  */
 export const authConfig = {
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   pages: {
     signIn: "/login",
   },
@@ -12,17 +13,19 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.targetExam = user.targetExam;
+        const id = user.id ?? token.sub;
+        if (id) token.id = id;
+        const u = user as { role?: string; targetExam?: string };
+        if (u.role) token.role = u.role;
+        if (u.targetExam) token.targetExam = u.targetExam;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.targetExam = token.targetExam as string;
+        session.user.id = (token.id as string) ?? "";
+        session.user.role = (token.role as string) ?? "STUDENT";
+        session.user.targetExam = (token.targetExam as string) ?? "KET";
       }
       return session;
     },

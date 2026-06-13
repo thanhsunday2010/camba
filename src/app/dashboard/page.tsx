@@ -169,11 +169,9 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Link href={`/exams/${user.targetExam}`}>
-            <Button className="w-full" size="lg">
-              Bắt đầu luyện tập
-            </Button>
-          </Link>
+          <Button asChild className="w-full" size="lg">
+            <Link href={`/exams/${user.targetExam}`}>Bắt đầu luyện tập</Link>
+          </Button>
         </div>
       </div>
     </div>

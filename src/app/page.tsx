@@ -36,23 +36,17 @@ export default async function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               {session ? (
-                <Link href="/dashboard">
-                  <Button size="lg" variant="secondary">
-                    Vào Dashboard
-                  </Button>
-                </Link>
+                <Button asChild size="lg" variant="secondary">
+                  <Link href="/dashboard">Vào Dashboard</Link>
+                </Button>
               ) : (
                 <>
-                  <Link href="/register">
-                    <Button size="lg" variant="secondary">
-                      Bắt đầu miễn phí
-                    </Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                      Đăng nhập
-                    </Button>
-                  </Link>
+                  <Button asChild size="lg" variant="secondary">
+                    <Link href="/register">Bắt đầu miễn phí</Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                    <Link href="/login">Đăng nhập</Link>
+                  </Button>
                 </>
               )}
             </div>

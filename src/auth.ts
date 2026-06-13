@@ -23,25 +23,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const user = await db.user.findUnique({
-          where: { email: parsed.data.email },
-        });
+        try {
+          const user = await db.user.findUnique({
+            where: { email: parsed.data.email },
+          });
 
-        if (!user?.passwordHash) return null;
+          if (!user?.passwordHash) return null;
 
-        const valid = await bcrypt.compare(
-          parsed.data.password,
-          user.passwordHash
-        );
-        if (!valid) return null;
+          const valid = await bcrypt.compare(
+            parsed.data.password,
+            user.passwordHash
+          );
+          if (!valid) return null;
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          targetExam: user.targetExam,
-        };
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            targetExam: user.targetExam,
+          };
+        } catch (error) {
+          console.error("[auth authorize] DB error:", error);
+          return null;
+        }
       },
     }),
   ],

@@ -1,12 +1,17 @@
-import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import { authConfig } from "@/auth.config";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-const { auth } = NextAuth(authConfig);
-
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isLoggedIn = !!req.auth;
+
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  });
+
+  const isLoggedIn = !!token;
+  const role = (token?.role as string | undefined) ?? "";
 
   const protectedRoutes = ["/dashboard", "/practice", "/results", "/exams"];
   const adminRoutes = ["/admin", "/teacher"];
@@ -20,7 +25,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (isAdmin && (!isLoggedIn || !["ADMIN", "TEACHER"].includes(req.auth?.user?.role ?? ""))) {
+  if (isAdmin && (!isLoggedIn || !["ADMIN", "TEACHER"].includes(role))) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
@@ -29,7 +34,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|uploads).*)"],
