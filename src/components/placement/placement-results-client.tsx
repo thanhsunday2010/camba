@@ -23,10 +23,14 @@ interface PlacementResultsClientProps {
     timeSpent: number | null;
     paper: { title: string };
     placementReport: PlacementReport | null;
+    guestFullName?: string | null;
+    guestPhone?: string | null;
+    displayName?: string;
   };
+  isGuest?: boolean;
 }
 
-export function PlacementResultsClient({ attempt }: PlacementResultsClientProps) {
+export function PlacementResultsClient({ attempt, isGuest = false }: PlacementResultsClientProps) {
   const report = attempt.placementReport;
   const pct =
     attempt.score !== null && attempt.maxScore
@@ -50,39 +54,47 @@ export function PlacementResultsClient({ attempt }: PlacementResultsClientProps)
         <Badge className="mb-3" variant="secondary">
           Bài test trình độ
         </Badge>
-        <h1 className="text-3xl font-bold">Kết quả đánh giá trình độ</h1>
-        <p className="mt-2 text-muted-foreground">{attempt.paper.title}</p>
+        <h1 className="text-3xl font-extrabold kid-gradient-text">Kết quả đánh giá trình độ</h1>
+        <p className="mt-2 font-semibold text-muted-foreground">{attempt.paper.title}</p>
+        {(attempt.guestFullName || attempt.guestPhone) && (
+          <p className="mt-1 text-sm font-medium text-purple-700">
+            {attempt.guestFullName}
+            {attempt.guestPhone && ` · ${attempt.guestPhone}`}
+          </p>
+        )}
       </div>
 
-      <Card className="mb-6 border-cambridge-200 bg-gradient-to-br from-cambridge-50 to-white">
+      <Card className="mb-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-6 w-6 text-cambridge-600" />
+          <CardTitle className="flex items-center gap-2 font-extrabold">
+            <Award className="h-6 w-6 text-purple-600" />
             Kết luận trình độ
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border bg-white p-4">
-              <p className="text-sm text-muted-foreground">CEFR (Khung tham chiếu Châu Âu)</p>
-              <p className="text-2xl font-bold text-cambridge-700">{report.cefrLevel}</p>
+            <div className="rounded-xl border-2 bg-white p-4">
+              <p className="text-sm font-semibold text-muted-foreground">CEFR</p>
+              <p className="text-2xl font-extrabold text-purple-700">{report.cefrLevel}</p>
             </div>
-            <div className="rounded-lg border bg-white p-4">
-              <p className="text-sm text-muted-foreground">Cambridge English</p>
-              <p className="text-2xl font-bold text-cambridge-700">{report.cambridgeLevel}</p>
-              <p className="text-sm text-muted-foreground">{report.cambridgeExam}</p>
+            <div className="rounded-xl border-2 bg-white p-4">
+              <p className="text-sm font-semibold text-muted-foreground">Cambridge English</p>
+              <p className="text-2xl font-extrabold text-purple-700">{report.cambridgeLevel}</p>
+              <p className="text-sm font-medium text-muted-foreground">{report.cambridgeExam}</p>
             </div>
           </div>
-          <p className="text-sm leading-relaxed">{report.summary}</p>
+          <p className="text-sm font-medium leading-relaxed">{report.summary}</p>
           {pct !== null && (
-            <p className="text-sm font-medium">Điểm bài test: {pct}% ({attempt.score}/{attempt.maxScore})</p>
+            <p className="text-sm font-bold">
+              Điểm bài test: {pct}% ({attempt.score}/{attempt.maxScore})
+            </p>
           )}
         </CardContent>
       </Card>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
+          <CardTitle className="flex items-center gap-2 text-lg font-extrabold">
             <Target className="h-5 w-5" />
             Đánh giá từng kỹ năng
           </CardTitle>
@@ -90,10 +102,8 @@ export function PlacementResultsClient({ attempt }: PlacementResultsClientProps)
         <CardContent className="space-y-5">
           {report.skills.map((s) => (
             <div key={s.skill}>
-              <div className="mb-1 flex justify-between text-sm">
-                <span className="font-medium">
-                  {SKILL_LABELS[s.skill] ?? formatSkill(s.skill)}
-                </span>
+              <div className="mb-1 flex justify-between text-sm font-bold">
+                <span>{SKILL_LABELS[s.skill] ?? formatSkill(s.skill)}</span>
                 <span>
                   {s.correct}/{s.total} ({s.percent}%)
                 </span>
@@ -107,12 +117,12 @@ export function PlacementResultsClient({ attempt }: PlacementResultsClientProps)
       {(report.strengths.length > 0 || report.weaknesses.length > 0) && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2">
           {report.strengths.length > 0 && (
-            <Card>
+            <Card className="border-green-200">
               <CardHeader>
-                <CardTitle className="text-base text-green-700">Điểm mạnh</CardTitle>
+                <CardTitle className="text-base font-extrabold text-green-700">Điểm mạnh</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="list-inside list-disc text-sm">
+                <ul className="list-inside list-disc text-sm font-medium">
                   {report.strengths.map((s) => (
                     <li key={s}>{s}</li>
                   ))}
@@ -121,12 +131,12 @@ export function PlacementResultsClient({ attempt }: PlacementResultsClientProps)
             </Card>
           )}
           {report.weaknesses.length > 0 && (
-            <Card>
+            <Card className="border-amber-200">
               <CardHeader>
-                <CardTitle className="text-base text-amber-700">Cần cải thiện</CardTitle>
+                <CardTitle className="text-base font-extrabold text-amber-700">Cần cải thiện</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="list-inside list-disc text-sm">
+                <ul className="list-inside list-disc text-sm font-medium">
                   {report.weaknesses.map((s) => (
                     <li key={s}>{s}</li>
                   ))}
@@ -139,26 +149,39 @@ export function PlacementResultsClient({ attempt }: PlacementResultsClientProps)
 
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex items-center gap-2 text-base font-extrabold">
             <BookOpen className="h-5 w-5" />
             Gợi ý lộ trình
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm">{report.recommendation}</p>
+          <p className="text-sm font-medium">{report.recommendation}</p>
         </CardContent>
       </Card>
 
       <div className="flex flex-wrap gap-3">
-        <Button asChild>
-          <Link href="/exams/KET">Bắt đầu luyện thi</Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link href="/placement">Làm lại placement</Link>
-        </Button>
-        <Button asChild variant="ghost">
-          <Link href="/dashboard">Dashboard</Link>
-        </Button>
+        {isGuest ? (
+          <>
+            <Button asChild className="kid-btn-fun">
+              <Link href="/register">Đăng ký để luyện tập</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/placement">Làm lại placement</Link>
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button asChild className="kid-btn-fun">
+              <Link href="/exams">Bắt đầu luyện thi</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/placement">Làm lại placement</Link>
+            </Button>
+            <Button asChild variant="ghost">
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

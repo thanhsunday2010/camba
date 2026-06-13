@@ -50,9 +50,12 @@ export async function Navbar() {
                     <Link href="/admin/questions" className="text-sm font-medium hover:text-purple-600">
                       Câu hỏi
                     </Link>
-                    <Link href="/admin/papers" className="text-sm font-medium hover:text-purple-600">
-                      Đề thi
-                    </Link>
+                  <Link href="/admin/papers" className="text-sm font-medium hover:text-purple-600">
+                    Đề thi
+                  </Link>
+                  <Link href="/admin/placement" className="text-sm font-medium hover:text-purple-600">
+                    Placement
+                  </Link>
                   </>
                 )}
                 {user.role === "TEACHER" && (

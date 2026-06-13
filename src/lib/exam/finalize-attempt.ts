@@ -26,7 +26,7 @@ export async function finalizeAttemptGrading(attemptId: string) {
     },
   });
 
-  if (allGraded) {
+  if (allGraded && attempt.userId) {
     await markAssignmentsComplete(attempt.userId, attempt.paperId);
     await updateUserStreak(attempt.userId);
   }

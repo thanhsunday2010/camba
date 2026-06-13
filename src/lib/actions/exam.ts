@@ -128,10 +128,9 @@ export async function submitAttemptAction(
   timeSpent?: number
 ) {
   const session = await auth();
-  if (!session) return { error: "Chưa đăng nhập" };
 
   const attempt = await db.attempt.findUnique({
-    where: { id: attemptId, userId: session.user.id },
+    where: { id: attemptId },
     include: {
       paper: {
         include: {
@@ -146,6 +145,14 @@ export async function submitAttemptAction(
 
   if (!attempt || attempt.status !== "IN_PROGRESS") {
     return { error: "Bài làm không hợp lệ" };
+  }
+
+  if (attempt.userId) {
+    if (!session || session.user.id !== attempt.userId) {
+      return { error: "Không có quyền nộp bài này" };
+    }
+  } else if (attempt.paper.paperKind !== PaperKind.PLACEMENT) {
+    return { error: "Bài làm khách chỉ áp dụng cho placement test" };
   }
 
   let totalScore = 0;
@@ -228,13 +235,14 @@ export async function submitAttemptAction(
     },
   });
 
-  if (status === "GRADED") {
+  if (status === "GRADED" && session?.user?.id) {
     await markAssignmentsComplete(session.user.id, attempt.paperId);
     await updateUserStreak(session.user.id);
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/placement");
+  revalidatePath("/admin/placement");
   return { attemptId, needsAI, score: totalScore, maxScore, placementReport };
 }
 

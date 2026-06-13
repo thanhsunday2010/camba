@@ -36,6 +36,8 @@ interface PracticeClientProps {
   paperKind?: string;
   sections?: PaperSection[] | null;
   questions: PaperQuestion[];
+  initialAttemptId?: string;
+  isGuestAttempt?: boolean;
 }
 
 const SECTION_EMOJI: Record<string, string> = {
@@ -54,10 +56,12 @@ export function PracticeClient({
   paperKind,
   sections,
   questions,
+  initialAttemptId,
+  isGuestAttempt = false,
 }: PracticeClientProps) {
   const router = useRouter();
   const { play } = useKidSound();
-  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [attemptId, setAttemptId] = useState<string | null>(initialAttemptId ?? null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -65,6 +69,19 @@ export function PracticeClient({
   const [startedAt] = useState(new Date());
 
   useEffect(() => {
+    if (initialAttemptId) {
+      setAttemptId(initialAttemptId);
+      import("@/lib/actions/placement").then(({ getPlacementAttemptAction }) => {
+        getPlacementAttemptAction(initialAttemptId).then((res) => {
+          if (res.savedAnswers && Object.keys(res.savedAnswers).length > 0) {
+            setAnswers(res.savedAnswers);
+            toast.info("Tiếp tục bài làm đang dở");
+          }
+        });
+      });
+      return;
+    }
+
     startAttemptAction(paperId).then((res) => {
       if (res.attemptId) {
         setAttemptId(res.attemptId);
@@ -74,7 +91,7 @@ export function PracticeClient({
         }
       } else toast.error(res.error ?? "Không thể bắt đầu bài");
     });
-  }, [paperId]);
+  }, [paperId, initialAttemptId]);
 
   const setAnswer = useCallback(
     (questionId: string, value: unknown) => {

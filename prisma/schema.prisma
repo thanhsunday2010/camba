@@ -123,8 +123,10 @@ model PaperQuestion {
 
 model Attempt {
   id              String        @id @default(cuid())
-  userId          String
+  userId          String?
   paperId         String
+  guestFullName   String?
+  guestPhone      String?
   status          AttemptStatus @default(IN_PROGRESS)
   score           Float?
   maxScore        Float?
@@ -133,7 +135,7 @@ model Attempt {
   submittedAt     DateTime?
   timeSpent       Int?
 
-  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
   paper   ExamPaper       @relation(fields: [paperId], references: [id], onDelete: Cascade)
   answers AttemptAnswer[]
 }
