@@ -9,9 +9,32 @@ export default async function AdminPapersPage() {
 
   const [papers, questions] = await Promise.all([
     db.examPaper.findMany({
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        level: true,
+        skill: true,
+        paperKind: true,
+        timeLimit: true,
+        isMockTest: true,
+        published: true,
+        sections: true,
         questions: {
-          include: { question: true },
+          select: {
+            id: true,
+            orderIndex: true,
+            question: {
+              select: {
+                id: true,
+                title: true,
+                type: true,
+                level: true,
+                skill: true,
+                points: true,
+              },
+            },
+          },
           orderBy: { orderIndex: "asc" },
         },
       },
@@ -19,6 +42,7 @@ export default async function AdminPapersPage() {
     }),
     db.question.findMany({
       orderBy: { createdAt: "desc" },
+      take: 500,
       select: { id: true, title: true, type: true, level: true, skill: true },
     }),
   ]);

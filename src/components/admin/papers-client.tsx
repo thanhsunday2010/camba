@@ -22,18 +22,23 @@ import {
   addQuestionToPaperAction,
   createPaperAction,
   deletePaperAction,
+  getQuestionByIdAction,
   movePaperQuestionAction,
   removeQuestionFromPaperAction,
   updatePaperAction,
 } from "@/lib/actions/exam";
 import { ExamLevel, PaperKind, Skill } from "@prisma/client";
-import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
-import { QuestionForm, type QuestionFormData } from "@/components/admin/question-form";
+import { ChevronDown, ChevronUp, Loader2, Pencil } from "lucide-react";
+import {
+  QuestionForm,
+  type QuestionFormData,
+  type QuestionListItem,
+} from "@/components/admin/question-form";
 
 type PaperQuestionRow = {
   id: string;
   orderIndex: number;
-  question: QuestionFormData;
+  question: QuestionListItem;
 };
 
 type PaperRow = {
@@ -211,7 +216,23 @@ export function AdminPapersClient({
   const [addQuestionId, setAddQuestionId] = useState("");
   const [editingPaper, setEditingPaper] = useState<PaperRow | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<QuestionFormData | null>(null);
+  const [loadingQuestionId, setLoadingQuestionId] = useState<string | null>(null);
   const [kindFilter, setKindFilter] = useState<string>("ALL");
+
+  async function openQuestionEdit(questionId: string) {
+    if (editingQuestion?.id === questionId) {
+      setEditingQuestion(null);
+      return;
+    }
+    setLoadingQuestionId(questionId);
+    const result = await getQuestionByIdAction(questionId);
+    setLoadingQuestionId(null);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    setEditingQuestion(result.question);
+  }
 
   const filteredPapers = useMemo(() => {
     if (kindFilter === "ALL") return papers;
@@ -365,13 +386,14 @@ export function AdminPapersClient({
                             type="button"
                             className="p-1 text-purple-600 hover:bg-purple-100 rounded"
                             title="Sửa nội dung câu"
-                            onClick={() =>
-                              setEditingQuestion(
-                                editingQuestion?.id === pq.question.id ? null : pq.question
-                              )
-                            }
+                            disabled={loadingQuestionId === pq.question.id}
+                            onClick={() => openQuestionEdit(pq.question.id)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            {loadingQuestionId === pq.question.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Pencil className="h-4 w-4" />
+                            )}
                           </button>
                           <button
                             type="button"
@@ -411,16 +433,23 @@ export function AdminPapersClient({
                           <p className="mb-2 text-xs font-semibold text-purple-700">
                             Sửa câu {i + 1} · {paper.title}
                           </p>
-                          <QuestionForm
-                            key={pq.question.id}
-                            question={pq.question}
-                            mode="edit"
-                            compact
-                            onDone={() => {
-                              setEditingQuestion(null);
-                              router.refresh();
-                            }}
-                          />
+                          {loadingQuestionId === pq.question.id ? (
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Đang tải nội dung...
+                            </p>
+                          ) : (
+                            <QuestionForm
+                              key={editingQuestion.id}
+                              question={editingQuestion}
+                              mode="edit"
+                              compact
+                              onDone={() => {
+                                setEditingQuestion(null);
+                                router.refresh();
+                              }}
+                            />
+                          )}
                         </div>
                       )}
                     </li>

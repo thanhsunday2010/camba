@@ -9,13 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { formatExamLevel, formatSkill } from "@/lib/constants";
-import { deleteQuestionAction } from "@/lib/actions/exam";
-import { QuestionForm, type QuestionFormData } from "@/components/admin/question-form";
-import { Pencil, Trash2 } from "lucide-react";
+import { deleteQuestionAction, getQuestionByIdAction } from "@/lib/actions/exam";
+import {
+  QuestionForm,
+  type QuestionFormData,
+  type QuestionListItem,
+} from "@/components/admin/question-form";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
 
-export function AdminQuestionsClient({ questions }: { questions: QuestionFormData[] }) {
+export function AdminQuestionsClient({ questions }: { questions: QuestionListItem[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<QuestionFormData | null>(null);
+  const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -30,6 +35,21 @@ export function AdminQuestionsClient({ questions }: { questions: QuestionFormDat
         item.skill.toLowerCase().includes(q)
     );
   }, [questions, search]);
+
+  async function handleEdit(item: QuestionListItem) {
+    if (editing?.id === item.id) {
+      setEditing(null);
+      return;
+    }
+    setLoadingEditId(item.id);
+    const result = await getQuestionByIdAction(item.id);
+    setLoadingEditId(null);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    setEditing(result.question);
+  }
 
   async function handleDelete(id: string) {
     if (!confirm("Xóa câu hỏi này?")) return;
@@ -58,12 +78,19 @@ export function AdminQuestionsClient({ questions }: { questions: QuestionFormDat
             <CardTitle>{editing ? "Sửa câu hỏi" : "Thêm câu hỏi mới"}</CardTitle>
           </CardHeader>
           <CardContent>
-            <QuestionForm
-              key={editing?.id ?? "create"}
-              question={editing ?? undefined}
-              mode={editing ? "edit" : "create"}
-              onDone={handleDone}
-            />
+            {loadingEditId ? (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Đang tải nội dung câu hỏi...
+              </p>
+            ) : (
+              <QuestionForm
+                key={editing?.id ?? "create"}
+                question={editing ?? undefined}
+                mode={editing ? "edit" : "create"}
+                onDone={handleDone}
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -87,11 +114,22 @@ export function AdminQuestionsClient({ questions }: { questions: QuestionFormDat
                     <Badge variant="outline">{formatSkill(q.skill)}</Badge>
                   </div>
                   <p className="mt-2 text-sm font-medium">{q.title ?? "Không có tiêu đề"}</p>
-                  <p className="text-xs text-muted-foreground">{q.points} điểm · {q.id.slice(0, 8)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {q.points} điểm · {q.id.slice(0, 8)}
+                  </p>
                 </div>
                 <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => setEditing(q)}>
-                    <Pencil className="h-4 w-4" />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    disabled={loadingEditId === q.id}
+                    onClick={() => handleEdit(q)}
+                  >
+                    {loadingEditId === q.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Pencil className="h-4 w-4" />
+                    )}
                   </Button>
                   <Button size="icon" variant="ghost" onClick={() => handleDelete(q.id)}>
                     <Trash2 className="h-4 w-4 text-red-500" />

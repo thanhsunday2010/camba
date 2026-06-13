@@ -3,7 +3,7 @@ import { Nunito } from "next/font/google";
 import { AppToaster } from "@/components/layout/app-toaster";
 import { Navbar } from "@/components/layout/navbar";
 import { FloatingDecor } from "@/components/kids/floating-decor";
-import { MascotBuddyWrapper } from "@/components/kids/mascot-buddy-wrapper";
+import { MascotProviderWrapper } from "@/components/kids/mascot-buddy-wrapper";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { SoundProvider } from "@/components/kids/sound-provider";
 import "./globals.css";
@@ -29,12 +29,13 @@ export default function RootLayout({
       <body className={`${nunito.className} min-h-screen antialiased`}>
         <AuthSessionProvider>
           <SoundProvider>
-            <FloatingDecor />
-            <div className="relative z-10">
-              <Navbar />
-              <main>{children}</main>
-              <MascotBuddyWrapper />
-            </div>
+            <MascotProviderWrapper>
+              <FloatingDecor />
+              <div className="relative z-10">
+                <Navbar />
+                <main>{children}</main>
+              </div>
+            </MascotProviderWrapper>
             <AppToaster />
           </SoundProvider>
         </AuthSessionProvider>

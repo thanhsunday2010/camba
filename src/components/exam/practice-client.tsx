@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,14 @@ import {
 } from "@/lib/audio/listening-audio-client";
 import { startAttemptAction, submitAttemptAction } from "@/lib/actions/exam";
 import { QuestionType } from "@prisma/client";
+import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
+import { useMascotToast } from "@/components/kids/mascot-toast-provider";
+import {
+  mascotHalfProgressMessage,
+  mascotSpeakingDoneMessage,
+  mascotStreakMessage,
+  mascotTestCompleteMessage,
+} from "@/lib/kids/mascot-messages";
 
 interface PaperQuestion {
   id: string;
@@ -22,6 +30,8 @@ interface PaperQuestion {
   audioUrl?: string | null;
   points: number;
   skill?: string;
+  title?: string | null;
+  correctAnswer?: unknown;
 }
 
 interface PaperSection {
@@ -42,6 +52,7 @@ interface PracticeClientProps {
   questions: PaperQuestion[];
   initialAttemptId?: string;
   isGuestAttempt?: boolean;
+  instantFeedback?: boolean;
 }
 
 const SECTION_EMOJI: Record<string, string> = {
@@ -70,15 +81,20 @@ export function PracticeClient({
   questions,
   initialAttemptId,
   isGuestAttempt = false,
+  instantFeedback = false,
 }: PracticeClientProps) {
   const router = useRouter();
   const { play } = useKidSound();
+  const { showMascot } = useMascotToast();
   const [attemptId, setAttemptId] = useState<string | null>(initialAttemptId ?? null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [startedAt] = useState(new Date());
+  const correctStreakRef = useRef(0);
+  const halfProgressShownRef = useRef(false);
+  const lastStreakMilestoneRef = useRef(0);
 
   useEffect(() => {
     if (initialAttemptId) {
@@ -110,8 +126,40 @@ export function PracticeClient({
   }, [currentIndex]);
 
   const setAnswer = useCallback(
-    (questionId: string, value: unknown) => {
-      setAnswers((prev) => ({ ...prev, [questionId]: value }));
+    (questionId: string, value: unknown, question?: PaperQuestion) => {
+      setAnswers((prev) => {
+        const next = { ...prev, [questionId]: value };
+
+        if (instantFeedback && question?.correctAnswer != null) {
+          if (question.type === "MCQ" || question.type === "GAP_FILL") {
+            const result = gradeObjectiveAnswer(
+              question.type,
+              question.correctAnswer,
+              value
+            );
+            if (result.isCorrect) {
+              correctStreakRef.current += 1;
+              const streak = correctStreakRef.current;
+              if (streak >= 5 && streak % 5 === 0 && streak !== lastStreakMilestoneRef.current) {
+                lastStreakMilestoneRef.current = streak;
+                showMascot(mascotStreakMessage(streak));
+              }
+            } else {
+              correctStreakRef.current = 0;
+              lastStreakMilestoneRef.current = 0;
+            }
+          }
+        }
+
+        const answered = questions.filter((q) => isAnswered(next[q.id])).length;
+        const pct = Math.round((answered / questions.length) * 100);
+        if (pct >= 50 && !halfProgressShownRef.current) {
+          halfProgressShownRef.current = true;
+          showMascot(mascotHalfProgressMessage());
+        }
+
+        return next;
+      });
       play("pop");
 
       if (paperKind === "PLACEMENT" && attemptId) {
@@ -120,7 +168,7 @@ export function PracticeClient({
         });
       }
     },
-    [play, paperKind, attemptId]
+    [play, paperKind, attemptId, instantFeedback, questions, showMascot]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -163,15 +211,16 @@ export function PracticeClient({
     }
 
     toast.success("Tuyệt vời! Nộp bài thành công! 🎉");
+    showMascot(mascotTestCompleteMessage(paperKind));
     router.refresh();
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 900));
 
     if (paperKind === "PLACEMENT") {
       router.push(`/placement/results/${attemptId}`);
     } else {
       router.push(`/results/${attemptId}`);
     }
-  }, [attemptId, answers, startedAt, questions, router, paperKind, play]);
+  }, [attemptId, answers, startedAt, questions, router, paperKind, play, showMascot]);
 
   const goNext = () => {
     stopAllListeningPlayback();
@@ -302,7 +351,7 @@ export function PracticeClient({
                 question={current}
                 index={currentIndex}
                 value={answers[current.id]}
-                onChange={(v) => setAnswer(current.id, v)}
+                onChange={(v) => setAnswer(current.id, v, current)}
                 isListening={currentSection?.skill === "LISTENING"}
                 onSpeakingTranscript={async (text) => {
                   if (!attemptId) return;
@@ -320,8 +369,9 @@ export function PracticeClient({
                       const err = await res.json();
                       throw new Error(err.error);
                     }
-                    setAnswer(current.id, text);
+                    setAnswer(current.id, text, current);
                     play("success");
+                    showMascot(mascotSpeakingDoneMessage());
                     toast.success("Giỏi lắm! Đã gửi bài nói 🎤");
                   } catch {
                     toast.error("Không thể chấm speaking");

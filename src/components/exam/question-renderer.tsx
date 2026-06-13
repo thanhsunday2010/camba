@@ -21,6 +21,7 @@ interface QuestionData {
   content: unknown;
   audioUrl?: string | null;
   points: number;
+  title?: string | null;
 }
 
 interface QuestionRendererProps {
@@ -31,6 +32,8 @@ interface QuestionRendererProps {
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
   isListening?: boolean;
+  /** Hide speaking prompt/script from students during the test */
+  hideSpeakingScript?: boolean;
 }
 
 export function QuestionRenderer({
@@ -41,6 +44,7 @@ export function QuestionRenderer({
   onSpeakingTranscript,
   disabled,
   isListening = false,
+  hideSpeakingScript = true,
 }: QuestionRendererProps) {
   const content = question.content as McqContent | GapFillContent | FreeTextContent | SpeakingContent;
   const mcqContent = content as McqContent;
@@ -121,6 +125,8 @@ export function QuestionRenderer({
       {question.type === "SPEAKING_PROMPT" && (
         <SpeakingQuestion
           content={content as SpeakingContent}
+          questionTitle={question.title}
+          hideScript={hideSpeakingScript}
           onSpeakingTranscript={onSpeakingTranscript}
           disabled={disabled}
         />
@@ -266,17 +272,36 @@ function FreeTextQuestion({
 
 function SpeakingQuestion({
   content,
+  questionTitle,
+  hideScript = true,
   onSpeakingTranscript,
   disabled,
 }: {
   content: SpeakingContent;
+  questionTitle?: string | null;
+  hideScript?: boolean;
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
 }) {
+  const scriptText = content.script?.trim() || content.prompt?.trim() || "";
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50 p-4">
-        <p className="font-bold whitespace-pre-wrap">🎤 {content.prompt}</p>
+        <p className="font-bold text-purple-900">🎤 Bài nói</p>
+        {questionTitle && (
+          <p className="mt-1 text-sm font-semibold text-purple-800">{questionTitle}</p>
+        )}
+        {hideScript ? (
+          <p className="mt-2 text-sm text-purple-700">
+            Nhấn nút mic và trả lời bằng tiếng Anh. Nội dung câu hỏi không hiển thị — giống thi
+            Speaking thật.
+          </p>
+        ) : (
+          scriptText && (
+            <p className="mt-2 font-bold whitespace-pre-wrap text-purple-900">{scriptText}</p>
+          )
+        )}
         {(content.preparationTime || content.speakingTime) && (
           <p className="mt-2 text-sm text-purple-700">
             {content.preparationTime && `Chuẩn bị: ${content.preparationTime}s`}
@@ -287,6 +312,7 @@ function SpeakingQuestion({
       <AudioRecorder
         onTranscript={(text) => onSpeakingTranscript?.(text)}
         disabled={disabled}
+        hideTranscript={hideScript}
       />
     </div>
   );

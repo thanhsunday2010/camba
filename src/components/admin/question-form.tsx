@@ -22,6 +22,12 @@ export type QuestionFormData = {
   audioUrl: string | null;
 };
 
+/** Lightweight row for lists — no JSON content */
+export type QuestionListItem = Pick<
+  QuestionFormData,
+  "id" | "type" | "level" | "skill" | "title" | "points"
+>;
+
 const defaultContent: Record<string, string> = {
   MCQ: JSON.stringify(
     {

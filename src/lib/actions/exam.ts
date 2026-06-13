@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -82,12 +82,18 @@ function parseQuestionJsonField(
   }
 }
 
+function revalidatePaperCache(level?: ExamLevel) {
+  revalidateTag("papers");
+  if (level) revalidateTag(`papers-${level}`);
+}
+
 async function revalidateQuestionPaths(questionId: string) {
   revalidatePath("/admin/questions");
   revalidatePath("/admin/papers");
   revalidatePath("/placement");
   revalidatePath("/exams", "layout");
   revalidatePath("/dashboard");
+  revalidateTag("papers");
 
   const links = await db.paperQuestion.findMany({
     where: { questionId },
@@ -162,6 +168,31 @@ export async function deleteQuestionAction(id: string) {
   await db.question.delete({ where: { id } });
   revalidatePath("/admin/questions");
   return { success: true };
+}
+
+export async function getQuestionByIdAction(id: string) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Không có quyền" as const };
+  }
+
+  const question = await db.question.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      type: true,
+      level: true,
+      skill: true,
+      title: true,
+      points: true,
+      content: true,
+      correctAnswer: true,
+      audioUrl: true,
+    },
+  });
+
+  if (!question) return { error: "Không tìm thấy câu hỏi" as const };
+  return { success: true as const, question };
 }
 
 export async function updateQuestionAction(formData: FormData) {
@@ -454,6 +485,7 @@ export async function createPaperAction(formData: FormData) {
   revalidatePath("/placement");
   revalidatePath("/exams", "layout");
   revalidatePath("/dashboard");
+  revalidatePaperCache(parsed.data.level as ExamLevel);
   return { success: true, paperId: paper.id };
 }
 
@@ -497,6 +529,10 @@ export async function updatePaperAction(formData: FormData) {
   revalidatePath("/placement");
   revalidatePath("/exams", "layout");
   revalidatePath("/dashboard");
+  revalidatePaperCache(existing.level);
+  if (parsed.data.level !== existing.level) {
+    revalidatePaperCache(parsed.data.level as ExamLevel);
+  }
   return { success: true };
 }
 
@@ -573,7 +609,14 @@ export async function deletePaperAction(paperId: string) {
     return { error: "Không có quyền" };
   }
 
+  const paper = await db.examPaper.findUnique({
+    where: { id: paperId },
+    select: { level: true },
+  });
+
   await db.examPaper.delete({ where: { id: paperId } });
   revalidatePath("/admin/papers");
+  revalidatePath("/exams", "layout");
+  if (paper) revalidatePaperCache(paper.level);
   return { success: true };
 }

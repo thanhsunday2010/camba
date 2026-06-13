@@ -15,40 +15,60 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      attempts: {
-        where: { status: { in: ["GRADED", "SUBMITTED"] } },
-        include: { paper: true },
-        orderBy: { submittedAt: "desc" },
-        take: 10,
-      },
-      assignments: {
-        where: { completed: false },
-        include: {
-          paper: true,
-          teacher: { select: { name: true } },
+  const userId = session.user.id;
+
+  const [user, totalAttempts, skillStats, recentScores, leaderboard] = await Promise.all([
+    db.user.findUnique({
+      where: { id: userId },
+      include: {
+        attempts: {
+          where: { status: { in: ["GRADED", "SUBMITTED"] } },
+          include: { paper: { select: { title: true, skill: true, level: true } } },
+          orderBy: { submittedAt: "desc" },
+          take: 10,
         },
-        orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
-        take: 10,
+        assignments: {
+          where: { completed: false },
+          include: {
+            paper: { select: { title: true, skill: true } },
+            teacher: { select: { name: true } },
+          },
+          orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
+          take: 10,
+        },
       },
-    },
-  });
+    }),
+    db.attempt.count({
+      where: {
+        userId,
+        status: { in: ["GRADED", "SUBMITTED"] },
+      },
+    }),
+    db.attempt.findMany({
+      where: { userId, status: "GRADED", score: { not: null } },
+      select: {
+        score: true,
+        maxScore: true,
+        paper: { select: { skill: true } },
+      },
+      orderBy: { submittedAt: "desc" },
+      take: 80,
+    }),
+    db.attempt.findMany({
+      where: { userId, status: "GRADED", score: { not: null }, maxScore: { not: null } },
+      include: { paper: { select: { title: true } } },
+      orderBy: { submittedAt: "desc" },
+      take: 5,
+    }),
+    db.user.findMany({
+      where: { role: "STUDENT" },
+      orderBy: { streak: "desc" },
+      take: 5,
+      select: { name: true, streak: true },
+    }),
+  ]);
 
   if (!user) redirect("/login");
-
-  const totalAttempts = await db.attempt.count({
-    where: {
-      userId: user.id,
-      status: { in: ["GRADED", "SUBMITTED"] },
-    },
-  });
-
-  const skillStats = await db.attempt.findMany({
-    where: { userId: user.id, status: "GRADED", score: { not: null } },
-    include: { paper: true },
-  });
 
   const bySkill: Record<string, { total: number; count: number }> = {};
   for (const s of SKILLS) bySkill[s.value] = { total: 0, count: 0 };
@@ -59,20 +79,6 @@ export default async function DashboardPage() {
       bySkill[skill].count += 1;
     }
   }
-
-  const recentScores = await db.attempt.findMany({
-    where: { userId: user.id, status: "GRADED", score: { not: null }, maxScore: { not: null } },
-    include: { paper: true },
-    orderBy: { submittedAt: "desc" },
-    take: 5,
-  });
-
-  const leaderboard = await db.user.findMany({
-    where: { role: "STUDENT" },
-    orderBy: { streak: "desc" },
-    take: 5,
-    select: { name: true, streak: true },
-  });
 
   return (
     <div className="container mx-auto px-4 py-8">

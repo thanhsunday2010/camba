@@ -27,6 +27,7 @@ export interface SpeakingContent {
   preparationTime?: number;
   speakingTime?: number;
   imageUrl?: string;
+  script?: string;
 }
 
 export function gradeObjectiveAnswer(

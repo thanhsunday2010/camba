@@ -53,6 +53,7 @@ export default async function PlacementTakePage({
     audioUrl: pq.question.audioUrl,
     points: pq.question.points,
     skill: pq.question.skill,
+    title: pq.question.title,
   }));
 
   const sections = parseSections(paper.sections);

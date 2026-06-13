@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import type { PlacementReport } from "@/lib/placement/evaluate";
 import { formatSkill } from "@/lib/constants";
 import { Award, BookOpen, Target } from "lucide-react";
+import { useMascotToast } from "@/components/kids/mascot-toast-provider";
+import { mascotPlacementResultMessage } from "@/lib/kids/mascot-messages";
 
 const SKILL_LABELS: Record<string, string> = {
   READING: "Reading",
@@ -32,10 +35,23 @@ interface PlacementResultsClientProps {
 
 export function PlacementResultsClient({ attempt, isGuest = false }: PlacementResultsClientProps) {
   const report = attempt.placementReport;
+  const { showMascot } = useMascotToast();
+  const mascotShownRef = useRef(false);
   const pct =
     attempt.score !== null && attempt.maxScore
       ? Math.round((attempt.score / attempt.maxScore) * 100)
       : null;
+
+  useEffect(() => {
+    if (!report || mascotShownRef.current) return;
+    mascotShownRef.current = true;
+    showMascot(
+      mascotPlacementResultMessage(
+        report.cambridgeLevel,
+        attempt.displayName ?? attempt.guestFullName ?? undefined
+      )
+    );
+  }, [report, showMascot, attempt.displayName, attempt.guestFullName]);
 
   if (!report) {
     return (

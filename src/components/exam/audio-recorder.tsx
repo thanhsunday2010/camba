@@ -10,6 +10,8 @@ interface AudioRecorderProps {
   /** Called with transcript from Web Speech API or manual input */
   onTranscript: (text: string) => void;
   disabled?: boolean;
+  /** Hide live transcript while recording (speaking test mode) */
+  hideTranscript?: boolean;
 }
 
 function getSpeechRecognition(): typeof SpeechRecognition | null {
@@ -17,7 +19,7 @@ function getSpeechRecognition(): typeof SpeechRecognition | null {
   return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
 }
 
-export function AudioRecorder({ onTranscript, disabled }: AudioRecorderProps) {
+export function AudioRecorder({ onTranscript, disabled, hideTranscript = false }: AudioRecorderProps) {
   const [recording, setRecording] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [manualText, setManualText] = useState("");
@@ -133,7 +135,7 @@ export function AudioRecorder({ onTranscript, disabled }: AudioRecorderProps) {
           )}
         </div>
 
-        {(recording || liveTranscript) && (
+        {(recording || liveTranscript) && !hideTranscript && (
           <div className="mt-3 rounded-md bg-white p-3 text-sm">
             <p className="mb-1 text-xs text-muted-foreground">
               {recording ? "Đang nghe..." : "Transcript:"}
@@ -141,8 +143,13 @@ export function AudioRecorder({ onTranscript, disabled }: AudioRecorderProps) {
             <p className="whitespace-pre-wrap">{liveTranscript || "..."}</p>
           </div>
         )}
+
+        {hideTranscript && recording && (
+          <p className="mt-3 text-sm font-medium text-purple-700">🎙️ Đang ghi âm — hãy nói bằng tiếng Anh...</p>
+        )}
       </div>
 
+      {!hideTranscript && (
       <div className="space-y-2 rounded-lg border border-dashed p-4">
         <Label className="flex items-center gap-2 text-muted-foreground">
           <Upload className="h-4 w-4" />
@@ -165,6 +172,7 @@ export function AudioRecorder({ onTranscript, disabled }: AudioRecorderProps) {
           Gửi transcript
         </Button>
       </div>
+      )}
     </div>
   );
 }

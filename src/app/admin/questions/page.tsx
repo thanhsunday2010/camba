@@ -16,9 +16,6 @@ export default async function AdminQuestionsPage() {
       skill: true,
       title: true,
       points: true,
-      content: true,
-      correctAnswer: true,
-      audioUrl: true,
     },
   });
 

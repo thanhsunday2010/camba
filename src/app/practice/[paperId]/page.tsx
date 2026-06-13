@@ -26,6 +26,8 @@ export default async function PracticePage({
 
   if (!paper) notFound();
 
+  const instantFeedback = paper.paperKind === "PRACTICE" && !paper.isMockTest;
+
   const questions = paper.questions.map((pq) => ({
     id: pq.question.id,
     type: pq.question.type,
@@ -33,6 +35,8 @@ export default async function PracticePage({
     audioUrl: pq.question.audioUrl,
     points: pq.question.points,
     skill: pq.question.skill,
+    title: pq.question.title,
+    ...(instantFeedback ? { correctAnswer: pq.question.correctAnswer } : {}),
   }));
 
   const sections = parseSections(paper.sections);
@@ -50,6 +54,7 @@ export default async function PracticePage({
       paperKind={paper.paperKind}
       sections={sections}
       questions={questions}
+      instantFeedback={instantFeedback}
     />
   );
 }

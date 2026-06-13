@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { SpeakingFeedbackView } from "@/components/ai/speaking-feedback";
 import type { WritingFeedback, SpeakingFeedback } from "@/lib/ai/schemas";
 import { QuestionType } from "@prisma/client";
 import Link from "next/link";
+import { useMascotToast } from "@/components/kids/mascot-toast-provider";
+import { mascotScoreMessage } from "@/lib/kids/mascot-messages";
 
 interface ResultAnswer {
   id: string;
@@ -56,11 +58,19 @@ interface ResultsClientProps {
 export function ResultsClient({ attempt, aiFeedbacks }: ResultsClientProps) {
   const [explaining, setExplaining] = useState<string | null>(null);
   const [explanations, setExplanations] = useState<Record<string, string>>({});
+  const { showMascot } = useMascotToast();
+  const mascotShownRef = useRef(false);
 
   const pct =
     attempt.score !== null && attempt.maxScore
       ? Math.round((attempt.score / attempt.maxScore) * 100)
       : null;
+
+  useEffect(() => {
+    if (pct === null || mascotShownRef.current) return;
+    mascotShownRef.current = true;
+    showMascot(mascotScoreMessage(pct));
+  }, [pct, showMascot]);
 
   async function explainAnswer(answer: ResultAnswer) {
     const content = answer.question.content as { question?: string };

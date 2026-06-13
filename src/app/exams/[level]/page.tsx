@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ExamLevel } from "@prisma/client";
-import { db } from "@/lib/db";
 import { formatExamLevel, formatSkill, SKILLS } from "@/lib/constants";
+import { getPublishedPapersByLevel } from "@/lib/exam/cached-papers";
 import { LEVEL_THEMES, SKILL_COLORS } from "@/lib/kids/level-themes";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,8 @@ const SKILL_EMOJI: Record<string, string> = {
   USE_OF_ENGLISH: "🌟",
 };
 
+export const revalidate = 300;
+
 export default async function ExamsLevelPage({
   params,
 }: {
@@ -35,10 +37,7 @@ export default async function ExamsLevelPage({
 
   const theme = LEVEL_THEMES[level] ?? LEVEL_THEMES.KET;
 
-  const papers = await db.examPaper.findMany({
-    where: { level: level as ExamLevel, published: true },
-    orderBy: [{ paperKind: "asc" }, { skill: "asc" }, { isMockTest: "desc" }, { title: "asc" }],
-  });
+  const papers = await getPublishedPapersByLevel(level as ExamLevel);
 
   const fullMocks = papers.filter((p) => p.paperKind === "MOCK_FULL");
   const practicePapers = papers.filter((p) => p.paperKind !== "MOCK_FULL" && p.paperKind !== "PLACEMENT");

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { assignPaperAction } from "@/lib/actions/exam";
 import { formatExamLevel, formatSkill } from "@/lib/constants";
+import { getPublishedPaperOptions } from "@/lib/exam/cached-papers";
 
 export default async function TeacherPage() {
   const session = await auth();
@@ -14,26 +15,23 @@ export default async function TeacherPage() {
     redirect("/dashboard");
   }
 
-  const students = await db.user.findMany({
-    where: { role: "STUDENT" },
-    select: { id: true, name: true, email: true, targetExam: true, streak: true },
-    orderBy: { name: "asc" },
-  });
-
-  const papers = await db.examPaper.findMany({
-    where: { published: true },
-    orderBy: { title: "asc" },
-  });
-
-  const assignments = await db.assignment.findMany({
-    where: { teacherId: session.user.id },
-    include: {
-      paper: true,
-      student: { select: { name: true } },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
+  const [students, papers, assignments] = await Promise.all([
+    db.user.findMany({
+      where: { role: "STUDENT" },
+      select: { id: true, name: true, email: true, targetExam: true, streak: true },
+      orderBy: { name: "asc" },
+    }),
+    getPublishedPaperOptions(),
+    db.assignment.findMany({
+      where: { teacherId: session.user.id },
+      include: {
+        paper: { select: { title: true, skill: true, level: true } },
+        student: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+  ]);
 
   return (
     <div className="container mx-auto px-4 py-8">
