@@ -21,6 +21,7 @@ interface PracticeClientProps {
   paperId: string;
   paperTitle: string;
   timeLimit?: number | null;
+  isMockTest?: boolean;
   questions: PaperQuestion[];
 }
 
@@ -28,6 +29,7 @@ export function PracticeClient({
   paperId,
   paperTitle,
   timeLimit,
+  isMockTest = false,
   questions,
 }: PracticeClientProps) {
   const router = useRouter();
@@ -39,8 +41,13 @@ export function PracticeClient({
 
   useEffect(() => {
     startAttemptAction(paperId).then((res) => {
-      if (res.attemptId) setAttemptId(res.attemptId);
-      else toast.error(res.error ?? "Không thể bắt đầu bài");
+      if (res.attemptId) {
+        setAttemptId(res.attemptId);
+        if (res.savedAnswers && Object.keys(res.savedAnswers).length > 0) {
+          setAnswers(res.savedAnswers);
+          toast.info("Tiếp tục bài làm đang dở");
+        }
+      } else toast.error(res.error ?? "Không thể bắt đầu bài");
     });
   }, [paperId]);
 
@@ -92,6 +99,11 @@ export function PracticeClient({
 
   return (
     <div className="container mx-auto px-4 py-6">
+      {isMockTest && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <strong>Chế độ thi thử:</strong> Làm tuần tự từng câu, không nhảy câu tự do. Hết giờ sẽ tự nộp bài.
+        </div>
+      )}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{paperTitle}</h1>
@@ -111,14 +123,17 @@ export function PracticeClient({
                 <button
                   key={q.id}
                   type="button"
-                  onClick={() => setCurrentIndex(i)}
+                  onClick={() => {
+                    if (!isMockTest) setCurrentIndex(i);
+                  }}
+                  disabled={isMockTest && i !== currentIndex}
                   className={`h-9 rounded-md text-sm font-medium transition-colors ${
                     i === currentIndex
                       ? "bg-cambridge-600 text-white"
                       : answers[q.id]
                         ? "bg-green-100 text-green-800"
                         : "bg-slate-100 hover:bg-slate-200"
-                  }`}
+                  } ${isMockTest && i !== currentIndex ? "cursor-not-allowed opacity-60" : ""}`}
                 >
                   {i + 1}
                 </button>
@@ -170,7 +185,7 @@ export function PracticeClient({
           <div className="mt-4 flex justify-between">
             <Button
               variant="outline"
-              disabled={currentIndex === 0}
+              disabled={currentIndex === 0 || isMockTest}
               onClick={() => setCurrentIndex((i) => i - 1)}
             >
               Câu trước

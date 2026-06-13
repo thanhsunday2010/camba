@@ -126,9 +126,12 @@ export default async function TeacherPage() {
       </Card>
 
       {session.user.role === "ADMIN" && (
-        <div className="mt-4">
+        <div className="mt-4 flex gap-2">
           <Button asChild variant="outline">
             <Link href="/admin/questions">Quản lý câu hỏi</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/admin/papers">Quản lý đề thi</Link>
           </Button>
         </div>
       )}

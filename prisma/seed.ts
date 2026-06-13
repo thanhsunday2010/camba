@@ -395,6 +395,106 @@ async function main() {
     });
   }
 
+  const uoeQuestions = [
+    {
+      title: "UOE - Gap fill 1",
+      content: {
+        passage: "My brother is very ___ (1) at maths. He always gets top marks.",
+        question: "Choose the best word: good / well / better / best",
+      },
+      answer: "good",
+    },
+    {
+      title: "UOE - Gap fill 2",
+      content: {
+        passage: "We ___ (2) to the cinema last night. The film was exciting.",
+        question: "Choose the best word: go / went / gone / going",
+      },
+      answer: "went",
+    },
+    {
+      title: "UOE - Gap fill 3",
+      content: {
+        passage: "If it ___ (3) tomorrow, we will stay at home.",
+        question: "Choose the best word: rain / rains / rained / raining",
+      },
+      answer: "rains",
+    },
+  ];
+
+  const uoeIds: string[] = [];
+  for (const u of uoeQuestions) {
+    const q = await db.question.create({
+      data: {
+        type: QuestionType.GAP_FILL,
+        level: ExamLevel.KET,
+        skill: Skill.USE_OF_ENGLISH,
+        title: u.title,
+        content: u.content,
+        correctAnswer: u.answer,
+        points: 1,
+      },
+    });
+    uoeIds.push(q.id);
+  }
+
+  await db.examPaper.create({
+    data: {
+      title: "KET Use of English Practice",
+      description: "Điền từ / ngữ pháp mức A2",
+      level: ExamLevel.KET,
+      skill: Skill.USE_OF_ENGLISH,
+      timeLimit: 900,
+      questions: {
+        create: uoeIds.map((id, i) => ({ questionId: id, orderIndex: i })),
+      },
+    },
+  });
+
+  const petReadingIds: string[] = [];
+  for (let i = 0; i < 5; i++) {
+    const q = readingQuestions[i];
+    const created = await db.question.create({
+      data: {
+        type: QuestionType.MCQ,
+        level: ExamLevel.PET,
+        skill: Skill.READING,
+        title: `PET ${q.title}`,
+        content: q.content,
+        correctAnswer: q.correctAnswer,
+        points: 1,
+        orderIndex: i,
+      },
+    });
+    petReadingIds.push(created.id);
+  }
+
+  await db.examPaper.create({
+    data: {
+      title: "PET Reading Practice 1",
+      description: "5 câu đọc hiểu mức B1 — format inspired by Cambridge",
+      level: ExamLevel.PET,
+      skill: Skill.READING,
+      timeLimit: 1200,
+      questions: {
+        create: petReadingIds.map((id, i) => ({ questionId: id, orderIndex: i })),
+      },
+    },
+  });
+
+  const teacher = await db.user.findUnique({ where: { email: "teacher@camba.vn" } });
+  const student = await db.user.findUnique({ where: { email: "student@camba.vn" } });
+  if (teacher && student) {
+    await db.assignment.create({
+      data: {
+        paperId: ketReadingPaper.id,
+        teacherId: teacher.id,
+        studentId: student.id,
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+  }
+
   console.log("Seed complete!");
   console.log(`Admin: admin@camba.vn / admin123`);
   console.log(`Teacher: teacher@camba.vn / teacher123`);

@@ -11,18 +11,24 @@ export async function middleware(req: NextRequest) {
   const role = (token?.role as string | undefined) ?? "";
 
   const protectedRoutes = ["/dashboard", "/practice", "/results", "/exams"];
-  const adminRoutes = ["/admin", "/teacher"];
+  const adminRoutes = ["/admin"];
+  const teacherRoutes = ["/teacher"];
   const authRoutes = ["/login", "/register"];
 
   const isProtected = protectedRoutes.some((r) => pathname.startsWith(r));
   const isAdmin = adminRoutes.some((r) => pathname.startsWith(r));
+  const isTeacher = teacherRoutes.some((r) => pathname.startsWith(r));
   const isAuthRoute = authRoutes.some((r) => pathname.startsWith(r));
 
   if (isProtected && !isLoggedIn) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (isAdmin && (!isLoggedIn || !["ADMIN", "TEACHER"].includes(role))) {
+  if (isAdmin && (!isLoggedIn || role !== "ADMIN")) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  if (isTeacher && (!isLoggedIn || !["TEACHER", "ADMIN"].includes(role))) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

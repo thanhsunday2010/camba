@@ -25,10 +25,15 @@ export async function Navbar() {
               <Link href="/exams/KET" className="text-sm font-medium hover:text-cambridge-600">
                 Luyện thi
               </Link>
-              {["ADMIN", "TEACHER"].includes(user.role ?? "") && (
-                <Link href="/admin/questions" className="text-sm font-medium hover:text-cambridge-600">
-                  Quản trị
-                </Link>
+              {user.role === "ADMIN" && (
+                <>
+                  <Link href="/admin/questions" className="text-sm font-medium hover:text-cambridge-600">
+                    Câu hỏi
+                  </Link>
+                  <Link href="/admin/papers" className="text-sm font-medium hover:text-cambridge-600">
+                    Đề thi
+                  </Link>
+                </>
               )}
               {user.role === "TEACHER" && (
                 <Link href="/teacher" className="text-sm font-medium hover:text-cambridge-600">

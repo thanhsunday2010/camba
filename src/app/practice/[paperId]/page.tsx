@@ -38,6 +38,7 @@ export default async function PracticePage({
       paperId={paper.id}
       paperTitle={paper.title}
       timeLimit={paper.timeLimit}
+      isMockTest={paper.isMockTest}
       questions={questions}
     />
   );

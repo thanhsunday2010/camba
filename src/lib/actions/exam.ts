@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
+import { markAssignmentsComplete } from "@/lib/exam/assignments";
 import { QuestionType, ExamLevel, Skill } from "@prisma/client";
 
 const questionSchema = z.object({
@@ -17,6 +18,16 @@ const questionSchema = z.object({
   correctAnswer: z.string().optional(),
   points: z.coerce.number().min(1).default(1),
   audioUrl: z.string().optional(),
+});
+
+const paperSchema = z.object({
+  title: z.string().min(3),
+  description: z.string().optional(),
+  level: z.enum(["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"]),
+  skill: z.enum(["READING", "WRITING", "LISTENING", "SPEAKING", "USE_OF_ENGLISH"]),
+  timeLimit: z.coerce.number().min(60).optional(),
+  isMockTest: z.coerce.boolean().optional(),
+  published: z.coerce.boolean().optional(),
 });
 
 export async function createQuestionAction(formData: FormData) {
@@ -80,6 +91,24 @@ export async function startAttemptAction(paperId: string) {
   });
   if (!paper) return { error: "Không tìm thấy đề" };
 
+  const existing = await db.attempt.findFirst({
+    where: {
+      userId: session.user.id,
+      paperId,
+      status: "IN_PROGRESS",
+    },
+    include: { answers: true },
+    orderBy: { startedAt: "desc" },
+  });
+
+  if (existing) {
+    const savedAnswers: Record<string, unknown> = {};
+    for (const a of existing.answers) {
+      savedAnswers[a.questionId] = a.answer;
+    }
+    return { attemptId: existing.id, resumed: true, savedAnswers };
+  }
+
   const attempt = await db.attempt.create({
     data: {
       userId: session.user.id,
@@ -89,7 +118,7 @@ export async function startAttemptAction(paperId: string) {
   });
 
   await updateUserStreak(session.user.id);
-  return { attemptId: attempt.id };
+  return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
 }
 
 export async function submitAttemptAction(
@@ -177,6 +206,12 @@ export async function submitAttemptAction(
     },
   });
 
+  if (status === "GRADED") {
+    await markAssignmentsComplete(session.user.id, attempt.paperId);
+    await updateUserStreak(session.user.id);
+  }
+
+  revalidatePath("/dashboard");
   return { attemptId, needsAI, score: totalScore, maxScore };
 }
 
@@ -200,4 +235,77 @@ export async function assignPaperAction(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/teacher");
+}
+
+export async function createPaperAction(formData: FormData) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Không có quyền" };
+  }
+
+  const parsed = paperSchema.safeParse({
+    title: formData.get("title"),
+    description: formData.get("description") || undefined,
+    level: formData.get("level"),
+    skill: formData.get("skill"),
+    timeLimit: formData.get("timeLimit") || undefined,
+      isMockTest: formData.get("isMockTest") === "on",
+      published: formData.get("published") === "on",
+  });
+
+  if (!parsed.success) return { error: "Dữ liệu không hợp lệ" };
+
+  const paper = await db.examPaper.create({
+    data: {
+      title: parsed.data.title,
+      description: parsed.data.description,
+      level: parsed.data.level as ExamLevel,
+      skill: parsed.data.skill as Skill,
+      timeLimit: parsed.data.timeLimit,
+      isMockTest: parsed.data.isMockTest ?? false,
+      published: parsed.data.published ?? true,
+    },
+  });
+
+  revalidatePath("/admin/papers");
+  return { success: true, paperId: paper.id };
+}
+
+export async function addQuestionToPaperAction(paperId: string, questionId: string) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Không có quyền" };
+  }
+
+  const count = await db.paperQuestion.count({ where: { paperId } });
+  await db.paperQuestion.upsert({
+    where: { paperId_questionId: { paperId, questionId } },
+    create: { paperId, questionId, orderIndex: count },
+    update: {},
+  });
+
+  revalidatePath("/admin/papers");
+  return { success: true };
+}
+
+export async function removeQuestionFromPaperAction(paperQuestionId: string) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Không có quyền" };
+  }
+
+  await db.paperQuestion.delete({ where: { id: paperQuestionId } });
+  revalidatePath("/admin/papers");
+  return { success: true };
+}
+
+export async function deletePaperAction(paperId: string) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return { error: "Không có quyền" };
+  }
+
+  await db.examPaper.delete({ where: { id: paperId } });
+  revalidatePath("/admin/papers");
+  return { success: true };
 }

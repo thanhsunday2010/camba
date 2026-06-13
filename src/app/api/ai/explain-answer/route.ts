@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { explainWrongAnswer } from "@/lib/ai/grading";
 import { getGeminiApiKey } from "@/lib/ai/config";
+import { checkAIRateLimit } from "@/lib/ai/rate-limit";
+import { db } from "@/lib/db";
 import { z } from "zod";
 
 const schema = z.object({
@@ -20,6 +22,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "GOOGLE_AI_API_KEY chưa được cấu hình" }, { status: 503 });
   }
 
+  const allowed = await checkAIRateLimit(session.user.id);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Đã hết 10 lượt AI hôm nay. Thử lại vào ngày mai." },
+      { status: 429 }
+    );
+  }
+
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -27,6 +37,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const explanation = await explainWrongAnswer(parsed.data);
+    await db.aIFeedback.create({
+      data: {
+        userId: session.user.id,
+        feedbackType: "explain",
+        inputText: `${parsed.data.question}\nĐáp án học sinh: ${parsed.data.studentAnswer}`,
+        rawResponse: { explanation },
+      },
+    });
     return NextResponse.json({ explanation });
   } catch (e) {
     console.error("[explain-answer]", e);

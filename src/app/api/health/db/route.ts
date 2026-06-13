@@ -30,6 +30,13 @@ export async function GET() {
     return NextResponse.json({ ok: true, users, env });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ ok: false, error: message, env }, { status: 500 });
+    let hint: string | undefined;
+    if (message.includes("tenant/user") && message.includes("not found")) {
+      hint =
+        "DATABASE_URL pooler sai region hoặc project ref. Vào Supabase → Connect → Transaction pooler → copy URI (đừng tự ghép aws-0-ap-southeast-1).";
+    } else if (message.includes("Can't reach database") || message.includes("P1001")) {
+      hint = "Thử DIRECT_URL :5432 cho migrate; DATABASE_URL nên là pooler :6543 copy từ Supabase.";
+    }
+    return NextResponse.json({ ok: false, error: message, hint, env }, { status: 500 });
   }
 }
