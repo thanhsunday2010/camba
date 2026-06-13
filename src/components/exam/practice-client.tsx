@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { QuestionRenderer } from "@/components/exam/question-renderer";
 import { ExamTimer } from "@/components/exam/exam-timer";
+import { ConfettiBurst } from "@/components/kids/confetti-burst";
+import { useKidSound } from "@/components/kids/sound-provider";
 import { startAttemptAction, submitAttemptAction } from "@/lib/actions/exam";
 import { QuestionType } from "@prisma/client";
 
@@ -36,6 +38,14 @@ interface PracticeClientProps {
   questions: PaperQuestion[];
 }
 
+const SECTION_EMOJI: Record<string, string> = {
+  READING: "📖",
+  LISTENING: "🎧",
+  USE_OF_ENGLISH: "✏️",
+  WRITING: "📝",
+  SPEAKING: "🎤",
+};
+
 export function PracticeClient({
   paperId,
   paperTitle,
@@ -46,10 +56,12 @@ export function PracticeClient({
   questions,
 }: PracticeClientProps) {
   const router = useRouter();
+  const { play } = useKidSound();
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [startedAt] = useState(new Date());
 
   useEffect(() => {
@@ -64,13 +76,19 @@ export function PracticeClient({
     });
   }, [paperId]);
 
-  const setAnswer = useCallback((questionId: string, value: unknown) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
-  }, []);
+  const setAnswer = useCallback(
+    (questionId: string, value: unknown) => {
+      setAnswers((prev) => ({ ...prev, [questionId]: value }));
+      play("pop");
+    },
+    [play]
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!attemptId) return;
     setSubmitting(true);
+    play("celebrate");
+    setShowConfetti(true);
 
     const timeSpent = Math.floor((Date.now() - startedAt.getTime()) / 1000);
     const result = await submitAttemptAction(attemptId, answers, timeSpent);
@@ -78,6 +96,7 @@ export function PracticeClient({
     if (result.error) {
       toast.error(result.error);
       setSubmitting(false);
+      setShowConfetti(false);
       return;
     }
 
@@ -104,133 +123,158 @@ export function PracticeClient({
       }
     }
 
-    toast.success("Nộp bài thành công!");
+    toast.success("Tuyệt vời! Nộp bài thành công! 🎉");
+    await new Promise((r) => setTimeout(r, 1200));
+
     if (paperKind === "PLACEMENT") {
       router.push(`/placement/results/${attemptId}`);
     } else {
       router.push(`/results/${attemptId}`);
     }
-  }, [attemptId, answers, startedAt, questions, router, paperKind]);
+  }, [attemptId, answers, startedAt, questions, router, paperKind, play]);
+
+  const goNext = () => {
+    play("whoosh");
+    setCurrentIndex((i) => Math.min(i + 1, questions.length - 1));
+  };
+
+  const goPrev = () => {
+    play("click");
+    setCurrentIndex((i) => Math.max(i - 1, 0));
+  };
 
   const current = questions[currentIndex];
   const currentSection = sections?.find(
     (s) => currentIndex >= s.startIndex && currentIndex < s.endIndex
   );
+  const answeredCount = Object.keys(answers).length;
+  const progressPct = Math.round((answeredCount / questions.length) * 100);
 
   return (
     <div className="container mx-auto px-4 py-6">
+      <ConfettiBurst active={showConfetti} />
+
       {paperKind === "PLACEMENT" && (
-        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-          <strong>Bài test trình độ:</strong> Làm hết các phần Reading, Listening và Use of English.
-          Kết quả sẽ đánh giá trình độ CEFR và đề xuất cấp độ Cambridge phù hợp.
+        <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-sky-300 bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-3 text-sm font-semibold text-sky-900">
+          🎯 <strong>Bài test trình độ:</strong> Làm hết các phần để biết level Cambridge của bạn!
         </div>
       )}
-      {(isMockTest && paperKind !== "PLACEMENT") && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <strong>Chế độ thi thử:</strong> Làm tuần tự từng câu, không nhảy câu tự do. Hết giờ sẽ tự nộp bài.
+      {isMockTest && paperKind !== "PLACEMENT" && (
+        <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 text-sm font-semibold text-amber-900">
+          ⏰ <strong>Chế độ thi thử:</strong> Làm tuần tự từng câu nhé!
         </div>
       )}
+
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">{paperTitle}</h1>
+          <h1 className="text-2xl font-extrabold kid-gradient-text">{paperTitle}</h1>
           {currentSection && (
-            <p className="text-sm font-medium text-cambridge-700">
-              Phần: {currentSection.label}
+            <p className="mt-1 text-sm font-bold text-purple-700">
+              {SECTION_EMOJI[currentSection.skill] ?? "📌"} Phần: {currentSection.label}
             </p>
           )}
-          <p className="text-sm text-muted-foreground">
-            Câu {currentIndex + 1}/{questions.length}
+          <p className="text-sm font-semibold text-muted-foreground">
+            Câu {currentIndex + 1}/{questions.length} · Đã trả lời {answeredCount} câu
           </p>
+          <div className="mt-2 h-2 w-48 overflow-hidden rounded-full bg-purple-100">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-purple-400 to-pink-400 transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
         </div>
         <ExamTimer timeLimit={timeLimit} onTimeUp={handleSubmit} startedAt={startedAt} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-4">
         <aside className="lg:col-span-1">
-          <div className="sticky top-20 rounded-xl border bg-white p-4">
-            <p className="mb-3 text-sm font-medium">Danh sách câu</p>
+          <div className="sticky top-20 rounded-2xl border-2 border-purple-200 bg-white/90 p-4 shadow-md backdrop-blur-sm">
+            <p className="mb-3 text-sm font-extrabold text-purple-700">🗺️ Bản đồ câu hỏi</p>
             <div className="grid grid-cols-5 gap-2 lg:grid-cols-4">
               {questions.map((q, i) => {
                 const sec = sections?.find((s) => i >= s.startIndex && i < s.endIndex);
                 return (
-                <button
-                  key={q.id}
-                  type="button"
-                  title={sec?.label}
-                  onClick={() => {
-                    if (!isMockTest) setCurrentIndex(i);
-                  }}
-                  disabled={isMockTest && i !== currentIndex}
-                  className={`h-9 rounded-md text-sm font-medium transition-colors ${
-                    i === currentIndex
-                      ? "bg-cambridge-600 text-white"
-                      : answers[q.id]
-                        ? "bg-green-100 text-green-800"
-                        : "bg-slate-100 hover:bg-slate-200"
-                  } ${isMockTest && i !== currentIndex ? "cursor-not-allowed opacity-60" : ""}`}
-                >
-                  {i + 1}
-                </button>
-              );})}
+                  <button
+                    key={q.id}
+                    type="button"
+                    title={sec?.label}
+                    onClick={() => {
+                      if (!isMockTest) {
+                        play("click");
+                        setCurrentIndex(i);
+                      }
+                    }}
+                    disabled={isMockTest && i !== currentIndex}
+                    className={`h-9 rounded-xl text-sm font-bold transition-all duration-200 ${
+                      i === currentIndex
+                        ? "scale-110 bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md"
+                        : answers[q.id]
+                          ? "bg-mint-200 text-mint-900 ring-2 ring-mint-400"
+                          : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                    } ${isMockTest && i !== currentIndex ? "cursor-not-allowed opacity-50" : "hover:scale-105"}`}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
             </div>
             <Button
-              className="mt-4 w-full"
+              className="mt-4 w-full kid-btn-fun"
               onClick={handleSubmit}
               disabled={submitting || !attemptId}
             >
-              {submitting ? "Đang nộp..." : "Nộp bài"}
+              {submitting ? "Đang nộp..." : "🎉 Nộp bài"}
             </Button>
           </div>
         </aside>
 
         <div className="lg:col-span-3">
           {current && (
-            <QuestionRenderer
-              question={current}
-              index={currentIndex}
-              value={answers[current.id]}
-              onChange={(v) => setAnswer(current.id, v)}
-              isListening={currentSection?.skill === "LISTENING"}
-              onSpeakingTranscript={async (text) => {
-                if (!attemptId) return;
-                try {
-                  const res = await fetch("/api/ai/grade-speaking", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      questionId: current.id,
-                      attemptId,
-                      transcript: text,
-                    }),
-                  });
-                  if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error);
+            <div className="animate-bounce-in" key={current.id}>
+              <QuestionRenderer
+                question={current}
+                index={currentIndex}
+                value={answers[current.id]}
+                onChange={(v) => setAnswer(current.id, v)}
+                isListening={currentSection?.skill === "LISTENING"}
+                onSpeakingTranscript={async (text) => {
+                  if (!attemptId) return;
+                  try {
+                    const res = await fetch("/api/ai/grade-speaking", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        questionId: current.id,
+                        attemptId,
+                        transcript: text,
+                      }),
+                    });
+                    if (!res.ok) {
+                      const err = await res.json();
+                      throw new Error(err.error);
+                    }
+                    setAnswer(current.id, text);
+                    play("success");
+                    toast.success("Giỏi lắm! Đã gửi bài nói 🎤");
+                  } catch {
+                    toast.error("Không thể chấm speaking");
                   }
-                  setAnswer(current.id, text);
-                  toast.success("Đã gửi bài nói để chấm AI (Gemini)");
-                } catch {
-                  toast.error("Không thể chấm speaking");
-                }
-              }}
-              disabled={submitting}
-            />
+                }}
+                disabled={submitting}
+              />
+            </div>
           )}
 
           <div className="mt-4 flex justify-between">
-            <Button
-              variant="outline"
-              disabled={currentIndex === 0 || isMockTest}
-              onClick={() => setCurrentIndex((i) => i - 1)}
-            >
-              Câu trước
+            <Button variant="outline" disabled={currentIndex === 0 || isMockTest} onClick={goPrev}>
+              ← Câu trước
             </Button>
             <Button
-              variant="outline"
+              variant="fun"
               disabled={currentIndex >= questions.length - 1}
-              onClick={() => setCurrentIndex((i) => i + 1)}
+              onClick={goNext}
             >
-              Câu sau
+              Câu sau →
             </Button>
           </div>
         </div>

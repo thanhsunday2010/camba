@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { CambaMascot } from "@/components/kids/camba-mascot";
 import { Flame, Target, TrendingUp, ClipboardList, CalendarClock } from "lucide-react";
 import { redirect } from "next/navigation";
 
@@ -74,50 +75,57 @@ export default async function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Xin chào, {user.name}!</h1>
-        <p className="text-muted-foreground">
-          Mục tiêu: {formatExamLevel(user.targetExam)}
+      <div className="mb-8 flex animate-bounce-in items-center gap-4">
+        <CambaMascot size="lg" mood="wave" />
+        <div>
+        <h1 className="text-3xl font-extrabold kid-gradient-text">
+          Xin chào, {user.name}! 👋
+        </h1>
+        <p className="font-semibold text-muted-foreground">
+          Mục tiêu: {formatExamLevel(user.targetExam)} 🎯
           {user.grade && ` · ${user.grade}`}
         </p>
+        </div>
       </div>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2">
-              <Flame className="h-4 w-4 text-orange-500" />
+            <CardDescription className="flex items-center gap-2 font-bold">
+              <Flame className="h-5 w-5 text-orange-500" />
               Streak
             </CardDescription>
-            <CardTitle className="text-3xl">{user.streak} ngày</CardTitle>
+            <CardTitle className="text-4xl font-extrabold text-orange-600">
+              {user.streak} 🔥
+            </CardTitle>
           </CardHeader>
         </Card>
-        <Card>
+        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-cambridge-500" />
+            <CardDescription className="flex items-center gap-2 font-bold">
+              <Target className="h-5 w-5 text-purple-500" />
               Bài đã làm
             </CardDescription>
-            <CardTitle className="text-3xl">{totalAttempts}</CardTitle>
+            <CardTitle className="text-4xl font-extrabold text-purple-600">{totalAttempts}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
+        <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-green-500" />
+            <CardDescription className="flex items-center gap-2 font-bold">
+              <TrendingUp className="h-5 w-5 text-emerald-500" />
               Cấp độ
             </CardDescription>
-            <CardTitle className="text-3xl">{user.targetExam}</CardTitle>
+            <CardTitle className="text-4xl font-extrabold text-emerald-600">{user.targetExam}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
       {user.assignments.length > 0 && (
-        <Card className="mb-8 border-cambridge-200 bg-cambridge-50/50">
+        <Card className="mb-8 border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-cambridge-600" />
-              Bài được giao ({user.assignments.length})
+            <CardTitle className="flex items-center gap-2 font-extrabold">
+              <ClipboardList className="h-5 w-5 text-purple-600" />
+              📋 Bài được giao ({user.assignments.length})
             </CardTitle>
             <CardDescription>Giáo viên đã giao — hoàn thành để đánh dấu xong</CardDescription>
           </CardHeader>
@@ -139,8 +147,8 @@ export default async function DashboardPage() {
                     )}
                   </p>
                 </div>
-                <Button asChild size="sm">
-                  <Link href={`/practice/${a.paperId}`}>Làm bài</Link>
+                <Button asChild size="sm" variant="fun" className="rounded-full">
+                  <Link href={`/practice/${a.paperId}`}>Làm bài 🚀</Link>
                 </Button>
               </div>
             ))}
@@ -250,8 +258,11 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Button asChild className="w-full" size="lg">
-            <Link href={`/exams/${user.targetExam}`}>Bắt đầu luyện tập</Link>
+          <Button asChild className="w-full kid-btn-fun" size="lg">
+            <Link href={`/exams/${user.targetExam}`}>🚀 Bắt đầu luyện tập</Link>
+          </Button>
+          <Button asChild className="w-full" size="lg" variant="outline">
+            <Link href="/placement">🎯 Test trình độ</Link>
           </Button>
         </div>
       </div>

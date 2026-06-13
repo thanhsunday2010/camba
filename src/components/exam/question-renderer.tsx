@@ -46,12 +46,14 @@ export function QuestionRenderer({
   const transcript = mcqContent.transcript;
 
   return (
-    <div className="space-y-4 rounded-xl border bg-white p-6 shadow-sm">
+    <div className="space-y-4 rounded-3xl border-2 border-purple-200 bg-white/95 p-6 shadow-lg">
       <div className="flex items-start justify-between gap-4">
-        <h3 className="text-lg font-semibold text-cambridge-900">
-          Câu {index + 1}
+        <h3 className="text-lg font-extrabold text-purple-800">
+          ✨ Câu {index + 1}
         </h3>
-        <span className="text-sm text-muted-foreground">{question.points} điểm</span>
+        <span className="rounded-full bg-sunshine-200 px-3 py-1 text-xs font-bold text-sunshine-900">
+          ⭐ {question.points} điểm
+        </span>
       </div>
 
       {(audioSrc || (isListening && transcript)) && (
@@ -101,6 +103,15 @@ export function QuestionRenderer({
   );
 }
 
+const MCQ_COLORS = [
+  "border-blue-300 hover:bg-blue-50 data-[selected=true]:bg-blue-100 data-[selected=true]:border-blue-500",
+  "border-purple-300 hover:bg-purple-50 data-[selected=true]:bg-purple-100 data-[selected=true]:border-purple-500",
+  "border-emerald-300 hover:bg-emerald-50 data-[selected=true]:bg-emerald-100 data-[selected=true]:border-emerald-500",
+  "border-orange-300 hover:bg-orange-50 data-[selected=true]:bg-orange-100 data-[selected=true]:border-orange-500",
+];
+
+const MCQ_LABELS = ["A", "B", "C", "D"];
+
 function McqQuestion({
   content,
   value,
@@ -115,30 +126,35 @@ function McqQuestion({
   return (
     <div className="space-y-4">
       {content.passage && (
-        <div className="rounded-lg bg-slate-50 p-4 text-sm leading-relaxed whitespace-pre-wrap">
-          {content.passage}
+        <div className="rounded-2xl border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50 p-4 text-sm font-medium leading-relaxed whitespace-pre-wrap">
+          📄 {content.passage}
         </div>
       )}
-      <p className="font-medium">{content.question}</p>
-      <div className="space-y-2">
+      <p className="text-lg font-bold text-purple-900">{content.question}</p>
+      <div className="space-y-3">
         {content.options.map((opt, i) => (
           <label
             key={i}
+            data-selected={value === opt}
             className={cn(
-              "flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors",
-              value === opt ? "border-cambridge-500 bg-cambridge-50" : "hover:bg-slate-50",
+              "mcq-option-kid border-2",
+              MCQ_COLORS[i % MCQ_COLORS.length],
+              value === opt && "scale-[1.02] shadow-md ring-2 ring-purple-300",
               disabled && "pointer-events-none opacity-60"
             )}
           >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-pink-400 text-sm font-extrabold text-white shadow-sm">
+              {MCQ_LABELS[i]}
+            </span>
             <input
               type="radio"
               name="mcq"
               checked={value === opt}
               onChange={() => onChange(opt)}
               disabled={disabled}
-              className="accent-cambridge-600"
+              className="sr-only"
             />
-            <span>{opt}</span>
+            <span className="font-semibold">{opt}</span>
           </label>
         ))}
       </div>
@@ -161,15 +177,15 @@ function GapFillQuestion({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg bg-slate-50 p-4 text-sm leading-relaxed whitespace-pre-wrap">
+      <div className="rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4 text-sm font-medium leading-relaxed whitespace-pre-wrap">
         {content.passage}
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {Array.from({ length: content.blanks }).map((_, i) => (
           <div key={i}>
-            <Label>Blank {i + 1}</Label>
+            <Label className="font-bold text-purple-700">Chỗ trống {i + 1}</Label>
             <input
-              className="mt-1 flex h-10 w-full rounded-md border px-3 text-sm"
+              className="mt-1 flex h-12 w-full rounded-xl border-2 border-purple-200 px-4 text-sm font-semibold focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200"
               value={answers[i] ?? ""}
               onChange={(e) => {
                 const next = [...answers];
@@ -203,12 +219,13 @@ function FreeTextQuestion({
       {content.instructions && (
         <p className="text-sm text-muted-foreground">{content.instructions}</p>
       )}
-      <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
-        <p className="font-medium text-amber-900 whitespace-pre-wrap">{content.taskPrompt}</p>
+      <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 p-4">
+        <p className="font-bold text-amber-900 whitespace-pre-wrap">✏️ {content.taskPrompt}</p>
       </div>
       <Textarea
         rows={10}
-        placeholder="Write your answer in English..."
+        placeholder="Viết câu trả lời bằng tiếng Anh nhé..."
+        className="rounded-2xl border-2 border-purple-200 text-base"
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
@@ -232,8 +249,8 @@ function SpeakingQuestion({
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-lg bg-purple-50 border border-purple-200 p-4">
-        <p className="font-medium whitespace-pre-wrap">{content.prompt}</p>
+      <div className="rounded-2xl border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+        <p className="font-bold whitespace-pre-wrap">🎤 {content.prompt}</p>
         {(content.preparationTime || content.speakingTime) && (
           <p className="mt-2 text-sm text-purple-700">
             {content.preparationTime && `Chuẩn bị: ${content.preparationTime}s`}

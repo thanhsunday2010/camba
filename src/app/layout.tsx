@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { AppToaster } from "@/components/layout/app-toaster";
 import { Navbar } from "@/components/layout/navbar";
+import { FloatingDecor } from "@/components/kids/floating-decor";
+import { MascotBuddyWrapper } from "@/components/kids/mascot-buddy-wrapper";
+import { SoundProvider } from "@/components/kids/sound-provider";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin", "vietnamese"] });
+const nunito = Nunito({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-nunito",
+});
 
 export const metadata: Metadata = {
-  title: "Camba - Luyện thi Cambridge K12",
-  description: "Ứng dụng luyện thi Tiếng Anh Cambridge với AI chấm sửa Writing và Speaking",
+  title: "Camba - Học tiếng Anh vui nhộn!",
+  description: "Luyện thi Cambridge cho trẻ em với game, âm thanh và AI chấm bài thông minh",
 };
 
 export default function RootLayout({
@@ -18,10 +25,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className={`${inter.className} min-h-screen antialiased`}>
-        <Navbar />
-        <main>{children}</main>
-        <AppToaster />
+      <body className={`${nunito.className} min-h-screen antialiased`}>
+        <SoundProvider>
+          <FloatingDecor />
+          <div className="relative z-10">
+            <Navbar />
+            <main>{children}</main>
+            <MascotBuddyWrapper />
+          </div>
+          <AppToaster />
+        </SoundProvider>
       </body>
     </html>
   );
