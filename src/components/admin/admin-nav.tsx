@@ -5,7 +5,7 @@ import {
   SUPER_ADMIN_SLUG,
   type AdminPermission,
 } from "@/lib/admin/permissions";
-import { hasPermission } from "@/lib/admin/access";
+import { hasPermission } from "@/lib/admin/permissions";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard", exact: true, permission: "dashboard.view" as AdminPermission },

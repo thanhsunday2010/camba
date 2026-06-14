@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ReferralShareButton } from "@/components/referral/referral-share-button";
 import { getSubscriptionSummary } from "@/lib/subscription/service";
-import { ensureUserReferralCode } from "@/lib/referral/service";
+import { ensureUserReferralCode } from "@/lib/referral/codes";
 
 interface SubscriptionUsageCardProps {
   userId: string;

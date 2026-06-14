@@ -2,7 +2,7 @@ import { RegisterForm } from "@/components/auth/register-form";
 import { ReferralRegisterBanner } from "@/components/referral/referral-register-banner";
 import { getEnabledOAuthProviders } from "@/lib/auth/providers";
 import { normalizeReferralCode, REFERRAL_COOKIE_NAME } from "@/lib/referral/constants";
-import { getReferrerDisplayName } from "@/lib/referral/service";
+import { getReferrerDisplayName } from "@/lib/referral/codes";
 import { cookies } from "next/headers";
 
 export const revalidate = 0;

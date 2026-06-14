@@ -94,3 +94,11 @@ export function permissionsByGroup(): Record<string, AdminPermission[]> {
   }
   return map;
 }
+
+export function hasPermission(
+  access: { permissions: AdminPermission[] } | AdminPermission[],
+  permission: AdminPermission
+): boolean {
+  const perms = Array.isArray(access) ? access : access.permissions;
+  return perms.includes(permission);
+}

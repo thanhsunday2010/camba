@@ -11,8 +11,10 @@ import { ExamLevel } from "@prisma/client";
 import { isPhoneInput, isValidPhone, normalizePhone } from "@/lib/auth/phone";
 import {
   applyReferralBonusForNewUser,
+} from "@/lib/referral/apply-bonus.server";
+import {
   generateUniqueReferralCode,
-} from "@/lib/referral/service";
+} from "@/lib/referral/codes";
 
 const registerSchema = z
   .object({

@@ -5,7 +5,10 @@ import {
   ALL_ADMIN_PERMISSIONS,
   type AdminPermission,
   SUPER_ADMIN_SLUG,
+  hasPermission,
 } from "@/lib/admin/permissions";
+
+export { hasPermission };
 
 export interface AdminAccess {
   roleSlug: string | null;
@@ -17,14 +20,6 @@ export interface AdminAccess {
 const LEGACY_ADMIN_PERMISSIONS = ALL_ADMIN_PERMISSIONS.filter(
   (p) => p !== "roles.manage"
 );
-
-export function hasPermission(
-  access: AdminAccess | AdminPermission[],
-  permission: AdminPermission
-): boolean {
-  const perms = Array.isArray(access) ? access : access.permissions;
-  return perms.includes(permission);
-}
 
 export async function getAdminAccess(userId: string): Promise<AdminAccess | null> {
   const user = await db.user.findUnique({

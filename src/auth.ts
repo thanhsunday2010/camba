@@ -12,8 +12,10 @@ import { isPhoneInput, normalizePhone } from "@/lib/auth/phone";
 import { loadAdminAccessForToken } from "@/lib/admin/access";
 import {
   applyReferralBonusForNewUser,
+} from "@/lib/referral/apply-bonus.server";
+import {
   generateUniqueReferralCode,
-} from "@/lib/referral/service";
+} from "@/lib/referral/codes";
 
 ensureAuthPublicUrl();
 

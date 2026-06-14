@@ -22,7 +22,7 @@ import { Flame, Target, TrendingUp, ClipboardList, CalendarClock } from "lucide-
 import { SubscriptionUsageCard } from "@/components/pricing/subscription-usage-card";
 import { ReferralShareCard } from "@/components/referral/referral-share-card";
 import { ReferralWelcomeToast } from "@/components/referral/referral-welcome-toast";
-import { ensureUserReferralCode } from "@/lib/referral/service";
+import { ensureUserReferralCode } from "@/lib/referral/codes";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import type { UserProfileData } from "@/lib/actions/profile";
 
