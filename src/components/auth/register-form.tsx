@@ -25,7 +25,7 @@ export function RegisterForm({ oauthProviders }: RegisterFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetExam, setTargetExam] = useState("KET");
-  const [mode, setMode] = useState<RegisterMode>("email");
+  const [mode, setMode] = useState<RegisterMode>("phone");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,21 +61,21 @@ export function RegisterForm({ oauthProviders }: RegisterFormProps) {
             type="button"
             className={cn(
               "flex-1 rounded-full py-2 text-sm font-bold transition-colors",
-              mode === "email" ? "bg-white text-purple-800 shadow-sm" : "text-muted-foreground"
-            )}
-            onClick={() => setMode("email")}
-          >
-            📧 Email
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "flex-1 rounded-full py-2 text-sm font-bold transition-colors",
               mode === "phone" ? "bg-white text-purple-800 shadow-sm" : "text-muted-foreground"
             )}
             onClick={() => setMode("phone")}
           >
             📱 Số điện thoại
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "flex-1 rounded-full py-2 text-sm font-bold transition-colors",
+              mode === "email" ? "bg-white text-purple-800 shadow-sm" : "text-muted-foreground"
+            )}
+            onClick={() => setMode("email")}
+          >
+            📧 Email
           </button>
         </div>
 

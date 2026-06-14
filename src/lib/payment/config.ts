@@ -1,4 +1,17 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { PaymentMethod } from "@prisma/client";
+
+function readEnv(...keys: string[]): string {
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (value) return value;
+  }
+  return "";
+}
+
+function normalizeAccountNumber(raw: string): string {
+  return raw.replace(/\D/g, "");
+}
 
 export interface PaymentMethodOption {
   id: PaymentMethod;
@@ -104,6 +117,8 @@ export function isBankTransferOnlyMode(): boolean {
 }
 
 export function getAvailablePaymentGroups(): PaymentMethodGroup[] {
+  noStore();
+
   if (isBankTransferOnlyMode()) {
     if (!isBankTransferConfigured()) return [];
     return [
@@ -142,12 +157,18 @@ export function getAvailablePaymentGroups(): PaymentMethodGroup[] {
 }
 
 export function getBankTransferConfig() {
+  noStore();
+
+  const accountNumber = normalizeAccountNumber(
+    readEnv("CAMBA_BANK_ACCOUNT", "NEXT_PUBLIC_CAMBA_BANK_ACCOUNT")
+  );
+
   return {
-    bankName: process.env.CAMBA_BANK_NAME ?? "ACB",
-    bankBin: process.env.CAMBA_BANK_BIN ?? "970416",
-    accountNumber: process.env.CAMBA_BANK_ACCOUNT ?? "",
-    accountName: process.env.CAMBA_BANK_HOLDER ?? "",
-    branch: process.env.CAMBA_BANK_BRANCH ?? "",
+    bankName: readEnv("CAMBA_BANK_NAME", "NEXT_PUBLIC_CAMBA_BANK_NAME") || "ACB",
+    bankBin: readEnv("CAMBA_BANK_BIN", "NEXT_PUBLIC_CAMBA_BANK_BIN") || "970416",
+    accountNumber,
+    accountName: readEnv("CAMBA_BANK_HOLDER", "NEXT_PUBLIC_CAMBA_BANK_HOLDER"),
+    branch: readEnv("CAMBA_BANK_BRANCH", "NEXT_PUBLIC_CAMBA_BANK_BRANCH"),
   };
 }
 
