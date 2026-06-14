@@ -1,6 +1,13 @@
+import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { clearAllPlacementTests } from "../prisma/seed/clear-placement";
 import { seedPlacementTests } from "../prisma/seed/helpers";
+
+// Shell env (e.g. local stub) must not override project .env for seed scripts
+config({ override: true });
+if (process.env.DIRECT_URL) {
+  process.env.DATABASE_URL = process.env.DIRECT_URL;
+}
 
 const db = new PrismaClient();
 
