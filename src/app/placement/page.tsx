@@ -3,7 +3,7 @@ import { PlacementRecentAttempts } from "@/components/placement/placement-recent
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { getPublishedPlacementPapers } from "@/lib/exam/cached-papers";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export default async function PlacementPage() {
   const papers = await getPublishedPlacementPapers();
@@ -21,19 +21,29 @@ export default async function PlacementPage() {
         </div>
       </div>
 
-      <div className="mb-12 grid gap-6 md:grid-cols-2">
-        {papers.map((paper) => (
-          <PlacementStartCard
-            key={paper.id}
-            paper={{
-              id: paper.id,
-              title: paper.title,
-              description: paper.description,
-              timeLimit: paper.timeLimit,
-            }}
-          />
-        ))}
-      </div>
+      {papers.length === 0 ? (
+        <div className="mb-12 rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/80 p-6 text-center">
+          <p className="font-bold text-amber-900">Chưa có bài placement trên hệ thống.</p>
+          <p className="mt-2 text-sm text-amber-800">
+            Admin chạy <code className="rounded bg-white px-1">npm run content:reseed-placement</code> để
+            tạo đề.
+          </p>
+        </div>
+      ) : (
+        <div className="mb-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {papers.map((paper) => (
+            <PlacementStartCard
+              key={paper.id}
+              paper={{
+                id: paper.id,
+                title: paper.title,
+                description: paper.description,
+                timeLimit: paper.timeLimit,
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <PlacementRecentAttempts />
     </div>

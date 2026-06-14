@@ -1,13 +1,8 @@
 import { PaperKind, Prisma, PrismaClient, Skill } from "@prisma/client";
 import { evaluatePlacement, type PlacementReport } from "./evaluate";
+import { inferTrackFromPaperTitle } from "./paper-titles";
 
-export function inferTrackFromPaperTitle(
-  title: string
-): "YLE" | "SECONDARY" | "ADULT" {
-  if (title.includes("YLE")) return "YLE";
-  if (title.includes("Adult")) return "ADULT";
-  return "SECONDARY";
-}
+export { inferTrackFromPaperTitle } from "./paper-titles";
 
 export async function buildPlacementReportForAttempt(
   db: PrismaClient,

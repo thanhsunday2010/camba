@@ -32,26 +32,22 @@ async function safeCachedQuery<T>(query: () => Promise<T>, fallback: T): Promise
   }
 }
 
-export function getPublishedPlacementPapers() {
-  return unstable_cache(
-    async () =>
-      safeCachedQuery(
-        () =>
-          db.examPaper.findMany({
-            where: { paperKind: "PLACEMENT", published: true },
-            select: {
-              id: true,
-              title: true,
-              description: true,
-              timeLimit: true,
-            },
-            orderBy: { title: "asc" },
-          }),
-        []
-      ),
-    ["placement-papers"],
-    { revalidate: 3600, tags: ["papers", "placement-papers"] }
-  )();
+/** Không cache — danh sách placement phải cập nhật ngay sau reseed/đổi tên */
+export async function getPublishedPlacementPapers() {
+  return safeCachedQuery(
+    () =>
+      db.examPaper.findMany({
+        where: { paperKind: "PLACEMENT", published: true },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          timeLimit: true,
+        },
+        orderBy: { title: "asc" },
+      }),
+    []
+  );
 }
 
 export function getPublishedPapersByLevel(level: ExamLevel) {

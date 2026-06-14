@@ -4,7 +4,7 @@ import { pruneLegacyPlacementPapers } from "../prisma/seed/clear-placement";
 const db = new PrismaClient();
 
 async function main() {
-  console.log("Xóa placement YLE/Secondary cũ (giữ production v1 + Adult)...\n");
+  console.log("Xóa placement legacy (giữ đề Camba Placement — hiện hành)...\n");
   await pruneLegacyPlacementPapers(db);
 }
 

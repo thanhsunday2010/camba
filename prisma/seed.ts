@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedAllBulkContent } from "./seed/bulk-seed";
+import { seedPlacementTests } from "./seed/helpers";
 import { seedAdminRoles } from "./seed/admin-roles";
 import {
   BANK_TRANSFER_SETTING_KEY,
@@ -70,6 +71,7 @@ async function main() {
   await db.examPaper.deleteMany({});
 
   await seedAllBulkContent(db);
+  await seedPlacementTests(db);
 
   const [paperCount, questionCount, mockCount, fullMockCount, placementCount] =
     await Promise.all([

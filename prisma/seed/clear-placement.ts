@@ -1,4 +1,5 @@
 import { PaperKind, PrismaClient } from "@prisma/client";
+import { PLACEMENT_TITLE_PREFIX } from "./placement-content";
 
 type DeletePlacementOpts = {
   /** Xóa đề có title chứa một trong các chuỗi này */
@@ -18,6 +19,8 @@ export async function deletePlacementPapers(
 
   const toDelete = all.filter((paper) => {
     const title = paper.title;
+    // Không bao giờ xóa đề placement hiện hành (title bắt đầu bằng Camba Placement —)
+    if (title.startsWith(PLACEMENT_TITLE_PREFIX)) return false;
     if (opts.titleExcludes?.some((ex) => title.includes(ex))) return false;
     if (!opts.titleIncludes?.length) return true;
     return opts.titleIncludes.some((inc) => title.includes(inc));
@@ -55,11 +58,15 @@ export async function deletePlacementPapers(
   return { papers: deleted.count, questions: removedQuestions };
 }
 
-/** Xóa bản YLE/Secondary cũ, giữ production v1 + Adult */
+/** Xóa bản placement legacy (title cũ), giữ đề Camba Placement — hiện hành */
 export async function pruneLegacyPlacementPapers(db: PrismaClient) {
   return deletePlacementPapers(db, {
-    titleIncludes: ["Secondary", "YLE Comprehensive", "Starters - Movers - Flyers"],
-    titleExcludes: ["Cambridge YLE Placement Test"],
+    titleIncludes: [
+      "Placement Test —",
+      "YLE Comprehensive",
+      "Cambridge YLE Placement Test",
+      "Comprehensive Adult",
+    ],
   });
 }
 

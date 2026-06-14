@@ -7,7 +7,12 @@ import {
   Prisma,
 } from "@prisma/client";
 import type { PaperSection } from "../../src/lib/exam/paper-sections";
-import { generatePlacementPool, generatePlacementPoolYle } from "./generators/bulk-data";
+import {
+  getPlacementTests,
+  PLACEMENT_SECTION_COUNTS,
+  PLACEMENT_TIME_SECONDS,
+  PLACEMENT_TOTAL_QUESTIONS,
+} from "./placement-content";
 
 export type McqSeed = {
   title: string;
@@ -469,76 +474,52 @@ async function createFullMockForLevel(
 }
 
 export async function seedPlacementTests(db: PrismaClient) {
-  const secondary = generatePlacementPool();
-  const ylePool = generatePlacementPoolYle();
+  const sectionSeconds = Math.round(PLACEMENT_TIME_SECONDS / 3);
 
-  const readingIds = await createMcqs(
-    db,
-    ExamLevel.KET,
-    Skill.READING,
-    secondary.reading.slice(0, 20)
-  );
-  const listenIds = await createListenings(
-    db,
-    ExamLevel.KET,
-    secondary.listening.slice(0, 14),
-    300
-  );
-  const uoeIds = await createGaps(
-    db,
-    ExamLevel.KET,
-    secondary.uoe.slice(0, 14)
-  );
+  for (const test of getPlacementTests()) {
+    const trackSlug = test.track.toLowerCase();
+    const readingIds = await createMcqs(db, test.level, Skill.READING, test.reading);
+    const listenItems = test.listening.map((item, i) => ({
+      ...item,
+      audioSlug: item.audioSlug ?? `placement-${trackSlug}-${String(i + 1).padStart(3, "0")}`,
+    }));
+    const listenIds = await createListenings(db, test.level, listenItems, 500);
+    const grammarIds = await createGaps(db, test.level, test.grammar);
 
-  const allIds = [...readingIds, ...listenIds, ...uoeIds];
-  const sections: PaperSection[] = [
-    { skill: Skill.READING, label: "Reading", startIndex: 0, endIndex: 20, timeLimit: 1500 },
-    { skill: Skill.LISTENING, label: "Listening", startIndex: 20, endIndex: 34, timeLimit: 900 },
-    {
-      skill: Skill.USE_OF_ENGLISH,
-      label: "Use of English",
-      startIndex: 34,
-      endIndex: 48,
-      timeLimit: 900,
-    },
-  ];
+    const allIds = [...readingIds, ...listenIds, ...grammarIds];
+    const sections: PaperSection[] = [
+      {
+        skill: Skill.READING,
+        label: "Reading",
+        startIndex: 0,
+        endIndex: PLACEMENT_SECTION_COUNTS.reading,
+        timeLimit: sectionSeconds,
+      },
+      {
+        skill: Skill.LISTENING,
+        label: "Listening",
+        startIndex: PLACEMENT_SECTION_COUNTS.reading,
+        endIndex: PLACEMENT_SECTION_COUNTS.reading + PLACEMENT_SECTION_COUNTS.listening,
+        timeLimit: sectionSeconds,
+      },
+      {
+        skill: Skill.USE_OF_ENGLISH,
+        label: "Grammar",
+        startIndex:
+          PLACEMENT_SECTION_COUNTS.reading + PLACEMENT_SECTION_COUNTS.listening,
+        endIndex: PLACEMENT_TOTAL_QUESTIONS,
+        timeLimit: sectionSeconds,
+      },
+    ];
 
-  await createPaper(
-    db,
-    ExamLevel.KET,
-    Skill.READING,
-    "Placement Test — Secondary (KET/PET/FCE)",
-    allIds,
-    {
-      description:
-        "Bài test trình độ tổng hợp: đánh giá Reading, Listening, Use of English theo CEFR & Cambridge",
-      timeLimit: 3300,
+    await createPaper(db, test.level, Skill.READING, test.title, allIds, {
+      description: test.description,
+      timeLimit: PLACEMENT_TIME_SECONDS,
       isMockTest: true,
       paperKind: PaperKind.PLACEMENT,
       sections,
-    }
-  );
+    });
 
-  const yleReadingIds = await createMcqs(db, ExamLevel.MOVERS, Skill.READING, ylePool.reading);
-  const yleListenIds = await createListenings(db, ExamLevel.MOVERS, ylePool.listening, 400);
-  const yleAll = [...yleReadingIds, ...yleListenIds];
-  const yleSections: PaperSection[] = [
-    { skill: Skill.READING, label: "Reading", startIndex: 0, endIndex: 25, timeLimit: 1200 },
-    { skill: Skill.LISTENING, label: "Listening", startIndex: 25, endIndex: 45, timeLimit: 900 },
-  ];
-
-  await createPaper(
-    db,
-    ExamLevel.MOVERS,
-    Skill.READING,
-    "Placement Test — YLE (Starters/Movers/Flyers)",
-    yleAll,
-    {
-      description: "Bài test trình độ YLE: đánh giá Reading & Listening theo CEFR Pre A1–A2",
-      timeLimit: 2100,
-      isMockTest: true,
-      paperKind: PaperKind.PLACEMENT,
-      sections: yleSections,
-    }
-  );
+    console.log(`  ✓ ${test.title} (${allIds.length} câu · ${PLACEMENT_TIME_SECONDS / 60} phút)`);
+  }
 }

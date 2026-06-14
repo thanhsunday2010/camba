@@ -28,5 +28,5 @@ export async function seedAllBulkContent(db: PrismaClient) {
     });
   }
 
-  // Placement tests: import via `npm run content:import-placement`
+  // Placement tests: `npm run content:reseed-placement` hoặc tự seed trong db:seed
 }
