@@ -13,6 +13,7 @@ import {
   Bug,
   ClipboardList,
   FileText,
+  Gift,
   HelpCircle,
   LayoutDashboard,
   Shield,
@@ -28,6 +29,7 @@ const MODULES: {
   icon: typeof HelpCircle;
   permission: AdminPermission;
   statKey?: string;
+  superAdminOnly?: boolean;
 }[] = [
   {
     href: "/admin/questions",
@@ -68,6 +70,14 @@ const MODULES: {
     icon: CreditCard,
     permission: "payments.manage",
     statKey: "pendingPayments",
+  },
+  {
+    href: "/admin/promo",
+    title: "Mã ưu đãi",
+    desc: "Tạo mã CAMBA, quyền lợi và popup cho user Free",
+    icon: Gift,
+    permission: "dashboard.view",
+    superAdminOnly: true,
   },
   {
     href: "/admin/reports",
@@ -146,7 +156,9 @@ export default async function AdminPage({
       stats.pendingPayments > 0 ? `${stats.pendingPayments} chờ` : "Không có chờ",
   };
 
-  const visibleModules = MODULES.filter((m) => hasPermission(access, m.permission));
+  const visibleModules = MODULES.filter(
+    (m) => hasPermission(access, m.permission) && (!m.superAdminOnly || access.canManageRoles)
+  );
 
   const footerSettings = access.canManageRoles ? await getFooterSettings() : null;
 
@@ -169,7 +181,7 @@ export default async function AdminPage({
         </div>
       )}
 
-      <AdminNav currentPath="/admin" permissions={access.permissions} />
+      <AdminNav currentPath="/admin" permissions={access.permissions} roleSlug={access.roleSlug} />
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
         <AdminPermissionsCard access={access} showAllCatalog />

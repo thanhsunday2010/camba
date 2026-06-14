@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function SubscribePage({
   searchParams,
 }: {
-  searchParams: Promise<{ plan?: string; cycle?: string }>;
+  searchParams: Promise<{ plan?: string; cycle?: string; promo?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login?callbackUrl=/pricing");
@@ -37,7 +37,12 @@ export default async function SubscribePage({
           <Link href="/pricing">← Quay lại bảng giá</Link>
         </Button>
       </div>
-      <CheckoutForm planId={planId} billingCycle={cycle} paymentGroups={paymentGroups} />
+      <CheckoutForm
+        planId={planId}
+        billingCycle={cycle}
+        paymentGroups={paymentGroups}
+        initialPromoCode={params.promo ?? ""}
+      />
     </div>
   );
 }

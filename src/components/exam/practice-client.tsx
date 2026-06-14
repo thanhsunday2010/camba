@@ -22,6 +22,7 @@ import {
   mascotSpeakingDoneMessage,
   mascotStreakMessage,
 } from "@/lib/kids/mascot-messages";
+import { notifyFreeLimitHit } from "@/lib/promo/events";
 
 interface PaperQuestion {
   id: string;
@@ -175,6 +176,7 @@ export function PracticeClient({
             recordPracticeAnswerAction(1).then((res) => {
               if (res && "error" in res && res.error) {
                 toast.error(res.error);
+                if (res.error.includes("hết")) notifyFreeLimitHit();
               }
             });
           });
@@ -387,7 +389,9 @@ export function PracticeClient({
                     });
                     if (!res.ok) {
                       const err = await res.json();
-                      throw new Error(err.error);
+                      const msg = err.error ?? "Không thể chấm speaking";
+                      if (String(msg).toLowerCase().includes("hết")) notifyFreeLimitHit();
+                      throw new Error(msg);
                     }
                     setAnswer(current.id, text, current);
                     play("success");

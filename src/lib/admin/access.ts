@@ -100,3 +100,15 @@ export async function requireAdminPage(permission: AdminPermission) {
 export function isSuperAdminRole(slug: string | null | undefined): boolean {
   return slug === SUPER_ADMIN_SLUG;
 }
+
+export async function requireSuperAdmin() {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return "Không có quyền" as const;
+  }
+  const access = await getAdminAccess(session.user.id);
+  if (!access || !isSuperAdminRole(access.roleSlug)) {
+    return "Chỉ Super Admin mới được thực hiện thao tác này" as const;
+  }
+  return null;
+}

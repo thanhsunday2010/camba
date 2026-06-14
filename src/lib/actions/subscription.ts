@@ -17,6 +17,10 @@ import {
 } from "@/lib/subscription/plans";
 import { activateSubscription } from "@/lib/subscription/service";
 import {
+  recordPromoRedemption,
+  validatePromoForCheckout,
+} from "@/lib/promo/service";
+import {
   createVnpayPaymentUrl,
   vnpayBankCodeForMethod,
 } from "@/lib/payment/vnpay";
@@ -32,6 +36,7 @@ export async function createPaymentOrderAction(input: {
   plan: string;
   billingCycle: string;
   method: PaymentMethod;
+  promoCode?: string;
 }) {
   const session = await auth();
   if (!session) return { error: "Chưa đăng nhập" };
@@ -41,7 +46,23 @@ export async function createPaymentOrderAction(input: {
   if (!planId || planId === "FREE") return { error: "Gói không hợp lệ" };
   if (!cycle) return { error: "Chu kỳ thanh toán không hợp lệ" };
 
-  const amount = getPlanPrice(planId, cycle);
+  let amount = getPlanPrice(planId, cycle);
+  let originalAmount: number | undefined;
+  let promoCodeId: string | undefined;
+
+  if (input.promoCode?.trim()) {
+    const promoResult = await validatePromoForCheckout(
+      session.user.id,
+      input.promoCode,
+      planId,
+      cycle
+    );
+    if (!promoResult.ok) return { error: promoResult.error };
+    amount = promoResult.finalAmount;
+    originalAmount = promoResult.originalAmount;
+    promoCodeId = promoResult.promo.id;
+  }
+
   const transferCode = generateTransferCode();
 
   const order = await db.paymentOrder.create({
@@ -50,13 +71,19 @@ export async function createPaymentOrderAction(input: {
       plan: planId as SubscriptionPlan,
       billingCycle: cycle as BillingCycle,
       amount,
+      originalAmount,
+      promoCodeId,
       method: input.method,
       transferCode,
     },
   });
 
   revalidatePath("/pricing");
-  return { orderId: order.id, transferCode: order.transferCode };
+  return {
+    orderId: order.id,
+    transferCode: order.transferCode,
+    isFree: amount === 0,
+  };
 }
 
 export async function getPaymentRedirectUrlAction(orderId: string) {
@@ -197,9 +224,38 @@ export async function completePaymentOrderAction(
     },
   });
 
+  if (order.promoCodeId) {
+    const existing = await db.promoRedemption.findUnique({
+      where: {
+        promoCodeId_userId: { promoCodeId: order.promoCodeId, userId: order.userId },
+      },
+    });
+    if (!existing) {
+      await recordPromoRedemption(order.promoCodeId, order.userId, orderId);
+    }
+  }
+
   revalidatePath("/dashboard");
   revalidatePath("/pricing");
   return { ok: true };
+}
+
+export async function completeFreePromoOrderAction(orderId: string) {
+  const session = await auth();
+  if (!session) return { error: "Chưa đăng nhập" };
+
+  const order = await db.paymentOrder.findUnique({ where: { id: orderId } });
+  if (!order || order.userId !== session.user.id) {
+    return { error: "Không tìm thấy đơn hàng" };
+  }
+  if (order.status !== PaymentStatus.PENDING) {
+    return { error: "Đơn hàng đã được xử lý" };
+  }
+  if (order.amount !== 0 || !order.promoCodeId) {
+    return { error: "Đơn hàng không áp dụng miễn phí qua mã ưu đãi" };
+  }
+
+  return completePaymentOrderAction(orderId, "promo-free");
 }
 
 export async function confirmBankTransferAction(orderId: string) {

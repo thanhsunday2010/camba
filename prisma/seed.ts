@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { seedAllBulkContent } from "./seed/bulk-seed";
 import { seedPlacementTests } from "./seed/helpers";
 import { seedAdminRoles } from "./seed/admin-roles";
+import { seedPromoCodes } from "./seed/promo-codes";
 import {
   BANK_TRANSFER_SETTING_KEY,
   DEFAULT_BANK_TRANSFER_SETTINGS,
@@ -30,6 +31,7 @@ async function main() {
   });
 
   await seedAdminRoles(db);
+  await seedPromoCodes(db);
 
   await db.siteSetting.upsert({
     where: { key: BANK_TRANSFER_SETTING_KEY },

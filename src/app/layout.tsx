@@ -6,6 +6,7 @@ import { FloatingDecor } from "@/components/kids/floating-decor";
 import { MascotProviderWrapper } from "@/components/kids/mascot-buddy-wrapper";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { BugReportButton } from "@/components/feedback/bug-report-button";
+import { PromoOfferProvider } from "@/components/promo/promo-offer-provider";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { SoundProvider } from "@/components/kids/sound-provider";
 import "./globals.css";
@@ -39,6 +40,7 @@ export default function RootLayout({
                 <SiteFooter />
               </div>
               <BugReportButton />
+              <PromoOfferProvider />
             </MascotProviderWrapper>
             <AppToaster />
           </SoundProvider>

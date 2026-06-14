@@ -12,6 +12,7 @@ import { QuestionType } from "@prisma/client";
 import Link from "next/link";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotScoreMessage } from "@/lib/kids/mascot-messages";
+import { notifyFreeLimitHit } from "@/lib/promo/events";
 
 interface ResultAnswer {
   id: string;
@@ -88,7 +89,9 @@ export function ResultsClient({ attempt, aiFeedbacks }: ResultsClientProps) {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Không thể giải thích câu này");
+        const errMsg = data.error ?? "Không thể giải thích câu này";
+        toast.error(errMsg);
+        if (String(errMsg).toLowerCase().includes("hết")) notifyFreeLimitHit();
         return;
       }
       setExplanations((prev) => ({ ...prev, [answer.id]: data.explanation }));

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   ROUTE_PERMISSIONS,
+  SUPER_ADMIN_SLUG,
   type AdminPermission,
 } from "@/lib/admin/permissions";
 import { hasPermission } from "@/lib/admin/access";
@@ -14,6 +15,7 @@ const LINKS = [
   { href: "/admin/placement", label: "Placement", permission: "placement.view" as AdminPermission },
   { href: "/admin/reports", label: "Báo lỗi", permission: "reports.manage" as AdminPermission },
   { href: "/admin/payments", label: "Thanh toán", permission: "payments.manage" as AdminPermission },
+  { href: "/admin/promo", label: "Mã ưu đãi", permission: "dashboard.view" as AdminPermission, superAdminOnly: true },
   { href: "/admin/roles", label: "Phân quyền", permission: "roles.manage" as AdminPermission },
   { href: "/admin/footer", label: "Chân trang", permission: "site.manage" as AdminPermission },
 ];
@@ -21,11 +23,15 @@ const LINKS = [
 export function AdminNav({
   currentPath,
   permissions,
+  roleSlug,
 }: {
   currentPath: string;
   permissions: AdminPermission[];
+  roleSlug?: string | null;
 }) {
+  const isSuperAdmin = roleSlug === SUPER_ADMIN_SLUG;
   const visible = LINKS.filter((link) => {
+    if (link.superAdminOnly && !isSuperAdmin) return false;
     const required = ROUTE_PERMISSIONS[link.href] ?? link.permission;
     return hasPermission(permissions, required);
   });
