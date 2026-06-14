@@ -1,4 +1,4 @@
 {
-  "buildCommand": "node scripts/migrate-deploy.mjs && next build",
+  "buildCommand": "next build",
   "framework": "nextjs"
 }

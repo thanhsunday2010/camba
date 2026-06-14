@@ -17,6 +17,14 @@ function outputOf(result) {
 }
 
 function migrateDeploy() {
+  if (process.env.VERCEL === "1") {
+    console.log(
+      "Skipping prisma migrate deploy on Vercel (Supabase direct port 5432 is unreachable from build). " +
+        "Run `npm run db:deploy` locally when the schema changes."
+    );
+    return;
+  }
+
   const result = runPrisma(["migrate", "deploy"]);
   const output = outputOf(result);
 
