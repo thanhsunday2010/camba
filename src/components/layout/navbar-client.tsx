@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import type { Session } from "next-auth";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SoundToggle } from "@/components/kids/sound-toggle";
@@ -61,6 +62,15 @@ function NavLinks({
         >
           💎 Bảng giá
         </Link>
+        {vertical && (
+          <Link
+            href="/dashboard?tab=profile"
+            className={linkClass("text-pink-700 hover:bg-pink-100")}
+            onClick={onNavigate}
+          >
+            👤 Hồ sơ của tôi
+          </Link>
+        )}
         {user.role === "ADMIN" && (
           <Link
             href="/admin"
@@ -116,9 +126,9 @@ function NavLinks({
   );
 }
 
-export function NavbarClient() {
+export function NavbarClient({ initialUser }: { initialUser?: Session["user"] }) {
   const { data: session } = useSession();
-  const user = session?.user;
+  const user = session?.user ?? initialUser;
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {

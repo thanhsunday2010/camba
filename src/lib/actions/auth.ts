@@ -111,25 +111,7 @@ export async function registerAction(formData: FormData) {
     return { error: dbErrorMessage(error) };
   }
 
-  const identifier = email ?? phoneRaw;
-
-  try {
-    const result = await signIn("credentials", {
-      identifier,
-      password: parsed.data.password,
-      redirect: false,
-    });
-    if (typeof result === "string" && isFailedSignIn(result)) {
-      return { error: "Đăng ký thành công nhưng đăng nhập thất bại. Hãy thử đăng nhập thủ công." };
-    }
-    return { success: true };
-  } catch (error) {
-    console.error("[registerAction signIn]", error);
-    if (error instanceof AuthError) {
-      return { error: "Đăng ký thành công nhưng đăng nhập thất bại. Hãy thử đăng nhập thủ công." };
-    }
-    return { error: dbErrorMessage(error) };
-  }
+  return { success: true, identifier: email ?? phoneRaw };
 }
 
 export async function loginAction(formData: FormData) {

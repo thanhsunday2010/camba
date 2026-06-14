@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminPermissionsCard } from "@/components/admin/admin-permissions-card";
+import { FooterSettingsClient } from "@/components/admin/footer-settings-client";
 import { requireAdminPage, hasPermission } from "@/lib/admin/access";
 import type { AdminPermission } from "@/lib/admin/permissions";
+import { getFooterSettings } from "@/lib/site/get-footer-settings";
 import {
   CreditCard,
   Bug,
@@ -145,6 +147,8 @@ export default async function AdminPage({
   };
 
   const visibleModules = MODULES.filter((m) => hasPermission(access, m.permission));
+
+  const footerSettings = access.canManageRoles ? await getFooterSettings() : null;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -300,6 +304,16 @@ export default async function AdminPage({
             </CardContent>
           </Card>
         </>
+      )}
+
+      {footerSettings && (
+        <section className="mt-10">
+          <h2 className="mb-2 text-xl font-bold">Chân trang website</h2>
+          <p className="mb-6 text-sm text-muted-foreground">
+            Super Admin có thể sửa menu và thông tin liên hệ hiển thị ở cuối mọi trang
+          </p>
+          <FooterSettingsClient initialSettings={footerSettings} />
+        </section>
       )}
 
       <div className="mt-8 rounded-2xl border-2 border-dashed border-purple-200 bg-purple-50/30 p-4 text-sm text-muted-foreground">

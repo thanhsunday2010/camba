@@ -9,6 +9,7 @@ import { getPaymentMethodLabel } from "@/lib/payment/config";
 import { formatVnd, getPlan } from "@/lib/subscription/plans";
 import { PaymentMethod, PaymentStatus } from "@prisma/client";
 import { confirmBankTransferAction } from "@/lib/actions/subscription";
+import { VietQrDisplay } from "@/components/pricing/viet-qr-display";
 import Link from "next/link";
 
 interface PaymentInstructionsProps {
@@ -103,15 +104,13 @@ export function PaymentInstructions({
                 <strong>Nội dung CK:</strong> {transferContent}
               </p>
               {vietQrUrl && (
-                <div className="flex flex-col items-center gap-2 pt-2">
-                  <p className="font-semibold text-amber-900">Quét mã VietQR</p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={vietQrUrl}
-                    alt="Mã QR chuyển khoản VietQR"
-                    className="max-w-[220px] rounded-lg border bg-white p-2"
-                  />
-                </div>
+                <VietQrDisplay
+                  vietQrUrl={vietQrUrl}
+                  transferContent={transferContent}
+                  amountLabel={`Số tiền: ${formatVnd(order.amount)}`}
+                  bankSummary={`${bank.bankName} · ${bank.accountNumber} · ${bank.accountName}`}
+                  variant="amber"
+                />
               )}
               <p className="text-muted-foreground">
                 Sau khi chuyển khoản, gói sẽ được kích hoạt trong 1–24 giờ. Liên hệ hỗ trợ nếu cần
@@ -125,12 +124,11 @@ export function PaymentInstructions({
             vietQrUrl &&
             order.method === "QR" && (
               <div className="rounded-xl border-2 border-sky-200 bg-sky-50 p-4 text-center">
-                <p className="mb-2 font-bold text-sky-900">📱 Quét QR VietQR</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={vietQrUrl}
-                  alt="Mã QR thanh toán"
-                  className="mx-auto max-w-[220px] rounded-lg border bg-white p-2"
+                <VietQrDisplay
+                  vietQrUrl={vietQrUrl}
+                  transferContent={transferContent}
+                  amountLabel={`Số tiền: ${formatVnd(order.amount)}`}
+                  variant="sky"
                 />
                 <p className="mt-2 text-sm text-muted-foreground">
                   Nội dung: <strong>{transferContent}</strong> · {formatVnd(order.amount)}

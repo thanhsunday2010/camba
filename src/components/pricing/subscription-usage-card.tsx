@@ -17,33 +17,15 @@ function usagePct(count: number, limit: number) {
 export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardProps) {
   const { plan, usage, expiresAt, billingCycle } = await getSubscriptionSummary(userId);
 
-  const aiRows = [
-    {
-      label: "AI Writing",
-      count: usage.writingAiGradingCount,
-      limit: usage.writingAiGradingLimit,
-    },
-    {
-      label: "AI Speaking",
-      count: usage.speakingAiGradingCount,
-      limit: usage.speakingAiGradingLimit,
-    },
-    {
-      label: "AI Reading",
-      count: usage.readingAiGradingCount,
-      limit: usage.readingAiGradingLimit,
-    },
-    {
-      label: "AI Listening",
-      count: usage.listeningAiGradingCount,
-      limit: usage.listeningAiGradingLimit,
-    },
-    {
-      label: "AI Use of English",
-      count: usage.useOfEnglishAiGradingCount,
-      limit: usage.useOfEnglishAiGradingLimit,
-    },
-  ];
+  const breakdown = [
+    usage.writingAiGradingCount > 0 && `Writing ${usage.writingAiGradingCount}`,
+    usage.speakingAiGradingCount > 0 && `Speaking ${usage.speakingAiGradingCount}`,
+    usage.readingAiGradingCount > 0 && `Reading ${usage.readingAiGradingCount}`,
+    usage.listeningAiGradingCount > 0 && `Listening ${usage.listeningAiGradingCount}`,
+    usage.useOfEnglishAiGradingCount > 0 && `UoE ${usage.useOfEnglishAiGradingCount}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <Card className="border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white">
@@ -73,17 +55,22 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
           <Progress value={usagePct(usage.practiceCount, usage.practiceLimit)} />
         </div>
 
-        {aiRows.map((row) => (
-          <div key={row.label}>
-            <div className="mb-1 flex justify-between text-sm">
-              <span>{row.label}</span>
-              <span>
-                {row.count}/{row.limit} lượt
-              </span>
-            </div>
-            <Progress value={usagePct(row.count, row.limit)} />
+        <div>
+          <div className="mb-1 flex justify-between text-sm">
+            <span>Lượt AI hôm nay</span>
+            <span>
+              {usage.aiGradingCount}/{usage.aiGradingLimit} lượt
+            </span>
           </div>
-        ))}
+          <Progress value={usagePct(usage.aiGradingCount, usage.aiGradingLimit)} />
+          {breakdown ? (
+            <p className="mt-1 text-xs text-muted-foreground">Đã dùng: {breakdown}</p>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Chấm sửa & giải thích — dùng chung pool lượt
+            </p>
+          )}
+        </div>
 
         <p className="text-xs text-muted-foreground">
           Writing tối đa {usage.writingWordLimit} từ/lần · Speaking tối đa{" "}
@@ -93,7 +80,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
           <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
             <p className="font-semibold">Camba Pro — từ 30.000₫/tháng</p>
             <p className="text-muted-foreground">
-              100 câu/ngày · 25 lượt AI/kỹ năng · 150 từ Writing/Speaking
+              100 câu/ngày · 25 lượt AI/ngày (dùng chung) · 150 từ Writing/Speaking
             </p>
           </div>
         )}

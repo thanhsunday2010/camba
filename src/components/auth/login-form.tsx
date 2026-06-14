@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginAction } from "@/lib/actions/auth";
 import { OAuthSignInButtons } from "@/components/auth/oauth-sign-in-buttons";
 import type { OAuthProviderId } from "@/lib/auth/providers";
+import { isPhoneInput, isValidPhone } from "@/lib/auth/phone";
 
 interface LoginFormProps {
   oauthProviders: OAuthProviderId[];
@@ -26,11 +27,30 @@ export function LoginForm({ oauthProviders }: LoginFormProps) {
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
-    const result = await loginAction(formData);
+    const identifier = String(formData.get("identifier") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    if (!identifier || password.length < 6) {
+      setLoading(false);
+      toast.error("Email/SĐT hoặc mật khẩu không hợp lệ");
+      return;
+    }
+
+    if (isPhoneInput(identifier) && !isValidPhone(identifier)) {
+      setLoading(false);
+      toast.error("Số điện thoại không hợp lệ");
+      return;
+    }
+
+    const result = await signIn("credentials", {
+      identifier: isPhoneInput(identifier) ? identifier : identifier.toLowerCase(),
+      password,
+      redirect: false,
+    });
     setLoading(false);
 
-    if (result.error) {
-      toast.error(result.error);
+    if (result?.error) {
+      toast.error("Email/SĐT hoặc mật khẩu không đúng");
     } else {
       toast.success("Đăng nhập thành công!");
       router.push(callbackUrl);

@@ -38,11 +38,13 @@ export async function getAdminAccess(userId: string): Promise<AdminAccess | null
     const permissions = user.adminRole.permissions.filter((p): p is AdminPermission =>
       ALL_ADMIN_PERMISSIONS.includes(p as AdminPermission)
     );
+    const isSuperAdmin = user.adminRole.slug === SUPER_ADMIN_SLUG;
+    const effectivePermissions = isSuperAdmin ? [...ALL_ADMIN_PERMISSIONS] : permissions;
     return {
       roleSlug: user.adminRole.slug,
       roleName: user.adminRole.name,
-      permissions,
-      canManageRoles: permissions.includes("roles.manage"),
+      permissions: effectivePermissions,
+      canManageRoles: isSuperAdmin || permissions.includes("roles.manage"),
     };
   }
 

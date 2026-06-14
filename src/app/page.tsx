@@ -5,7 +5,7 @@ import { EXAM_LEVELS } from "@/lib/constants";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 import { MascotHero } from "@/components/kids/mascot-buddy";
 import { HomeHeroCtas, HomeStreakCta } from "@/components/home/home-session-ctas";
-import { Sparkles, Trophy, Target, Gem, ArrowRight, Star } from "lucide-react";
+import { Trophy, Target, Gem, ArrowRight, Star } from "lucide-react";
 
 export const revalidate = 3600;
 
@@ -27,12 +27,8 @@ export default function HomePage() {
         <div className="container relative mx-auto px-4 py-14 md:py-20 lg:py-24">
           <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="text-center lg:text-left">
-              <div className="mb-6 inline-flex animate-bounce-in items-center gap-2 rounded-full bg-white/20 px-5 py-2 text-sm font-bold backdrop-blur-sm">
-                <Sparkles className="h-4 w-4 text-yellow-200" />
-                Học tiếng Anh Cambridge — vui như chơi! 🎮
-              </div>
               <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl lg:leading-tight">
-                Xin chào, bạn nhỏ!
+                Camba chào bạn!
                 <br />
                 <span className="text-yellow-200">Cùng Camba học giỏi nhé!</span>
               </h1>
@@ -48,8 +44,7 @@ export default function HomePage() {
                 <Button
                   asChild
                   size="lg"
-                  variant="outline"
-                  className="rounded-full border-2 border-white/80 font-bold text-white hover:bg-white/15"
+                  className="rounded-full border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 font-bold text-white shadow-lg hover:from-violet-600 hover:to-fuchsia-600"
                 >
                   <Link href="/pricing">💎 Bảng giá</Link>
                 </Button>
@@ -121,7 +116,7 @@ export default function HomePage() {
                   Gói Free, Pro & VIP
                 </CardTitle>
                 <CardDescription>
-                  AI chấm Writing & Speaking mỗi ngày — bắt đầu miễn phí
+                  AI chấm sửa & giải thích — lượt dùng chung mỗi ngày
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -138,7 +133,7 @@ export default function HomePage() {
                   Test trình độ
                 </CardTitle>
                 <CardDescription>
-                  Placement test giúp chọn level Cambridge phù hợp
+                  Bài test giúp chọn trình độ phù hợp
                 </CardDescription>
               </CardHeader>
               <CardContent>

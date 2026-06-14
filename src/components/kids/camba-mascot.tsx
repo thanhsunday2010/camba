@@ -53,18 +53,30 @@ export function CambaMascot({
         <circle cx="78" cy="88" r="8" fill="#F3F4F6" stroke="#E5E7EB" strokeWidth="1" />
 
         {/* Body */}
-        <ellipse cx="50" cy="82" rx="26" ry="24" fill={`url(#${bodyGrad})`} />
-        <ellipse cx="50" cy="86" rx="16" ry="13" fill="#FFFFFF" />
+        <g className={cn(animate && "origin-[50px_82px] animate-mascot-body-sway")}>
+          <ellipse cx="50" cy="82" rx="26" ry="24" fill={`url(#${bodyGrad})`} />
+          <ellipse cx="50" cy="86" rx="16" ry="13" fill="#FFFFFF" />
 
-        {/* Feet */}
-        <ellipse cx="38" cy="102" rx="9" ry="5" fill="#F9A8D4" />
-        <ellipse cx="62" cy="102" rx="9" ry="5" fill="#F9A8D4" />
+          {/* Feet */}
+          <g className={cn(animate && "origin-[50px_102px] animate-mascot-feet")}>
+            <ellipse cx="38" cy="102" rx="9" ry="5" fill="#F9A8D4" />
+            <ellipse cx="62" cy="102" rx="9" ry="5" fill="#F9A8D4" />
+          </g>
 
-        {/* Left paw */}
-        <ellipse cx="24" cy="80" rx="7" ry="9" fill="#E5E7EB" transform="rotate(-15 24 80)" />
+          {/* Left paw */}
+          <g className={cn(animate && "origin-[24px_80px] animate-mascot-paw-left")}>
+            <ellipse cx="24" cy="80" rx="7" ry="9" fill="#E5E7EB" transform="rotate(-15 24 80)" />
+          </g>
+        </g>
 
         {/* Right paw — wave */}
-        <g className={cn(mood === "wave" && animate && "origin-[76px_76px] animate-mascot-wave")}>
+        <g
+          className={cn(
+            animate && mood === "wave" && "origin-[76px_76px] animate-mascot-wave",
+            animate && mood !== "wave" && "origin-[76px_76px] animate-mascot-paw-left"
+          )}
+          style={{ animationDelay: mood === "wave" ? "0s" : "0.6s" }}
+        >
           <ellipse cx="76" cy="76" rx="7" ry="9" fill="#E5E7EB" transform="rotate(20 76 76)" />
           <circle cx="80" cy="68" r="4" fill="#F9A8D4" />
         </g>

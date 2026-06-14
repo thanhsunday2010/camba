@@ -3,11 +3,7 @@ import {
   getAiGradingRemaining,
   getUserPlanId,
 } from "@/lib/subscription/service";
-import {
-  AI_SKILL_LABELS,
-  getAiGradingLimit,
-  type AiGradingSkill,
-} from "@/lib/subscription/plans";
+import { getAiGradingLimit, type AiGradingSkill } from "@/lib/subscription/plans";
 import { db } from "@/lib/db";
 
 export async function checkAiGradingRateLimit(
@@ -22,8 +18,8 @@ export async function getAiGradingRateLimitInfo(userId: string, skill: AiGrading
   const planId = await getUserPlanId(userId);
   return {
     remaining,
-    limit: getAiGradingLimit(planId, skill),
-    skillLabel: AI_SKILL_LABELS[skill],
+    limit: getAiGradingLimit(planId),
+    skill,
   };
 }
 

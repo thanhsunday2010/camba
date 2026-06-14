@@ -7,11 +7,12 @@ import type { UserProfileData } from "@/lib/actions/profile";
 interface DashboardTabsProps {
   overview: React.ReactNode;
   profile: UserProfileData;
+  defaultTab?: "overview" | "profile";
 }
 
-export function DashboardTabs({ overview, profile }: DashboardTabsProps) {
+export function DashboardTabs({ overview, profile, defaultTab = "overview" }: DashboardTabsProps) {
   return (
-    <Tabs defaultValue="overview" className="w-full">
+    <Tabs defaultValue={defaultTab} className="w-full">
       <TabsList className="mb-6 h-auto w-full flex-wrap justify-start gap-1 rounded-2xl border-2 border-purple-100 bg-purple-50/60 p-1">
         <TabsTrigger
           value="overview"

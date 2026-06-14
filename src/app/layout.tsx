@@ -17,7 +17,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Camba - Học tiếng Anh vui nhộn!",
+  title: "Camba | App học Tiếng Anh miễn phí có AI chấm sửa",
   description: "Luyện thi Cambridge cho trẻ em với game, âm thanh và AI chấm bài thông minh",
 };
 

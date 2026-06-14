@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -35,11 +36,30 @@ export function RegisterForm({ oauthProviders }: RegisterFormProps) {
     if (mode === "email") formData.set("phone", "");
     else formData.set("email", "");
 
+    const password = String(formData.get("password") ?? "");
     const result = await registerAction(formData);
-    setLoading(false);
 
     if (result.error) {
+      setLoading(false);
       toast.error(result.error);
+      return;
+    }
+
+    if (!result.identifier) {
+      setLoading(false);
+      toast.error("Đăng ký thành công nhưng không thể đăng nhập tự động. Hãy thử đăng nhập thủ công.");
+      return;
+    }
+
+    const signInResult = await signIn("credentials", {
+      identifier: result.identifier,
+      password,
+      redirect: false,
+    });
+    setLoading(false);
+
+    if (signInResult?.error) {
+      toast.error("Đăng ký thành công nhưng đăng nhập thất bại. Hãy thử đăng nhập thủ công.");
     } else {
       toast.success("Đăng ký thành công!");
       router.push("/dashboard");

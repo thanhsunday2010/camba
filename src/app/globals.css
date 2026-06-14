@@ -99,6 +99,15 @@
   .animate-mascot-ear-right {
     animation: mascotEarRight 1s ease-in-out infinite;
   }
+  .animate-mascot-paw-left {
+    animation: mascotPawLeft 1.8s ease-in-out infinite;
+  }
+  .animate-mascot-feet {
+    animation: mascotFeet 1.4s ease-in-out infinite;
+  }
+  .animate-mascot-body-sway {
+    animation: mascotBodySway 2.2s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -138,8 +147,10 @@
 }
 
 @keyframes mascotWave {
-  0%, 100% { transform: rotate(-15deg); }
-  50% { transform: rotate(10deg); }
+  0%, 100% { transform: rotate(-25deg) translateY(0); }
+  25% { transform: rotate(5deg) translateY(-3px); }
+  50% { transform: rotate(18deg) translateY(-1px); }
+  75% { transform: rotate(-8deg) translateY(-2px); }
 }
 
 @keyframes mascotCapTilt {
@@ -161,4 +172,22 @@
 @keyframes mascotShadow {
   0%, 100% { transform: scaleX(1); opacity: 0.1; }
   50% { transform: scaleX(0.85); opacity: 0.06; }
+}
+
+@keyframes mascotPawLeft {
+  0%, 100% { transform: rotate(-18deg); }
+  35% { transform: rotate(-28deg) translateY(-2px); }
+  65% { transform: rotate(-10deg) translateY(1px); }
+}
+
+@keyframes mascotFeet {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-2px) rotate(-4deg); }
+  75% { transform: translateY(-2px) rotate(4deg); }
+}
+
+@keyframes mascotBodySway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-2deg); }
+  75% { transform: rotate(2deg); }
 }

@@ -1,7 +1,6 @@
 import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
-  AI_SKILL_LABELS,
   getPlan,
   type AiGradingSkill,
   type PlanId,
@@ -30,20 +29,14 @@ const AI_COUNT_FIELDS: Record<AiGradingSkill, keyof DailyUsageRow> = {
   useOfEnglish: "useOfEnglishAiGradingCount",
 };
 
-const AI_LIMIT_FIELDS: Record<AiGradingSkill, keyof ReturnType<typeof getPlan>["limits"]> = {
-  writing: "dailyWritingAiGrading",
-  speaking: "dailySpeakingAiGrading",
-  reading: "dailyReadingAiGrading",
-  listening: "dailyListeningAiGrading",
-  useOfEnglish: "dailyUseOfEnglishAiGrading",
-};
-
-function getAiCount(usage: DailyUsageRow, skill: AiGradingSkill): number {
-  return usage[AI_COUNT_FIELDS[skill]];
-}
-
-function getAiLimit(limits: ReturnType<typeof getPlan>["limits"], skill: AiGradingSkill): number {
-  return limits[AI_LIMIT_FIELDS[skill]] as number;
+export function getTotalAiGradingCount(usage: DailyUsageRow): number {
+  return (
+    usage.writingAiGradingCount +
+    usage.speakingAiGradingCount +
+    usage.readingAiGradingCount +
+    usage.listeningAiGradingCount +
+    usage.useOfEnglishAiGradingCount
+  );
 }
 
 export async function getActiveSubscription(userId: string) {
@@ -86,22 +79,20 @@ export async function getDailyUsageSnapshot(userId: string) {
   ]);
   const plan = getPlan(planId);
   const limits = plan.limits;
+  const aiGradingCount = getTotalAiGradingCount(usage);
 
   return {
     planId,
     planName: plan.name,
     practiceCount: usage.practiceCount,
     practiceLimit: limits.dailyPracticeQuestions,
+    aiGradingCount,
+    aiGradingLimit: limits.dailyAiGrading,
     writingAiGradingCount: usage.writingAiGradingCount,
-    writingAiGradingLimit: limits.dailyWritingAiGrading,
     speakingAiGradingCount: usage.speakingAiGradingCount,
-    speakingAiGradingLimit: limits.dailySpeakingAiGrading,
     readingAiGradingCount: usage.readingAiGradingCount,
-    readingAiGradingLimit: limits.dailyReadingAiGrading,
     listeningAiGradingCount: usage.listeningAiGradingCount,
-    listeningAiGradingLimit: limits.dailyListeningAiGrading,
     useOfEnglishAiGradingCount: usage.useOfEnglishAiGradingCount,
-    useOfEnglishAiGradingLimit: limits.dailyUseOfEnglishAiGrading,
     writingWordLimit: limits.writingWordLimit,
     speakingWordLimit: limits.speakingWordLimit,
   };
@@ -135,30 +126,29 @@ export async function recordPracticeUsage(userId: string, count = 1) {
   return { ok: true as const };
 }
 
-export async function canUseAiGrading(userId: string, skill: AiGradingSkill): Promise<boolean> {
+export async function canUseAiGrading(userId: string, _skill: AiGradingSkill): Promise<boolean> {
   const [usage, limits] = await Promise.all([
     getOrCreateDailyUsage(userId),
     getUserPlanLimits(userId),
   ]);
-  return getAiCount(usage, skill) < getAiLimit(limits, skill);
+  return getTotalAiGradingCount(usage) < limits.dailyAiGrading;
 }
 
-export async function getAiGradingRemaining(userId: string, skill: AiGradingSkill): Promise<number> {
+export async function getAiGradingRemaining(userId: string, _skill: AiGradingSkill): Promise<number> {
   const [usage, limits] = await Promise.all([
     getOrCreateDailyUsage(userId),
     getUserPlanLimits(userId),
   ]);
-  return Math.max(0, getAiLimit(limits, skill) - getAiCount(usage, skill));
+  return Math.max(0, limits.dailyAiGrading - getTotalAiGradingCount(usage));
 }
 
 export async function recordAiGradingUsage(userId: string, skill: AiGradingSkill) {
   const allowed = await canUseAiGrading(userId, skill);
   if (!allowed) {
     const limits = await getUserPlanLimits(userId);
-    const limit = getAiLimit(limits, skill);
     return {
       ok: false as const,
-      error: `Đã hết ${limit} lượt AI ${AI_SKILL_LABELS[skill]} hôm nay. Nâng cấp gói để tiếp tục.`,
+      error: `Đã hết ${limits.dailyAiGrading} lượt AI hôm nay (dùng chung). Nâng cấp gói để tiếp tục.`,
     };
   }
 

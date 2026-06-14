@@ -19,9 +19,16 @@ import type { UserProfileData } from "@/lib/actions/profile";
 
 export const revalidate = 60;
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
+
+  const params = await searchParams;
+  const defaultTab = params.tab === "profile" ? "profile" : "overview";
 
   const userId = session.user.id;
 
@@ -347,7 +354,12 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <DashboardTabs overview={overview} profile={profile} />
+      <DashboardTabs
+        key={defaultTab}
+        overview={overview}
+        profile={profile}
+        defaultTab={defaultTab}
+      />
     </div>
   );
 }

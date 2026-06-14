@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!allowed) {
     const info = await getWritingAIRateLimitInfo(session.user.id);
     return NextResponse.json(
-      { error: `Đã hết lượt chấm Writing hôm nay (${info.limit} lượt/ngày). Nâng cấp gói tại trang Bảng giá.` },
+      { error: `Đã hết ${info.limit} lượt AI hôm nay (dùng chung). Nâng cấp gói tại trang Bảng giá.` },
       { status: 429 }
     );
   }

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const info = await getAiGradingRateLimitInfo(session.user.id, aiSkill);
     return NextResponse.json(
       {
-        error: `Đã hết ${info.limit} lượt AI ${info.skillLabel} hôm nay. Nâng cấp gói tại trang Bảng giá.`,
+        error: `Đã hết ${info.limit} lượt AI hôm nay (dùng chung). Nâng cấp gói tại trang Bảng giá.`,
       },
       { status: 429 }
     );
