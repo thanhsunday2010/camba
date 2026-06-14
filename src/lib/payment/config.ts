@@ -69,7 +69,7 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
   {
     id: "BANK_TRANSFER",
     label: "Chuyển khoản ngân hàng",
-    description: "Chuyển khoản thủ công — hiển thị mã VietQR & nội dung CK",
+    description: "Quét mã QR chuyển khoản qua ngân hàng",
     icon: "🏦",
   },
 ];
@@ -116,7 +116,6 @@ export async function getAvailablePaymentGroups(): Promise<PaymentMethodGroup[]>
     return [
       {
         title: "Chuyển khoản",
-        description: "Quét VietQR hoặc chuyển khoản thủ công — admin xác nhận trong 1–24 giờ",
         methods: ["BANK_TRANSFER"],
       },
     ];

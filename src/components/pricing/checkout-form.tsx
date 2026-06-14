@@ -179,7 +179,6 @@ export function CheckoutForm({
       <Card className="border-2 border-purple-200">
         <CardHeader>
           <CardTitle>Phương thức thanh toán</CardTitle>
-          <CardDescription>Các kênh phổ biến tại Việt Nam</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2 rounded-xl border-2 border-purple-100 bg-purple-50/40 p-3">
@@ -191,7 +190,6 @@ export function CheckoutForm({
                 id="promo-code"
                 value={promoInput}
                 onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                placeholder="VD: CAMBA"
                 className="rounded-full border-purple-200"
               />
               <Button

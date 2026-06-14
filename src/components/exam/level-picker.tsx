@@ -68,10 +68,10 @@ export function LevelPicker({ currentLevel, variant = "full" }: LevelPickerProps
           <div
             key={level.value}
             className={cn(
-              "kid-card flex flex-col border-2 p-4",
+              "flex flex-col rounded-2xl border-2 p-4 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
               theme.border,
               theme.bg,
-              active && "ring-2 ring-purple-500"
+              active && "ring-2 ring-purple-500 ring-offset-2"
             )}
           >
             <div className="mb-3 flex items-center gap-3">
@@ -91,8 +91,8 @@ export function LevelPicker({ currentLevel, variant = "full" }: LevelPickerProps
                 type="button"
                 onClick={() => selectLevel(level.value)}
                 className={cn(
-                  "kid-btn-fun flex-1 rounded-xl px-3 py-2 text-sm font-bold text-white shadow-md",
-                  `bg-gradient-to-r ${theme.gradient}`
+                  "flex-1 rounded-xl px-3 py-2 text-sm font-bold text-white shadow-md transition-all hover:scale-[1.02] active:scale-95",
+                  theme.btnClass
                 )}
               >
                 {active ? "Luyện ngay" : "Chọn level này"}
