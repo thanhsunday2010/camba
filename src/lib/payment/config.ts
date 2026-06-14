@@ -98,14 +98,62 @@ export function getPaymentMethodLabel(method: PaymentMethod): string {
   return getPaymentMethodOption(method)?.label ?? method;
 }
 
+/** Tạm thời chỉ chuyển khoản. Đặt CAMBA_PAYMENT_BANK_ONLY=false khi bật VNPay/MoMo. */
+export function isBankTransferOnlyMode(): boolean {
+  return process.env.CAMBA_PAYMENT_BANK_ONLY !== "false";
+}
+
+export function getAvailablePaymentGroups(): PaymentMethodGroup[] {
+  if (isBankTransferOnlyMode()) {
+    if (!isBankTransferConfigured()) return [];
+    return [
+      {
+        title: "Chuyển khoản",
+        description: "Quét VietQR hoặc chuyển khoản thủ công — admin xác nhận trong 1–24 giờ",
+        methods: ["BANK_TRANSFER"],
+      },
+    ];
+  }
+
+  const methodAvailable = (id: PaymentMethod): boolean => {
+    switch (id) {
+      case "BANK_TRANSFER":
+        return isBankTransferConfigured();
+      case "MOMO":
+        return isMomoConfigured();
+      case "ZALOPAY":
+        return isZaloPayConfigured();
+      case "SHOPEEPAY":
+        return isShopeePayConfigured();
+      case "VNPAY":
+      case "VISA":
+      case "ATM":
+      case "QR":
+        return isVnpayConfigured();
+      default:
+        return false;
+    }
+  };
+
+  return PAYMENT_GROUPS.map((group) => ({
+    ...group,
+    methods: group.methods.filter(methodAvailable),
+  })).filter((group) => group.methods.length > 0);
+}
+
 export function getBankTransferConfig() {
   return {
-    bankName: process.env.CAMBA_BANK_NAME ?? "Vietcombank",
-    bankBin: process.env.CAMBA_BANK_BIN ?? "970436",
-    accountNumber: process.env.CAMBA_BANK_ACCOUNT ?? "0123456789",
-    accountName: process.env.CAMBA_BANK_HOLDER ?? "CONG TY CAMBA",
-    branch: process.env.CAMBA_BANK_BRANCH ?? "Chi nhánh Hà Nội",
+    bankName: process.env.CAMBA_BANK_NAME ?? "ACB",
+    bankBin: process.env.CAMBA_BANK_BIN ?? "970416",
+    accountNumber: process.env.CAMBA_BANK_ACCOUNT ?? "",
+    accountName: process.env.CAMBA_BANK_HOLDER ?? "",
+    branch: process.env.CAMBA_BANK_BRANCH ?? "",
   };
+}
+
+export function isBankTransferConfigured(): boolean {
+  const { bankBin, accountNumber } = getBankTransferConfig();
+  return Boolean(bankBin && accountNumber);
 }
 
 export function isVnpayConfigured(): boolean {

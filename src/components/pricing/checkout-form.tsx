@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PAYMENT_GROUPS, getPaymentMethodOption } from "@/lib/payment/config";
+import { getPaymentMethodOption, type PaymentMethodGroup } from "@/lib/payment/config";
 import { createPaymentOrderAction, getPaymentRedirectUrlAction } from "@/lib/actions/subscription";
 import { formatVnd, getPlan, getPlanPrice, type PlanId } from "@/lib/subscription/plans";
 import { BillingCycle, PaymentMethod } from "@prisma/client";
@@ -14,11 +14,16 @@ import { cn } from "@/lib/utils";
 interface CheckoutFormProps {
   planId: PlanId;
   billingCycle: BillingCycle;
+  paymentGroups: PaymentMethodGroup[];
 }
 
-export function CheckoutForm({ planId, billingCycle }: CheckoutFormProps) {
+export function CheckoutForm({ planId, billingCycle, paymentGroups }: CheckoutFormProps) {
   const router = useRouter();
-  const [method, setMethod] = useState<PaymentMethod>("MOMO");
+  const defaultMethod =
+    paymentGroups.flatMap((g) => g.methods).find((m) => m === "BANK_TRANSFER") ??
+    paymentGroups[0]?.methods[0] ??
+    "BANK_TRANSFER";
+  const [method, setMethod] = useState<PaymentMethod>(defaultMethod);
   const [pending, startTransition] = useTransition();
   const plan = getPlan(planId);
   const amount = getPlanPrice(planId, billingCycle);
@@ -80,7 +85,12 @@ export function CheckoutForm({ planId, billingCycle }: CheckoutFormProps) {
           <CardDescription>Các kênh phổ biến tại Việt Nam</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          {PAYMENT_GROUPS.map((group) => (
+          {paymentGroups.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Chưa có phương thức thanh toán. Vui lòng liên hệ admin.
+            </p>
+          ) : (
+            paymentGroups.map((group) => (
             <div key={group.title}>
               <p className="mb-2 text-sm font-extrabold text-purple-800">{group.title}</p>
               {group.description && (
@@ -112,7 +122,8 @@ export function CheckoutForm({ planId, billingCycle }: CheckoutFormProps) {
                 })}
               </div>
             </div>
-          ))}
+          ))
+          )}
           <Button
             className="mt-2 w-full kid-btn-fun rounded-full"
             size="lg"

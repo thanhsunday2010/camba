@@ -5,8 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getPaymentMethodLabel, getBankTransferConfig } from "@/lib/payment/config";
-import { getVietQrImageUrl } from "@/lib/payment/vietqr";
+import { getPaymentMethodLabel } from "@/lib/payment/config";
 import { formatVnd, getPlan } from "@/lib/subscription/plans";
 import { PaymentMethod, PaymentStatus } from "@prisma/client";
 import { confirmBankTransferAction } from "@/lib/actions/subscription";
@@ -23,19 +22,29 @@ interface PaymentInstructionsProps {
     transferCode: string | null;
     paidAt: Date | null;
   };
+  bank: {
+    bankName: string;
+    bankBin: string;
+    accountNumber: string;
+    accountName: string;
+    branch: string;
+  };
+  transferContent: string;
+  vietQrUrl: string | null;
   isAdmin?: boolean;
   paymentStatus?: string | null;
 }
 
-export function PaymentInstructions({ order, isAdmin, paymentStatus }: PaymentInstructionsProps) {
+export function PaymentInstructions({
+  order,
+  bank,
+  transferContent,
+  vietQrUrl,
+  isAdmin,
+  paymentStatus,
+}: PaymentInstructionsProps) {
   const [pending, startTransition] = useTransition();
-  const bank = getBankTransferConfig();
   const plan = getPlan(order.plan as "FREE" | "PRO" | "VIP");
-  const transferContent = order.transferCode ?? order.id.slice(-8).toUpperCase();
-  const vietQrUrl =
-    order.status === "PENDING"
-      ? getVietQrImageUrl({ amount: order.amount, transferCode: transferContent })
-      : null;
 
   const confirmAdmin = () => {
     startTransition(async () => {

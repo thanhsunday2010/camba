@@ -5,7 +5,7 @@ export function getVietQrImageUrl(params: {
   transferCode: string;
 }): string | null {
   const { bankBin, accountNumber, accountName } = getBankTransferConfig();
-  if (!bankBin || !accountNumber || accountNumber === "0123456789") {
+  if (!bankBin || !accountNumber) {
     return null;
   }
 

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-session";
 import { parseBillingCycle, parsePlanId } from "@/lib/subscription/plans";
+import { getAvailablePaymentGroups } from "@/lib/payment/config";
 import { CheckoutForm } from "@/components/pricing/checkout-form";
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +22,8 @@ export default async function SubscribePage({
     redirect("/pricing");
   }
 
+  const paymentGroups = getAvailablePaymentGroups();
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
@@ -32,7 +35,7 @@ export default async function SubscribePage({
           <Link href="/pricing">← Quay lại bảng giá</Link>
         </Button>
       </div>
-      <CheckoutForm planId={planId} billingCycle={cycle} />
+      <CheckoutForm planId={planId} billingCycle={cycle} paymentGroups={paymentGroups} />
     </div>
   );
 }
