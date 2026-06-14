@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +19,12 @@ interface PlacementStartCardProps {
     description: string | null;
     timeLimit: number | null;
   };
-  isLoggedIn: boolean;
 }
 
-export function PlacementStartCard({ paper, isLoggedIn }: PlacementStartCardProps) {
+export function PlacementStartCard({ paper }: PlacementStartCardProps) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);

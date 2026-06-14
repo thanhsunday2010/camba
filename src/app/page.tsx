@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EXAM_LEVELS } from "@/lib/constants";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 import { MascotHero } from "@/components/kids/mascot-buddy";
-import { auth } from "@/auth";
+import { HomeHeroCtas, HomeStreakCta } from "@/components/home/home-session-ctas";
 import { Sparkles, Trophy, Target, Gem, ArrowRight, Star } from "lucide-react";
 
-export default async function HomePage() {
-  const session = await auth();
+export const revalidate = 3600;
 
+export default function HomePage() {
   return (
     <div>
       <section className="relative overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white">
@@ -41,35 +41,7 @@ export default async function HomePage() {
                 bài thông minh — dành riêng cho bạn!
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4 lg:justify-start">
-                {session ? (
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="secondary"
-                    className="kid-btn-fun rounded-full text-purple-800"
-                  >
-                    <Link href="/dashboard">🏠 Vào trang của tôi</Link>
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      asChild
-                      size="lg"
-                      variant="secondary"
-                      className="kid-btn-fun rounded-full text-purple-800"
-                    >
-                      <Link href="/register">🚀 Bắt đầu miễn phí</Link>
-                    </Button>
-                    <Button
-                      asChild
-                      size="lg"
-                      variant="outline"
-                      className="rounded-full border-2 border-white font-bold text-white hover:bg-white/20"
-                    >
-                      <Link href="/login">Đăng nhập</Link>
-                    </Button>
-                  </>
-                )}
+                <HomeHeroCtas />
                 <Button asChild size="lg" variant="fun" className="rounded-full">
                   <Link href="/placement">🎯 Test trình độ</Link>
                 </Button>
@@ -192,11 +164,7 @@ export default async function HomePage() {
                     <Star key={i} className="h-5 w-5 fill-sunshine-400 text-sunshine-400" />
                   ))}
                 </div>
-                <Button asChild variant="outline" className="w-full rounded-full">
-                  <Link href={session ? "/dashboard" : "/register"}>
-                    {session ? "Xem tiến độ của tôi" : "Đăng ký để tham gia"}
-                  </Link>
-                </Button>
+                <HomeStreakCta />
               </CardContent>
             </Card>
           </aside>

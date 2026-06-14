@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdminPermission } from "@/lib/admin/access";
 import {
@@ -35,6 +35,7 @@ export async function updateFooterSettingsAction(input: FooterSettings) {
       update: { value: parsed.data },
     });
 
+    revalidateTag("footer-settings");
     revalidatePath("/", "layout");
     revalidatePath("/admin/footer");
     return { success: true };
@@ -51,6 +52,7 @@ export async function resetFooterSettingsAction() {
   const { DEFAULT_FOOTER_SETTINGS } = await import("@/lib/site/footer");
 
   await db.siteSetting.deleteMany({ where: { key: FOOTER_SETTING_KEY } });
+  revalidateTag("footer-settings");
   revalidatePath("/", "layout");
   return { success: true, settings: DEFAULT_FOOTER_SETTINGS };
 }

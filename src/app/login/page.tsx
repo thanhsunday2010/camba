@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
 import { getEnabledOAuthProviders } from "@/lib/auth/providers";
 
+export const revalidate = 3600;
+
 export default function LoginPage() {
   const oauthProviders = getEnabledOAuthProviders();
 

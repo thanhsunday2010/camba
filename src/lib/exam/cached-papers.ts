@@ -24,33 +24,71 @@ export type CachedPaperListItem = {
   timeLimit: number | null;
 };
 
+async function safeCachedQuery<T>(query: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await query();
+  } catch {
+    return fallback;
+  }
+}
+
+export function getPublishedPlacementPapers() {
+  return unstable_cache(
+    async () =>
+      safeCachedQuery(
+        () =>
+          db.examPaper.findMany({
+            where: { paperKind: "PLACEMENT", published: true },
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              timeLimit: true,
+            },
+            orderBy: { title: "asc" },
+          }),
+        []
+      ),
+    ["placement-papers"],
+    { revalidate: 3600, tags: ["papers", "placement-papers"] }
+  )();
+}
+
 export function getPublishedPapersByLevel(level: ExamLevel) {
   return unstable_cache(
     async () =>
-      db.examPaper.findMany({
-        where: { level, published: true },
-        select: paperListSelect,
-        orderBy: [
-          { paperKind: "asc" },
-          { skill: "asc" },
-          { isMockTest: "desc" },
-          { title: "asc" },
-        ],
-      }),
+      safeCachedQuery(
+        () =>
+          db.examPaper.findMany({
+            where: { level, published: true },
+            select: paperListSelect,
+            orderBy: [
+              { paperKind: "asc" },
+              { skill: "asc" },
+              { isMockTest: "desc" },
+              { title: "asc" },
+            ],
+          }),
+        []
+      ),
     [`papers-level-${level}`],
-    { revalidate: 300, tags: [`papers-${level}`] }
+    { revalidate: 3600, tags: [`papers-${level}`] }
   )();
 }
 
 export function getPublishedPaperOptions() {
   return unstable_cache(
     async () =>
-      db.examPaper.findMany({
-        where: { published: true },
-        select: { id: true, title: true, level: true, skill: true },
-        orderBy: { title: "asc" },
-      }),
+      safeCachedQuery(
+        () =>
+          db.examPaper.findMany({
+            where: { published: true },
+            select: { id: true, title: true, level: true, skill: true },
+            orderBy: { title: "asc" },
+          }),
+        []
+      ),
     ["published-paper-options"],
-    { revalidate: 300, tags: ["papers"] }
+    { revalidate: 3600, tags: ["papers"] }
   )();
 }

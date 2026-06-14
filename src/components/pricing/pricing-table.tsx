@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,37 @@ interface PricingTableProps {
   currentPlanId?: PlanId;
 }
 
-export function PricingTable({ currentPlanId = "FREE" }: PricingTableProps) {
+export function PricingTable({ currentPlanId: currentPlanIdProp }: PricingTableProps) {
   const { data: session } = useSession();
   const [yearly, setYearly] = useState(true);
+  const [currentPlanId, setCurrentPlanId] = useState<PlanId>(currentPlanIdProp ?? "FREE");
+
+  useEffect(() => {
+    if (currentPlanIdProp) {
+      setCurrentPlanId(currentPlanIdProp);
+      return;
+    }
+
+    if (!session?.user) {
+      setCurrentPlanId("FREE");
+      return;
+    }
+
+    let cancelled = false;
+
+    fetch("/api/subscription/usage")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.planId) {
+          setCurrentPlanId(data.planId as PlanId);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user, currentPlanIdProp]);
   const maxYearlySavings = Math.max(
     ...PLAN_ORDER.filter((id) => id !== "FREE").map((id) => yearlySavingsPercent(id))
   );

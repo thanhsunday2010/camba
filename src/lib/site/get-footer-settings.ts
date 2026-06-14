@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import {
   DEFAULT_FOOTER_SETTINGS,
@@ -6,7 +7,9 @@ import {
   type FooterSettings,
 } from "@/lib/site/footer";
 
-export async function getFooterSettings(): Promise<FooterSettings> {
+export const FOOTER_CACHE_SECONDS = 3600;
+
+async function fetchFooterSettingsFromDb(): Promise<FooterSettings> {
   try {
     const row = await db.siteSetting.findUnique({
       where: { key: FOOTER_SETTING_KEY },
@@ -19,7 +22,14 @@ export async function getFooterSettings(): Promise<FooterSettings> {
 
     return parsed.data;
   } catch {
-    // Build-time static generation (e.g. /_not-found) must not fail when DB is unavailable.
     return DEFAULT_FOOTER_SETTINGS;
   }
+}
+
+export async function getFooterSettings(): Promise<FooterSettings> {
+  return unstable_cache(
+    fetchFooterSettingsFromDb,
+    ["footer-settings"],
+    { revalidate: FOOTER_CACHE_SECONDS, tags: ["footer-settings"] }
+  )();
 }
