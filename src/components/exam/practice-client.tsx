@@ -19,6 +19,7 @@ import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import {
   mascotGradingWaitMessage,
   mascotHalfProgressMessage,
+  mascotPlacementSubmitWaitMessage,
   mascotSpeakingDoneMessage,
   mascotStreakMessage,
 } from "@/lib/kids/mascot-messages";
@@ -196,8 +197,12 @@ export function PracticeClient({
     if (!attemptId) return;
     setSubmitting(true);
     play("celebrate");
-    setShowConfetti(true);
-    showMascot(mascotGradingWaitMessage());
+    showMascot(
+      paperKind === "PLACEMENT" ? mascotPlacementSubmitWaitMessage() : mascotGradingWaitMessage()
+    );
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
 
     const timeSpent = Math.floor((Date.now() - startedAt.getTime()) / 1000);
     const result = await submitAttemptAction(attemptId, answers, timeSpent);
@@ -233,15 +238,17 @@ export function PracticeClient({
       }
     }
 
-    hideMascot();
+    setShowConfetti(true);
     toast.success("Tuyệt vời! Nộp bài thành công! 🎉");
-    router.refresh();
 
     if (paperKind === "PLACEMENT") {
       router.push(`/placement/results/${attemptId}`);
-    } else {
-      router.push(`/results/${attemptId}`);
+      return;
     }
+
+    hideMascot();
+    router.refresh();
+    router.push(`/results/${attemptId}`);
   }, [attemptId, answers, startedAt, questions, router, paperKind, play, showMascot, hideMascot]);
 
   const goNext = () => {

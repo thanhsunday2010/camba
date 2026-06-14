@@ -104,6 +104,14 @@ export function mascotGradingWaitMessage(): MascotToastPayload {
   };
 }
 
+export function mascotPlacementSubmitWaitMessage(): MascotToastPayload {
+  return {
+    message: "Xong rồi! Thỏ đang chấm để gợi ý level phù hợp cho bạn 🎯",
+    mood: "think",
+    persist: true,
+  };
+}
+
 export function mascotPageLoadingMessage(): MascotToastPayload {
   return {
     message: "Chờ chút xíu nha",

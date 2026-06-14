@@ -26,6 +26,8 @@ export interface PlacementTestContent {
   reading: McqSeed[];
   listening: ListeningSeed[];
   grammar: GapSeed[];
+  /** MCQ grammar (Use of English) — dùng thay gap-fill khi có */
+  grammarMcq?: McqSeed[];
 }
 
 function mcq(
@@ -599,75 +601,77 @@ function buildSecondaryGrammar(): GapSeed[] {
 
 function buildAdultReading(): McqSeed[] {
   return [
+    // —— Easy (6) ——
     mcq(
       "ADU R1",
-      "What is the email mainly about?",
-      ["a job offer", "a meeting schedule change", "a product recall", "a holiday policy"],
-      "a meeting schedule change",
-      "Subject: Team sync moved to Thursday\n\nHi all,\nDue to the client visit on Wednesday, our weekly sync will move to Thursday at 10 a.m. in Room B. Please update your calendars.\nRegards, HR"
+      "What time does the office open?",
+      ["7:00 a.m.", "8:00 a.m.", "9:00 a.m.", "10:00 a.m."],
+      "8:00 a.m.",
+      "Office Hours: Reception is open Monday–Friday, 8:00 a.m. to 6:00 p.m. The help desk closes at 5:30 p.m."
     ),
     mcq(
       "ADU R2",
-      "When is the meeting now?",
+      "Where should staff get coffee today?",
+      ["the 3rd-floor cafeteria", "the main lobby", "the car park", "Room B"],
+      "the main lobby",
+      "Notice: The 3rd-floor cafeteria is closed for maintenance today. Complimentary coffee is available in the main lobby until 4 p.m."
+    ),
+    mcq(
+      "ADU R3",
+      "When is the team meeting now?",
       ["Wednesday 10 a.m.", "Thursday 10 a.m.", "Friday 9 a.m.", "Thursday 2 p.m."],
       "Thursday 10 a.m.",
       "Subject: Team sync moved to Thursday\n\nHi all,\nDue to the client visit on Wednesday, our weekly sync will move to Thursday at 10 a.m. in Room B. Please update your calendars.\nRegards, HR"
     ),
     mcq(
-      "ADU R3",
-      "What should employees do about the cafeteria?",
-      ["use the 3rd floor today", "get coffee in the lobby", "bring lunch from home", "close early"],
-      "get coffee in the lobby",
-      "Notice: The 3rd-floor cafeteria is closed for maintenance today. Complimentary coffee is available in the main lobby until 4 p.m."
-    ),
-    mcq(
       "ADU R4",
-      "What is the purpose of the workshop?",
-      ["teach presentation skills", "sell insurance", "train new software", "organise a sports event"],
-      "teach presentation skills",
-      "Professional Skills Workshop — Saturday 9 a.m.–12 p.m., Room 12. Learn to prepare CVs and deliver short presentations in English. Open to staff aged 18+."
-    ),
-    mcq(
-      "ADU R5",
-      "What does the article suggest about remote work?",
-      ["It always reduces productivity", "It can improve focus but needs clear communication", "It should be banned", "It only works for managers"],
-      "It can improve focus but needs clear communication",
-      "Many companies now offer hybrid schedules. Surveys show remote days can improve focus, yet teams need clear communication channels to avoid delays and misunderstandings."
-    ),
-    mcq(
-      "ADU R6",
-      "What problem do critics mention about city parks?",
-      ["They are too small", "Maintenance costs are high", "They attract too many tourists", "They close at night"],
-      "Maintenance costs are high",
-      "Urban green spaces may improve wellbeing, but critics argue maintenance budgets are significant. Supporters claim long-term health savings can offset the expense."
-    ),
-    mcq(
-      "ADU R7",
       "What must visitors do at the sports centre?",
       ["register at the front desk", "pay in cash only", "bring their own shoes", "book online first"],
       "register at the front desk",
       "Welcome to Green Valley Sports Centre. All visitors must register at the front desk and wear clean indoor shoes. The pool opens at 6 a.m."
     ),
     mcq(
+      "ADU R5",
+      "How much is the daily late fee for library books?",
+      ["free", "twenty cents", "fifty cents", "one dollar"],
+      "fifty cents",
+      "Library policy: Borrow up to three books for two weeks. Late returns are charged fifty cents per day."
+    ),
+    mcq(
+      "ADU R6",
+      "Is parking free on weekends?",
+      ["Yes, always", "No, never", "Only for staff with a badge", "Only on Sundays"],
+      "Yes, always",
+      "Visitor Parking: Weekday parking costs $3 per hour. Weekend parking is free for all staff and visitors in the north lot."
+    ),
+    // —— Medium (6) ——
+    mcq(
+      "ADU R7",
+      "What is the email mainly about?",
+      ["a job offer", "a meeting schedule change", "a product recall", "a holiday policy"],
+      "a meeting schedule change",
+      "Subject: Team sync moved to Thursday\n\nHi all,\nDue to the client visit on Wednesday, our weekly sync will move to Thursday at 10 a.m. in Room B. Please update your calendars.\nRegards, HR"
+    ),
+    mcq(
       "ADU R8",
+      "What is the purpose of the workshop?",
+      ["teach presentation skills", "sell insurance", "train new software", "organise a sports event"],
+      "teach presentation skills",
+      "Professional Skills Workshop — Saturday 9 a.m.–12 p.m., Room 12. Learn to prepare CVs and deliver short presentations in English. Open to staff aged 18+."
+    ),
+    mcq(
+      "ADU R9",
       "What is the report's main finding?",
       ["Sales fell last quarter", "Customer satisfaction rose after staff training", "A new CEO was hired", "Prices will double"],
       "Customer satisfaction rose after staff training",
       "Quarterly Report: After customer-service training, satisfaction scores increased by 12%. Response times also improved across all regions."
     ),
     mcq(
-      "ADU R9",
-      "What does the notice say about late returns?",
-      ["There is no fee", "Books cost fifty cents per day", "Books cannot be renewed", "Only staff may borrow"],
-      "Books cost fifty cents per day",
-      "Library policy: Borrow up to three books for two weeks. Late returns are charged fifty cents per day."
-    ),
-    mcq(
       "ADU R10",
-      "What is recommended for the presentation?",
-      ["use more slides", "keep it under ten minutes", "avoid eye contact", "read every word on the screen"],
-      "keep it under ten minutes",
-      "Presentation tip: Focus on one clear message, use examples, and keep your talk under ten minutes so the audience stays engaged."
+      "What does the contract clause allow?",
+      ["unpaid leave after six months", "remote work two days per week", "free company cars", "unlimited overtime pay"],
+      "remote work two days per week",
+      "Contract excerpt: Employees may work remotely up to two days per week after completing probation, subject to manager approval."
     ),
     mcq(
       "ADU R11",
@@ -678,44 +682,45 @@ function buildAdultReading(): McqSeed[] {
     ),
     mcq(
       "ADU R12",
-      "What does the contract clause allow?",
-      ["unpaid leave after six months", "remote work two days per week", "free company cars", "unlimited overtime pay"],
-      "remote work two days per week",
-      "Contract excerpt: Employees may work remotely up to two days per week after completing probation, subject to manager approval."
+      "What should applicants include?",
+      ["a cover letter and CV", "a medical certificate", "three references only", "a video interview"],
+      "a cover letter and CV",
+      "Job posting: Send your CV and a short cover letter to careers@example.com before Friday. Shortlisted candidates will be contacted within ten days."
     ),
+    // —— Hard (5) ——
     mcq(
       "ADU R13",
+      "What does the article suggest about remote work?",
+      ["It always reduces productivity", "It can improve focus but needs clear communication", "It should be banned", "It only works for managers"],
+      "It can improve focus but needs clear communication",
+      "Many companies now offer hybrid schedules. Surveys show remote days can improve focus, yet teams need clear communication channels to avoid delays and misunderstandings."
+    ),
+    mcq(
+      "ADU R14",
+      "What tension do critics and supporters disagree about regarding city parks?",
+      ["whether parks should close at night", "whether maintenance costs are justified by health benefits", "whether tourists visit too often", "whether parks are too small"],
+      "whether maintenance costs are justified by health benefits",
+      "Urban green spaces may improve wellbeing, but critics argue maintenance budgets are significant. Supporters claim long-term health savings can offset the expense."
+    ),
+    mcq(
+      "ADU R15",
       "What is the trainer's view of AI tools?",
       ["They replace all jobs", "They can support writing but need human review", "They should be illegal", "They are useless"],
       "They can support writing but need human review",
       "The trainer explained that AI tools can draft emails faster, but humans must review tone, facts, and confidentiality before sending."
     ),
     mcq(
-      "ADU R14",
-      "What should applicants include?",
-      ["a cover letter and CV", "a medical certificate", "three references only", "a video interview"],
-      "a cover letter and CV",
-      "Job posting: Send your CV and a short cover letter to careers@example.com before Friday. Shortlisted candidates will be contacted within ten days."
-    ),
-    mcq(
-      "ADU R15",
-      "What caused the traffic alert?",
-      ["roadworks on the bridge", "a sports parade", "snow", "a power cut"],
-      "roadworks on the bridge",
-      "Traffic update: Expect delays on the city bridge due to roadworks until 6 p.m. Use the riverside route if possible."
-    ),
-    mcq(
       "ADU R16",
-      "What benefit is mentioned for learning English?",
-      ["better career opportunities abroad", "free holidays", "shorter working hours", "guaranteed promotion"],
-      "better career opportunities abroad",
+      "What can be inferred about the company's language policy?",
+      ["English is required only for managers", "Strong English may help staff access international opportunities", "Staff must pass a test every year", "Training is optional and unpaid"],
+      "Strong English may help staff access international opportunities",
       "Language note: Strong English skills can open international roles, help in multinational teams, and improve access to online professional courses."
     ),
     mcq(
       "ADU R17",
-      "What will happen next month?",
-      ["the office will move floors", "all staff will retire", "prices will be frozen", "the company will close"],
-      "the office will move floors",
+      "What will happen next month according to the memo?",
+      ["Marketing and Sales will move floors", "All staff will work remotely", "IT support will close", "The building will be renovated completely"],
+      "Marketing and Sales will move floors",
       "Internal memo: From next month, Marketing and Sales will move to the second floor. IT support desk remains on the ground floor."
     ),
   ];
@@ -723,6 +728,7 @@ function buildAdultReading(): McqSeed[] {
 
 function buildAdultListening(): ListeningSeed[] {
   return [
+    // —— Easy (6) ——
     listen(
       "ADU L1",
       "Receptionist: Good morning. Your interview is at two fifteen in Conference Room C. Please bring your ID.",
@@ -732,143 +738,229 @@ function buildAdultListening(): ListeningSeed[] {
     ),
     listen(
       "ADU L2",
-      "Manager: The budget meeting is postponed until next Monday because the director is travelling.",
-      "When is the budget meeting now?",
-      ["this Friday", "next Monday", "tomorrow", "next Wednesday"],
-      "next Monday"
+      "Assistant: The printer on the second floor is working again. You can collect your documents now.",
+      "Where is the printer?",
+      ["the ground floor", "the second floor", "the car park", "the cafeteria"],
+      "the second floor"
     ),
     listen(
       "ADU L3",
-      "Colleague: Could you send me the sales figures by end of day? I need them for tomorrow's report.",
-      "When does the colleague need the figures?",
-      ["by end of day", "next week", "after the holiday", "in two hours only"],
-      "by end of day"
-    ),
-    listen(
-      "ADU L4",
-      "HR: New staff must complete the safety induction online before their first shift on site.",
-      "What must new staff do first?",
-      ["complete safety induction online", "work overtime", "buy uniforms", "pass a driving test"],
-      "complete safety induction online"
-    ),
-    listen(
-      "ADU L5",
       "Customer: I'd like to return this jacket. It's the wrong size. Assistant: Do you have the receipt?",
       "Why does the customer want to return the jacket?",
       ["wrong size", "wrong colour", "it is damaged", "it is too expensive"],
       "wrong size"
     ),
     listen(
-      "ADU L6",
-      "Presenter: Our Q&A session will start at four fifteen, right after the coffee break.",
-      "When does the Q&A start?",
-      ["3:15", "4:00", "4:15", "4:45"],
-      "4:15"
-    ),
-    listen(
-      "ADU L7",
+      "ADU L4",
       "Doctor: You should rest this weekend and drink plenty of water. Come back if symptoms continue.",
       "What does the doctor advise?",
       ["rest and drink water", "stop exercising forever", "take a new job", "travel abroad"],
       "rest and drink water"
     ),
     listen(
-      "ADU L8",
-      "Organiser: Registration for the charity run closes at seven forty-five tomorrow morning.",
-      "When does registration close?",
-      ["7:15", "7:30", "7:45", "8:00"],
-      "7:45"
-    ),
-    listen(
-      "ADU L9",
+      "ADU L5",
       "Technician: Your laptop is ready. We replaced the battery. That will be thirty dollars including labour.",
       "What was replaced?",
       ["the screen", "the battery", "the keyboard", "the hard drive"],
       "the battery"
     ),
     listen(
+      "ADU L6",
+      "Guide: The boat tour lasts ninety minutes. Life jackets are under your seats.",
+      "How long is the boat tour?",
+      ["sixty minutes", "seventy-five minutes", "ninety minutes", "two hours"],
+      "ninety minutes"
+    ),
+    // —— Medium (6) ——
+    listen(
+      "ADU L7",
+      "Manager: The budget meeting is postponed until next Monday because the director is travelling.",
+      "When is the budget meeting now?",
+      ["this Friday", "next Monday", "tomorrow", "next Wednesday"],
+      "next Monday"
+    ),
+    listen(
+      "ADU L8",
+      "Colleague: Could you send me the sales figures by end of day? I need them for tomorrow's report.",
+      "When does the colleague need the figures?",
+      ["by end of day", "next week", "after the holiday", "in two hours only"],
+      "by end of day"
+    ),
+    listen(
+      "ADU L9",
+      "HR: New staff must complete the safety induction online before their first shift on site.",
+      "What must new staff do first?",
+      ["complete safety induction online", "work overtime", "buy uniforms", "pass a driving test"],
+      "complete safety induction online"
+    ),
+    listen(
       "ADU L10",
+      "Presenter: Our Q&A session will start at four fifteen, right after the coffee break.",
+      "When does the Q&A start?",
+      ["3:15", "4:00", "4:15", "4:45"],
+      "4:15"
+    ),
+    listen(
+      "ADU L11",
       "Trainer: Please mute your microphone when you're not speaking to reduce background noise.",
       "What should participants do when not speaking?",
       ["mute the microphone", "leave the meeting", "turn off the camera permanently", "share their screen"],
       "mute the microphone"
     ),
     listen(
-      "ADU L11",
-      "Guide: The boat tour lasts ninety minutes. Life jackets are under your seats.",
-      "How long is the boat tour?",
-      ["sixty minutes", "seventy-five minutes", "ninety minutes", "two hours"],
-      "ninety minutes"
-    ),
-    listen(
       "ADU L12",
-      "HR officer: Interviews will be held online next week. Please test your camera and microphone beforehand.",
-      "How will interviews be held?",
-      ["in person only", "online", "by post", "by phone without video"],
-      "online"
-    ),
-    listen(
-      "ADU L13",
-      "Reporter: Local volunteers planted two hundred trees to protect wildlife along the river.",
-      "Why did volunteers plant trees?",
-      ["to sell timber", "to protect wildlife", "to build houses", "to make paper"],
-      "to protect wildlife"
-    ),
-    listen(
-      "ADU L14",
       "Airport: Passengers on flight BA812 to London should proceed to Gate 22 for boarding.",
       "Where should passengers go?",
       ["Gate 12", "Gate 22", "Baggage claim", "Immigration"],
       "Gate 22"
     ),
+    // —— Hard (5) ——
+    listen(
+      "ADU L13",
+      "HR officer: Interviews will be held online next week. Please test your camera and microphone beforehand.",
+      "What is implied about the interview format?",
+      ["Candidates must travel to the office", "Candidates need working video equipment", "Interviews will be cancelled", "Only phone calls will be used"],
+      "Candidates need working video equipment"
+    ),
+    listen(
+      "ADU L14",
+      "Supervisor: Overtime this week must be approved in writing before you stay late.",
+      "What can be inferred about overtime policy?",
+      ["Staff can stay late whenever they want", "Unapproved overtime may not be accepted", "Overtime is always paid double", "Written approval is optional"],
+      "Unapproved overtime may not be accepted"
+    ),
     listen(
       "ADU L15",
-      "Supervisor: Overtime this week must be approved in writing before you stay late.",
-      "What is required for overtime?",
-      ["written approval", "a doctor's note", "a client gift", "a new contract"],
-      "written approval"
+      "Client: Could we reschedule our call to three thirty? Something urgent came up.",
+      "Why does the client want to reschedule?",
+      ["an urgent matter arose", "the price changed", "the office is closed", "the line is busy"],
+      "an urgent matter arose"
     ),
     listen(
       "ADU L16",
-      "Client: Could we reschedule our call to three thirty? Something urgent came up.",
-      "What time is the new call?",
-      ["2:30", "3:00", "3:30", "4:30"],
-      "3:30"
+      "Reporter: Local volunteers planted two hundred trees to protect wildlife along the river.",
+      "What was the volunteers' main goal?",
+      ["to sell timber", "to protect wildlife", "to build houses", "to make paper"],
+      "to protect wildlife"
     ),
     listen(
       "ADU L17",
       "Librarian: You can renew books online twice. After that, please return them to the desk.",
-      "How many times can books be renewed online?",
-      ["once", "twice", "three times", "unlimited"],
-      "twice"
+      "What happens after two online renewals?",
+      ["Books must be returned in person", "Fines are doubled automatically", "Borrowing is blocked forever", "Staff will renew again for free"],
+      "Books must be returned in person"
     ),
   ];
 }
 
-function buildAdultGrammar(): GapSeed[] {
+function buildAdultGrammarMcq(): McqSeed[] {
   return [
-    grammar("ADU G1", "The report ___ (submit) before the deadline yesterday.", "was submitted"),
-    grammar("ADU G2", "If we ___ (know) about the delay, we would have informed the client.", "had known"),
-    grammar("ADU G3", "She has been working here ___ three years.", "for"),
-    grammar("ADU G4", "Neither the manager nor the assistants ___ (be) available now.", "are"),
-    grammar("ADU G5", "I would appreciate ___ (receive) your feedback by Friday.", "receiving"),
-    grammar("ADU G6", "The conference, ___ took place in March, attracted over 500 delegates.", "which"),
-    grammar("ADU G7", "Hardly ___ the presentation begun when the fire alarm sounded.", "had"),
-    grammar("ADU G8", "You'd better ___ (call) the client before the meeting starts.", "call"),
-    grammar("ADU G9", "There is too ___ noise in the open-plan office.", "much"),
-    grammar("ADU G10", "By the time we arrive, they ___ (already / finish) the setup.", "will have already finished"),
-    grammar("ADU G11", "He denied ___ (leak) the confidential document.", "leaking"),
-    grammar("ADU G12", "Not until she read the email ___ she realise the mistake.", "did"),
-    grammar("ADU G13", "The new policy is aimed ___ improving work-life balance.", "at"),
-    grammar("ADU G14", "Scarcely ___ I logged in when the system crashed.", "had"),
-    grammar("ADU G15", "The manager insisted that every employee ___ (attend) the briefing.", "attend"),
-    grammar("ADU G16", "Had I known about the traffic, I ___ (leave) earlier.", "would have left"),
+    // —— Easy (5) ——
+    mcq(
+      "ADU G1",
+      "She has worked here ___ three years.",
+      ["for", "since", "during", "from"],
+      "for"
+    ),
+    mcq(
+      "ADU G2",
+      "I ___ to the office by bus every day.",
+      ["go", "goes", "going", "gone"],
+      "go"
+    ),
+    mcq(
+      "ADU G3",
+      "There are too ___ emails in my inbox.",
+      ["much", "many", "little", "few"],
+      "many"
+    ),
+    mcq(
+      "ADU G4",
+      "He ___ lunch at noon yesterday.",
+      ["have", "had", "has", "having"],
+      "had"
+    ),
+    mcq(
+      "ADU G5",
+      "We need ___ time to finish the report.",
+      ["more", "many", "most", "fewer"],
+      "more"
+    ),
+    // —— Medium (6) ——
+    mcq(
+      "ADU G6",
+      "If we ___ earlier, we would have caught the train.",
+      ["leave", "left", "had left", "have left"],
+      "had left"
+    ),
+    mcq(
+      "ADU G7",
+      "The report must ___ before Friday.",
+      ["submit", "be submitted", "submitting", "to submit"],
+      "be submitted"
+    ),
+    mcq(
+      "ADU G8",
+      "Neither the manager nor the assistants ___ available now.",
+      ["is", "are", "was", "be"],
+      "are"
+    ),
+    mcq(
+      "ADU G9",
+      "I look forward to ___ from you soon.",
+      ["hear", "hearing", "heard", "hears"],
+      "hearing"
+    ),
+    mcq(
+      "ADU G10",
+      "She ___ in Berlin since 2020.",
+      ["live", "lives", "has lived", "is living"],
+      "has lived"
+    ),
+    mcq(
+      "ADU G11",
+      "The workshop, ___ was held online, saved travel costs.",
+      ["who", "which", "where", "whose"],
+      "which"
+    ),
+    // —— Hard (5) ——
+    mcq(
+      "ADU G12",
+      "Hardly ___ the presentation begun when the fire alarm sounded.",
+      ["had", "has", "did", "was"],
+      "had"
+    ),
+    mcq(
+      "ADU G13",
+      "Not until she read the email ___ she realise the mistake.",
+      ["did", "does", "she", "was"],
+      "did"
+    ),
+    mcq(
+      "ADU G14",
+      "Had they ___ about the delay, they would have rescheduled the meeting.",
+      ["know", "knew", "known", "knowing"],
+      "known"
+    ),
+    mcq(
+      "ADU G15",
+      "The director insisted that every employee ___ the safety briefing.",
+      ["attends", "attend", "attended", "attending"],
+      "attend"
+    ),
+    mcq(
+      "ADU G16",
+      "Scarcely ___ I logged in when the system crashed.",
+      ["had", "have", "did", "was"],
+      "had"
+    ),
   ];
 }
 
 function validateTest(content: PlacementTestContent) {
-  const { reading, listening, grammar } = content;
-  const total = reading.length + listening.length + grammar.length;
+  const { reading, listening, grammar, grammarMcq } = content;
+  const grammarCount = grammarMcq?.length ?? grammar.length;
+  const total = reading.length + listening.length + grammarCount;
   if (total !== PLACEMENT_TOTAL_QUESTIONS) {
     throw new Error(`${content.title}: expected ${PLACEMENT_TOTAL_QUESTIONS} questions, got ${total}`);
   }
@@ -878,8 +970,8 @@ function validateTest(content: PlacementTestContent) {
   if (listening.length !== PLACEMENT_SECTION_COUNTS.listening) {
     throw new Error(`${content.title}: listening count ${listening.length}`);
   }
-  if (grammar.length !== PLACEMENT_SECTION_COUNTS.grammar) {
-    throw new Error(`${content.title}: grammar count ${grammar.length}`);
+  if (grammarCount !== PLACEMENT_SECTION_COUNTS.grammar) {
+    throw new Error(`${content.title}: grammar count ${grammarCount}`);
   }
 }
 
@@ -913,7 +1005,8 @@ export function getPlacementTests(): PlacementTestContent[] {
       level: ExamLevel.FCE,
       reading: buildAdultReading(),
       listening: buildAdultListening(),
-      grammar: buildAdultGrammar(),
+      grammar: [],
+      grammarMcq: buildAdultGrammarMcq(),
     },
   ];
 

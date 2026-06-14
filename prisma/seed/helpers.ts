@@ -484,7 +484,9 @@ export async function seedPlacementTests(db: PrismaClient) {
       audioSlug: item.audioSlug ?? `placement-${trackSlug}-${String(i + 1).padStart(3, "0")}`,
     }));
     const listenIds = await createListenings(db, test.level, listenItems, 500);
-    const grammarIds = await createGaps(db, test.level, test.grammar);
+    const grammarIds = test.grammarMcq?.length
+      ? await createMcqs(db, test.level, Skill.USE_OF_ENGLISH, test.grammarMcq)
+      : await createGaps(db, test.level, test.grammar);
 
     const allIds = [...readingIds, ...listenIds, ...grammarIds];
     const sections: PaperSection[] = [
