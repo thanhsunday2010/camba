@@ -102,13 +102,6 @@ const config: Config = {
       fontFamily: {
         kid: ["var(--font-nunito)", "system-ui", "sans-serif"],
       },
-      /* Body copy +2 steps; xl+ unchanged for h1/h2/titles */
-      fontSize: {
-        xs: ["1rem", { lineHeight: "1.5rem" }],
-        sm: ["1.125rem", { lineHeight: "1.75rem" }],
-        base: ["1.25rem", { lineHeight: "1.875rem" }],
-        lg: ["1.375rem", { lineHeight: "2rem" }],
-      },
       animation: {
         float: "float 4s ease-in-out infinite",
         wiggle: "wiggle 0.5s ease-in-out",

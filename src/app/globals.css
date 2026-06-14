@@ -31,6 +31,15 @@
   * {
     @apply border-border;
   }
+  html {
+    font-size: 100%;
+  }
+  @media (max-width: 767px) {
+    html {
+      /* Giữ chữ lớn trên mobile (~20px cho text-base); desktop dùng 16px chuẩn */
+      font-size: 125%;
+    }
+  }
   body {
     @apply bg-background text-base text-foreground;
     background-image:
