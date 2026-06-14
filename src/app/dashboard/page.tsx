@@ -20,7 +20,6 @@ import { CambaMascot } from "@/components/kids/camba-mascot";
 import { LevelPicker } from "@/components/exam/level-picker";
 import { Flame, Target, TrendingUp, ClipboardList, CalendarClock } from "lucide-react";
 import { SubscriptionUsageCard } from "@/components/pricing/subscription-usage-card";
-import { ReferralShareCard } from "@/components/referral/referral-share-card";
 import { ReferralWelcomeToast } from "@/components/referral/referral-welcome-toast";
 import { ensureUserReferralCode } from "@/lib/referral/codes";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
@@ -41,7 +40,7 @@ export default async function DashboardPage({
 
   const userId = session.user.id;
 
-  const [user, totalAttempts, skillStats, recentScores, recentAttempts, assignments, streakLeaderboard, xpLeaderboard, referralCode, referralCount, gamificationProfile, userAchievements] =
+  const [user, totalAttempts, skillStats, recentScores, recentAttempts, assignments, streakLeaderboard, xpLeaderboard, referralCode, gamificationProfile, userAchievements] =
     await Promise.all([
       db.user.findUnique({
         where: { id: userId },
@@ -110,7 +109,6 @@ export default async function DashboardPage({
       getCachedLeaderboard(),
       getCachedXpLeaderboard(),
       ensureUserReferralCode(userId),
-      db.user.count({ where: { referredById: userId } }),
       getGamificationProfile(userId),
       getUserAchievements(userId),
     ]);
@@ -294,7 +292,6 @@ export default async function DashboardPage({
 
         <div className="space-y-6">
           <GamificationOverviewCard profile={gamificationProfile} achievements={userAchievements} />
-          <ReferralShareCard referralCode={referralCode} referralCount={referralCount} />
           <SubscriptionUsageCard userId={userId} />
 
           <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
@@ -366,6 +363,7 @@ export default async function DashboardPage({
         key={defaultTab}
         overview={overview}
         profile={profile}
+        referralCode={referralCode}
         defaultTab={defaultTab}
       />
     </div>

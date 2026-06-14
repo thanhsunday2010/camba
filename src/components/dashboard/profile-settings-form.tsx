@@ -17,10 +17,13 @@ import {
   type UserProfileData,
 } from "@/lib/actions/profile";
 import { CambaMascot } from "@/components/kids/camba-mascot";
+import { ReferralShareInline } from "@/components/referral/referral-share-block";
+import { REFERRAL_BUTTON_LABEL } from "@/lib/referral/constants";
 import { Camera, Trash2, UserRound } from "lucide-react";
 
 interface ProfileSettingsFormProps {
   profile: UserProfileData;
+  referralCode?: string | null;
 }
 
 function AvatarPreview({ image, name }: { image: string | null; name: string | null }) {
@@ -44,7 +47,7 @@ function AvatarPreview({ image, name }: { image: string | null; name: string | n
   );
 }
 
-export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
+export function ProfileSettingsForm({ profile, referralCode }: ProfileSettingsFormProps) {
   const router = useRouter();
   const { update } = useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -116,6 +119,17 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
 
   return (
     <div className="space-y-6">
+      {referralCode && (
+        <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white">
+          <CardHeader className="pb-3">
+            <CardTitle className="font-extrabold">🎁 {REFERRAL_BUTTON_LABEL}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReferralShareInline referralCode={referralCode} />
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50/80 to-white">
         <CardHeader>
           <CardTitle className="font-extrabold">👤 Hồ sơ của tôi</CardTitle>

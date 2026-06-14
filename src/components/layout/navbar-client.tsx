@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SoundToggle } from "@/components/kids/sound-toggle";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { logoutAction } from "@/lib/actions/auth";
-import { ReferralShareButton } from "@/components/referral/referral-share-button";
+import { ReferralShareNavItem } from "@/components/referral/referral-share-block";
 import { Menu, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -66,7 +66,7 @@ function NavLinks({
           💎 Bảng giá
         </Link>
         {referralCode && (
-          <ReferralShareButton referralCode={referralCode} variant="nav" />
+          <ReferralShareNavItem referralCode={referralCode} vertical={vertical} />
         )}
         {vertical && (
           <Link

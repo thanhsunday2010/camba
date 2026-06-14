@@ -3,9 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ReferralShareButton } from "@/components/referral/referral-share-button";
 import { getSubscriptionSummary } from "@/lib/subscription/service";
-import { ensureUserReferralCode } from "@/lib/referral/codes";
 
 interface SubscriptionUsageCardProps {
   userId: string;
@@ -17,10 +15,7 @@ function usagePct(count: number, limit: number) {
 }
 
 export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardProps) {
-  const [{ plan, usage, expiresAt, billingCycle }, referralCode] = await Promise.all([
-    getSubscriptionSummary(userId),
-    ensureUserReferralCode(userId),
-  ]);
+  const { plan, usage, expiresAt, billingCycle } = await getSubscriptionSummary(userId);
 
   const breakdown = [
     usage.writingAiGradingCount > 0 && `Writing ${usage.writingAiGradingCount}`,
@@ -89,7 +84,6 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
             </p>
           </div>
         )}
-        <ReferralShareButton referralCode={referralCode} variant="compact" className="w-full" />
         <Button asChild className="w-full rounded-full" variant={plan.id === "FREE" ? "fun" : "outline"}>
           <Link href="/pricing">{plan.id === "FREE" ? "Nâng cấp gói ✨" : "Đổi gói / gia hạn"}</Link>
         </Button>

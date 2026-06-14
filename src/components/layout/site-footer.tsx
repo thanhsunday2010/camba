@@ -1,11 +1,16 @@
 import Link from "next/link";
+import { auth } from "@/auth";
 import { CambaMascot } from "@/components/kids/camba-mascot";
+import { ReferralShareInline } from "@/components/referral/referral-share-block";
+import { ensureUserReferralCode } from "@/lib/referral/codes";
 import { getFooterSettings } from "@/lib/site/get-footer-settings";
 import { renderCopyright } from "@/lib/site/footer";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 export async function SiteFooter() {
-  const footer = await getFooterSettings();
+  const [footer, session] = await Promise.all([getFooterSettings(), auth()]);
+  const referralCode =
+    session?.user?.id ? await ensureUserReferralCode(session.user.id) : null;
 
   return (
     <footer className="mt-auto border-t-2 border-purple-100 bg-gradient-to-b from-white to-purple-50/40">
@@ -19,6 +24,11 @@ export async function SiteFooter() {
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
               {footer.brandDescription}
             </p>
+            {referralCode && (
+              <div className="mt-5 max-w-sm rounded-2xl border-2 border-emerald-100 bg-emerald-50/50 p-4">
+                <ReferralShareInline referralCode={referralCode} />
+              </div>
+            )}
             <div className="mt-4 space-y-2 text-sm text-muted-foreground">
               {footer.contactEmail && (
                 <p className="flex items-center gap-2">

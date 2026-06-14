@@ -14,11 +14,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { buildReferralRegisterUrl, buildReferralShareMessage } from "@/lib/referral/url";
+import { REFERRAL_BUTTON_LABEL, REFERRAL_TAGLINE } from "@/lib/referral/constants";
 import { cn } from "@/lib/utils";
 
 interface ReferralShareButtonProps {
   referralCode: string;
-  variant?: "nav" | "card" | "compact";
+  variant?: "nav" | "inline";
   className?: string;
 }
 
@@ -65,30 +66,23 @@ export function ReferralShareButton({
     await copyMessage();
   }, [copyMessage, shareMessage, shareUrl]);
 
-  const trigger =
-    variant === "nav" ? (
-      <Button
-        type="button"
-        size="sm"
-        className={cn(
+  const trigger = (
+    <Button
+      type="button"
+      size={variant === "inline" ? "default" : "sm"}
+      variant={variant === "inline" ? "default" : undefined}
+      className={cn(
+        variant === "nav" &&
           "rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 font-bold text-white shadow hover:from-emerald-600 hover:to-teal-600",
-          className
-        )}
-      >
-        <Gift className="mr-1.5 h-4 w-4" />
-        Giới thiệu
-      </Button>
-    ) : variant === "compact" ? (
-      <Button type="button" size="sm" variant="outline" className={cn("rounded-full", className)}>
-        <Gift className="mr-1.5 h-4 w-4 text-emerald-600" />
-        Giới thiệu app
-      </Button>
-    ) : (
-      <Button type="button" className={cn("w-full kid-btn-fun rounded-full", className)}>
-        <Gift className="mr-2 h-4 w-4" />
-        Giới thiệu bạn bè — tặng Pro 1 tháng
-      </Button>
-    );
+        variant === "inline" &&
+          "w-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 font-bold text-white shadow hover:from-emerald-600 hover:to-teal-600 sm:w-auto",
+        className
+      )}
+    >
+      <Gift className="mr-1.5 h-4 w-4" />
+      {REFERRAL_BUTTON_LABEL}
+    </Button>
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -97,12 +91,9 @@ export function ReferralShareButton({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-extrabold">
             <Gift className="h-5 w-5 text-emerald-600" />
-            Giới thiệu Camba
+            {REFERRAL_BUTTON_LABEL}
           </DialogTitle>
-          <DialogDescription>
-            Bạn bè <strong>đăng ký tài khoản mới</strong> qua link của bạn sẽ nhận{" "}
-            <strong>Camba Pro 1 tháng miễn phí</strong>. Mỗi người chỉ được nhận một lần.
-          </DialogDescription>
+          <DialogDescription>{REFERRAL_TAGLINE}. Mỗi người chỉ được nhận một lần.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
