@@ -37,7 +37,13 @@ const STATUS_VARIANT: Record<BugReportStatus, "default" | "secondary" | "outline
   RESOLVED: "outline",
 };
 
-export function AdminBugReportsClient({ reports }: { reports: BugReportRow[] }) {
+export function AdminBugReportsClient({
+  reports,
+  permissions,
+}: {
+  reports: BugReportRow[];
+  permissions: import("@/lib/admin/permissions").AdminPermission[];
+}) {
   const router = useRouter();
 
   async function setStatus(id: string, status: BugReportStatus) {
@@ -63,7 +69,7 @@ export function AdminBugReportsClient({ reports }: { reports: BugReportRow[] }) 
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-2 text-3xl font-extrabold kid-gradient-text">Báo lỗi từ người dùng</h1>
       <p className="mb-6 text-muted-foreground">{reports.length} báo cáo</p>
-      <AdminNav currentPath="/admin/reports" />
+      <AdminNav currentPath="/admin/reports" permissions={permissions} />
 
       {reports.length === 0 ? (
         <p className="text-muted-foreground">Chưa có báo lỗi nào.</p>

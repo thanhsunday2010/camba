@@ -1,11 +1,9 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { AdminQuestionsClient } from "@/components/admin/questions-client";
+import { requireAdminPage } from "@/lib/admin/access";
 
 export default async function AdminQuestionsPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/dashboard");
+  const { access } = await requireAdminPage("questions.manage");
 
   const questions = await db.question.findMany({
     orderBy: { createdAt: "desc" },
@@ -19,5 +17,5 @@ export default async function AdminQuestionsPage() {
     },
   });
 
-  return <AdminQuestionsClient questions={questions} />;
+  return <AdminQuestionsClient questions={questions} permissions={access.permissions} />;
 }

@@ -102,7 +102,7 @@ export function MascotToastProvider({
           aria-live="polite"
         >
           <div className="max-w-[240px] rounded-2xl rounded-br-sm border-2 border-purple-200 bg-white px-4 py-3 shadow-xl md:max-w-[280px]">
-            <p className="text-sm font-bold leading-snug text-purple-900">{toast.message}</p>
+            <p className="text-base font-bold leading-snug text-purple-900">{toast.message}</p>
           </div>
           <div
             className={cn(

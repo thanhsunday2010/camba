@@ -21,8 +21,10 @@ export async function POST(req: NextRequest) {
 
   const allowed = await checkAIRateLimit(session.user.id);
   if (!allowed) {
+    const { getAIRateLimitInfo } = await import("@/lib/ai/rate-limit");
+    const info = await getAIRateLimitInfo(session.user.id);
     return NextResponse.json(
-      { error: "Đã hết lượt chấm AI hôm nay (10 lượt/ngày)" },
+      { error: `Đã hết lượt chấm AI hôm nay (${info.limit} lượt/ngày). Nâng cấp gói tại trang Bảng giá.` },
       { status: 429 }
     );
   }
@@ -31,6 +33,19 @@ export async function POST(req: NextRequest) {
   const parsed = writingSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
+
+  const { getUserPlanLimits } = await import("@/lib/subscription/service");
+  const { countWords } = await import("@/lib/subscription/plans");
+  const limits = await getUserPlanLimits(session.user.id);
+  const wordCount = countWords(parsed.data.studentAnswer);
+  if (wordCount > limits.writingWordLimit) {
+    return NextResponse.json(
+      {
+        error: `Vượt giới hạn ${limits.writingWordLimit} từ/lần của gói hiện tại. Nâng cấp để viết dài hơn.`,
+      },
+      { status: 400 }
+    );
   }
 
   const question = await db.question.findUnique({
@@ -73,6 +88,9 @@ export async function POST(req: NextRequest) {
         rawResponse: raw as object,
       },
     });
+
+    const { recordAiGradingUsage } = await import("@/lib/subscription/service");
+    await recordAiGradingUsage(session.user.id);
 
     if (parsed.data.attemptId) {
       await db.attemptAnswer.updateMany({

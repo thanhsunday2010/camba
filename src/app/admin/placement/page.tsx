@@ -1,12 +1,10 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { AdminPlacementClient } from "@/components/admin/placement-client";
 import type { PlacementReport } from "@/lib/placement/evaluate";
+import { requireAdminPage } from "@/lib/admin/access";
 
 export default async function AdminPlacementPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/dashboard");
+  const { access } = await requireAdminPage("placement.view");
 
   const attempts = await db.attempt.findMany({
     where: {
@@ -15,7 +13,7 @@ export default async function AdminPlacementPage() {
     },
     include: {
       paper: { select: { title: true } },
-      user: { select: { name: true, email: true } },
+      user: { select: { name: true, email: true, phone: true } },
     },
     orderBy: { submittedAt: "desc" },
     take: 500,
@@ -33,5 +31,5 @@ export default async function AdminPlacementPage() {
     user: a.user,
   }));
 
-  return <AdminPlacementClient attempts={rows} />;
+  return <AdminPlacementClient attempts={rows} permissions={access.permissions} />;
 }

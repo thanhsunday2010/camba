@@ -1,11 +1,16 @@
 import { DefaultSession } from "next-auth";
 
+import type { AdminPermission } from "@/lib/admin/permissions";
+
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
       role: string;
       targetExam: string;
+      adminRoleSlug?: string | null;
+      adminRoleName?: string | null;
+      adminPermissions?: AdminPermission[];
     } & DefaultSession["user"];
   }
 
@@ -20,5 +25,8 @@ declare module "next-auth/jwt" {
     id: string;
     role: string;
     targetExam: string;
+    adminRoleSlug?: string | null;
+    adminRoleName?: string | null;
+    adminPermissions?: AdminPermission[];
   }
 }

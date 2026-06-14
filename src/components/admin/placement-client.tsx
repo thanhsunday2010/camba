@@ -15,13 +15,19 @@ interface PlacementAttemptRow {
   submittedAt: Date | null;
   placementReport: PlacementReport | null;
   paper: { title: string };
-  user: { name: string | null; email: string } | null;
+  user: { name: string | null; email: string | null; phone?: string | null } | null;
 }
 
-export function AdminPlacementClient({ attempts }: { attempts: PlacementAttemptRow[] }) {
+export function AdminPlacementClient({
+  attempts,
+  permissions,
+}: {
+  attempts: PlacementAttemptRow[];
+  permissions: import("@/lib/admin/permissions").AdminPermission[];
+}) {
   return (
     <div className="container mx-auto px-4 py-8">
-      <AdminNav currentPath="/admin/placement" />
+      <AdminNav currentPath="/admin/placement" permissions={permissions} />
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Kết quả Placement Test</h1>
         <p className="text-muted-foreground">
@@ -58,7 +64,8 @@ export function AdminPlacementClient({ attempts }: { attempts: PlacementAttemptR
                     ? Math.round((a.score / a.maxScore) * 100)
                     : null;
                 const name = a.user?.name ?? a.guestFullName ?? "—";
-                const contact = a.guestPhone ?? a.user?.email ?? "—";
+                const contact =
+                  a.guestPhone ?? a.user?.phone ?? a.user?.email ?? "—";
                 const isGuest = !a.user;
 
                 return (

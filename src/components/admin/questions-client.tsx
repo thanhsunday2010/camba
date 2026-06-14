@@ -17,7 +17,15 @@ import {
 } from "@/components/admin/question-form";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 
-export function AdminQuestionsClient({ questions }: { questions: QuestionListItem[] }) {
+import type { AdminPermission } from "@/lib/admin/permissions";
+
+export function AdminQuestionsClient({
+  questions,
+  permissions,
+}: {
+  questions: QuestionListItem[];
+  permissions: AdminPermission[];
+}) {
   const router = useRouter();
   const [editing, setEditing] = useState<QuestionFormData | null>(null);
   const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
@@ -70,7 +78,7 @@ export function AdminQuestionsClient({ questions }: { questions: QuestionListIte
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-2 text-3xl font-bold">Quản lý câu hỏi</h1>
-      <AdminNav currentPath="/admin/questions" />
+      <AdminNav currentPath="/admin/questions" permissions={permissions} />
 
       <div className="grid gap-8 lg:grid-cols-2">
         <Card>

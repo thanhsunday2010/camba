@@ -12,6 +12,17 @@ interface AudioRecorderProps {
   disabled?: boolean;
   /** Hide live transcript while recording (speaking test mode) */
   hideTranscript?: boolean;
+  maxWords?: number;
+}
+
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function trimToWordLimit(text: string, maxWords: number): string {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ");
 }
 
 function getSpeechRecognition(): typeof SpeechRecognition | null {
@@ -19,7 +30,7 @@ function getSpeechRecognition(): typeof SpeechRecognition | null {
   return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
 }
 
-export function AudioRecorder({ onTranscript, disabled, hideTranscript = false }: AudioRecorderProps) {
+export function AudioRecorder({ onTranscript, disabled, hideTranscript = false, maxWords }: AudioRecorderProps) {
   const [recording, setRecording] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [manualText, setManualText] = useState("");
@@ -87,14 +98,16 @@ export function AudioRecorder({ onTranscript, disabled, hideTranscript = false }
 
     const text = (finalTranscriptRef.current || liveTranscript).trim();
     if (text.length >= 3) {
-      onTranscript(text);
+      onTranscript(maxWords ? trimToWordLimit(text, maxWords) : text);
     }
   };
 
   const submitManual = () => {
     const text = manualText.trim();
-    if (text.length >= 3) onTranscript(text);
+    if (text.length >= 3) onTranscript(maxWords ? trimToWordLimit(text, maxWords) : text);
   };
+
+  const manualWordCount = countWords(manualText);
 
   return (
     <div className="space-y-4">
@@ -158,10 +171,18 @@ export function AudioRecorder({ onTranscript, disabled, hideTranscript = false }
         <Textarea
           placeholder="Type what you said in English..."
           value={manualText}
-          onChange={(e) => setManualText(e.target.value)}
+          onChange={(e) => {
+            const next = maxWords ? trimToWordLimit(e.target.value, maxWords) : e.target.value;
+            setManualText(next);
+          }}
           rows={4}
           disabled={disabled}
         />
+        {maxWords && (
+          <p className="text-xs text-muted-foreground">
+            {manualWordCount}/{maxWords} từ (giới hạn gói)
+          </p>
+        )}
         <Button
           type="button"
           variant="outline"

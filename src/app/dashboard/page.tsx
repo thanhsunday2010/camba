@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { LevelPicker } from "@/components/exam/level-picker";
 import { Flame, Target, TrendingUp, ClipboardList, CalendarClock } from "lucide-react";
+import { SubscriptionUsageCard } from "@/components/pricing/subscription-usage-card";
 
 export const revalidate = 60;
 
@@ -263,6 +264,8 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-6">
+          <SubscriptionUsageCard userId={userId} />
+
           <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
             <CardHeader>
               <CardTitle className="font-extrabold">🐰 Đổi level luyện tập</CardTitle>

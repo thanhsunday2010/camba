@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedAllBulkContent } from "./seed/bulk-seed";
+import { seedAdminRoles } from "./seed/admin-roles";
 
 const db = new PrismaClient();
 
@@ -13,7 +14,7 @@ async function main() {
 
   await db.user.upsert({
     where: { email: "admin@camba.vn" },
-    update: {},
+    update: { role: "ADMIN" },
     create: {
       email: "admin@camba.vn",
       name: "Admin Camba",
@@ -22,6 +23,8 @@ async function main() {
       targetExam: "KET",
     },
   });
+
+  await seedAdminRoles(db);
 
   await db.user.upsert({
     where: { email: "teacher@camba.vn" },

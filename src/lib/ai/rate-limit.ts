@@ -1,18 +1,18 @@
 import { db } from "@/lib/db";
-import { AI_DAILY_LIMIT } from "@/lib/ai/schemas";
+import { canUseAiGrading, getAiGradingRemaining } from "@/lib/subscription/service";
 
 export async function checkAIRateLimit(userId: string): Promise<boolean> {
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
+  return canUseAiGrading(userId);
+}
 
-  const count = await db.aIFeedback.count({
-    where: {
-      userId,
-      createdAt: { gte: startOfDay },
-    },
-  });
-
-  return count < AI_DAILY_LIMIT;
+export async function getAIRateLimitInfo(userId: string) {
+  const remaining = await getAiGradingRemaining(userId);
+  const { getUserPlanLimits } = await import("@/lib/subscription/service");
+  const limits = await getUserPlanLimits(userId);
+  return {
+    remaining,
+    limit: limits.dailyAiGrading,
+  };
 }
 
 export async function updateUserStreak(userId: string) {

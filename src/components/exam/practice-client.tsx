@@ -53,6 +53,8 @@ interface PracticeClientProps {
   initialAttemptId?: string;
   isGuestAttempt?: boolean;
   instantFeedback?: boolean;
+  maxWritingWords?: number;
+  maxSpeakingWords?: number;
 }
 
 const SECTION_EMOJI: Record<string, string> = {
@@ -82,6 +84,8 @@ export function PracticeClient({
   initialAttemptId,
   isGuestAttempt = false,
   instantFeedback = false,
+  maxWritingWords,
+  maxSpeakingWords,
 }: PracticeClientProps) {
   const router = useRouter();
   const { play } = useKidSound();
@@ -95,6 +99,7 @@ export function PracticeClient({
   const correctStreakRef = useRef(0);
   const halfProgressShownRef = useRef(false);
   const lastStreakMilestoneRef = useRef(0);
+  const countedPracticeQuestionsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (initialAttemptId) {
@@ -161,6 +166,20 @@ export function PracticeClient({
         return next;
       });
       play("pop");
+
+      if (paperKind === "PRACTICE" && instantFeedback && questionId) {
+        const answeredNow = isAnswered(value);
+        if (answeredNow && !countedPracticeQuestionsRef.current.has(questionId)) {
+          countedPracticeQuestionsRef.current.add(questionId);
+          import("@/lib/actions/subscription").then(({ recordPracticeAnswerAction }) => {
+            recordPracticeAnswerAction(1).then((res) => {
+              if (res && "error" in res && res.error) {
+                toast.error(res.error);
+              }
+            });
+          });
+        }
+      }
 
       if (paperKind === "PLACEMENT" && attemptId) {
         import("@/lib/actions/placement").then(({ savePlacementAnswerAction }) => {
@@ -379,6 +398,8 @@ export function PracticeClient({
                   }
                 }}
                 disabled={submitting}
+                maxWritingWords={maxWritingWords}
+                maxSpeakingWords={maxSpeakingWords}
               />
             </div>
           )}

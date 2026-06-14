@@ -51,6 +51,12 @@ export function NavbarClient() {
                 >
                   📚 Chọn level
                 </Link>
+                <Link
+                  href="/pricing"
+                  className="rounded-full px-3 py-1.5 text-sm font-bold text-violet-700 transition-colors hover:bg-violet-100"
+                >
+                  💎 Bảng giá
+                </Link>
                 {user.role === "ADMIN" && (
                   <Link href="/admin" className="text-sm font-medium hover:text-purple-600">
                     Admin

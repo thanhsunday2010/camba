@@ -20,20 +20,37 @@ import {
 } from "@/lib/actions/admin";
 import { Pencil, Trash2 } from "lucide-react";
 import { ExamLevel, Role } from "@prisma/client";
+import type { AdminPermission } from "@/lib/admin/permissions";
 
 type UserRow = {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
+  phone?: string | null;
   role: Role;
   grade: string | null;
   targetExam: ExamLevel;
   createdAt: Date;
+  adminRoleId?: string | null;
+  adminRole?: { id: string; name: string; slug: string } | null;
 };
 
-export function AdminUsersClient({ users }: { users: UserRow[] }) {
+type AdminRoleOption = { id: string; name: string; slug: string };
+
+export function AdminUsersClient({
+  users,
+  adminRoles,
+  permissions,
+  canManage,
+}: {
+  users: UserRow[];
+  adminRoles: AdminRoleOption[];
+  permissions: AdminPermission[];
+  canManage: boolean;
+}) {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<UserRow | null>(null);
+  const [createRole, setCreateRole] = useState("STUDENT");
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,9 +82,10 @@ export function AdminUsersClient({ users }: { users: UserRow[] }) {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-2 text-3xl font-bold">Quản lý tài khoản</h1>
-      <AdminNav currentPath="/admin/users" />
+      <AdminNav currentPath="/admin/users" permissions={permissions} />
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className={`grid gap-8 ${canManage ? "lg:grid-cols-2" : ""}`}>
+        {canManage && (
         <Card>
           <CardHeader>
             <CardTitle>{editing ? "Sửa tài khoản" : "Tạo tài khoản mới"}</CardTitle>
@@ -110,6 +128,7 @@ export function AdminUsersClient({ users }: { users: UserRow[] }) {
                   <select
                     name="role"
                     defaultValue={editing?.role ?? "STUDENT"}
+                    onChange={(e) => setCreateRole(e.target.value)}
                     className="mt-1 flex h-10 w-full rounded-md border px-3 text-sm"
                   >
                     {USER_ROLES.map((r) => (
@@ -134,6 +153,26 @@ export function AdminUsersClient({ users }: { users: UserRow[] }) {
                   </select>
                 </div>
               </div>
+              {(editing?.role === "ADMIN" || createRole === "ADMIN") && adminRoles.length > 0 && (
+                <div>
+                  <Label>Cấp Admin</Label>
+                  <select
+                    name="adminRoleId"
+                    defaultValue={
+                      editing?.adminRoleId ??
+                      adminRoles.find((r) => r.slug === "admin")?.id ??
+                      ""
+                    }
+                    className="mt-1 flex h-10 w-full rounded-md border px-3 text-sm"
+                  >
+                    {adminRoles.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <Label htmlFor="grade">Lớp (tuỳ chọn)</Label>
                 <Input id="grade" name="grade" defaultValue={editing?.grade ?? ""} />
@@ -151,6 +190,7 @@ export function AdminUsersClient({ users }: { users: UserRow[] }) {
             </form>
           </CardContent>
         </Card>
+        )}
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold">Danh sách ({users.length})</h2>
@@ -160,23 +200,29 @@ export function AdminUsersClient({ users }: { users: UserRow[] }) {
                 <div>
                   <div className="flex flex-wrap gap-2">
                     <Badge>{USER_ROLES.find((r) => r.value === u.role)?.label}</Badge>
+                    {u.adminRole && (
+                      <Badge variant="outline">{u.adminRole.name}</Badge>
+                    )}
                     <Badge variant="secondary">{formatExamLevel(u.targetExam)}</Badge>
                   </div>
                   <p className="mt-2 font-medium">{u.name ?? "—"}</p>
-                  <p className="text-sm text-muted-foreground">{u.email}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {u.email ?? u.phone ?? "—"}
+                  </p>
                   {u.grade && (
                     <p className="text-xs text-muted-foreground">Lớp: {u.grade}</p>
                   )}
                 </div>
+                {canManage && (
                 <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => setEditing(u)}>
+                  <Button size="icon" variant="ghost" onClick={() => { setEditing(u); setCreateRole(u.role); }}>
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
                     size="icon"
                     variant="ghost"
                     onClick={async () => {
-                      if (!confirm(`Xóa ${u.email}?`)) return;
+                      if (!confirm(`Xóa ${u.email ?? u.phone ?? u.name}?`)) return;
                       const result = await deleteUserAction(u.id);
                       if (result.error) toast.error(result.error);
                       else toast.success("Đã xóa");
@@ -185,6 +231,7 @@ export function AdminUsersClient({ users }: { users: UserRow[] }) {
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
                 </div>
+                )}
               </CardContent>
             </Card>
           ))}

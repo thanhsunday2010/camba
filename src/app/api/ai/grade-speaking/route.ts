@@ -21,8 +21,10 @@ export async function POST(req: NextRequest) {
 
   const allowed = await checkAIRateLimit(session.user.id);
   if (!allowed) {
+    const { getAIRateLimitInfo } = await import("@/lib/ai/rate-limit");
+    const info = await getAIRateLimitInfo(session.user.id);
     return NextResponse.json(
-      { error: "Đã hết lượt chấm AI hôm nay" },
+      { error: `Đã hết lượt chấm AI hôm nay (${info.limit} lượt/ngày). Nâng cấp gói tại trang Bảng giá.` },
       { status: 429 }
     );
   }
@@ -79,6 +81,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Question not found" }, { status: 404 });
   }
 
+  const { getUserPlanLimits } = await import("@/lib/subscription/service");
+  const { countWords } = await import("@/lib/subscription/plans");
+  const limits = await getUserPlanLimits(session.user.id);
+  if (limits.speakingWordLimit <= 0) {
+    return NextResponse.json(
+      {
+        error: "Gói Free chưa hỗ trợ Speaking. Nâng cấp Pro hoặc VIP tại trang Bảng giá.",
+      },
+      { status: 403 }
+    );
+  }
+  const wordCount = countWords(transcript);
+  if (wordCount > limits.speakingWordLimit) {
+    return NextResponse.json(
+      {
+        error: `Vượt giới hạn ${limits.speakingWordLimit} từ/lần của gói hiện tại. Nâng cấp để nói dài hơn.`,
+      },
+      { status: 400 }
+    );
+  }
+
   const content = question.content as { prompt: string };
 
   try {
@@ -104,6 +127,9 @@ export async function POST(req: NextRequest) {
         rawResponse: raw as object,
       },
     });
+
+    const { recordAiGradingUsage } = await import("@/lib/subscription/service");
+    await recordAiGradingUsage(session.user.id);
 
     if (attemptId) {
       await db.attemptAnswer.updateMany({

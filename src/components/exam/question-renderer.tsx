@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { QuestionType } from "@prisma/client";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { AudioPlayer } from "./audio-player";
 import { AudioRecorder } from "./audio-recorder";
 import { QuestionIllustration } from "./question-illustration";
@@ -35,6 +37,8 @@ interface QuestionRendererProps {
   isListening?: boolean;
   /** Hide speaking prompt/script from students during the test */
   hideSpeakingScript?: boolean;
+  maxWritingWords?: number;
+  maxSpeakingWords?: number;
 }
 
 export function QuestionRenderer({
@@ -46,6 +50,8 @@ export function QuestionRenderer({
   disabled,
   isListening = false,
   hideSpeakingScript = true,
+  maxWritingWords,
+  maxSpeakingWords,
 }: QuestionRendererProps) {
   const content = question.content as McqContent | GapFillContent | FreeTextContent | SpeakingContent;
   const mcqContent = content as McqContent;
@@ -126,6 +132,7 @@ export function QuestionRenderer({
           value={value as string}
           onChange={onChange}
           disabled={disabled}
+          maxWords={maxWritingWords}
         />
       )}
 
@@ -136,6 +143,7 @@ export function QuestionRenderer({
           hideScript={hideSpeakingScript}
           onSpeakingTranscript={onSpeakingTranscript}
           disabled={disabled}
+          maxWords={maxSpeakingWords}
         />
       )}
     </div>
@@ -245,13 +253,28 @@ function FreeTextQuestion({
   value,
   onChange,
   disabled,
+  maxWords,
 }: {
   content: FreeTextContent;
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
+  maxWords?: number;
 }) {
   const wordCount = (value ?? "").trim().split(/\s+/).filter(Boolean).length;
+  const planLimit = maxWords ?? content.wordLimit;
+  const overLimit = planLimit ? wordCount > planLimit : false;
+
+  const handleChange = (text: string) => {
+    if (planLimit) {
+      const words = text.trim().split(/\s+/).filter(Boolean);
+      if (words.length > planLimit) {
+        onChange(words.slice(0, planLimit).join(" "));
+        return;
+      }
+    }
+    onChange(text);
+  };
 
   return (
     <div className="space-y-4">
@@ -266,12 +289,19 @@ function FreeTextQuestion({
         placeholder="Viết câu trả lời bằng tiếng Anh nhé..."
         className="rounded-2xl border-2 border-purple-200 text-base"
         value={value ?? ""}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         disabled={disabled}
       />
       <div className="flex justify-between text-sm text-muted-foreground">
-        <span>{wordCount} từ</span>
-        {content.wordLimit && <span>Giới hạn: {content.wordLimit} từ</span>}
+        <span className={overLimit ? "font-bold text-red-600" : ""}>{wordCount} từ</span>
+        {planLimit && (
+          <span>
+            Giới hạn gói: {planLimit} từ/lần
+            {content.wordLimit && content.wordLimit !== planLimit && (
+              <span className="ml-1">(đề: {content.wordLimit} từ)</span>
+            )}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -283,12 +313,14 @@ function SpeakingQuestion({
   hideScript = true,
   onSpeakingTranscript,
   disabled,
+  maxWords,
 }: {
   content: SpeakingContent;
   questionTitle?: string | null;
   hideScript?: boolean;
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
+  maxWords?: number;
 }) {
   const scriptText = content.script?.trim() || content.prompt?.trim() || "";
 
@@ -316,11 +348,24 @@ function SpeakingQuestion({
           </p>
         )}
       </div>
-      <AudioRecorder
-        onTranscript={(text) => onSpeakingTranscript?.(text)}
-        disabled={disabled}
-        hideTranscript={hideScript}
-      />
+      {maxWords === 0 ? (
+        <div className="rounded-2xl border-2 border-dashed border-purple-300 bg-purple-50/50 p-6 text-center">
+          <p className="font-bold text-purple-900">🔒 Speaking chỉ có ở gói Pro trở lên</p>
+          <p className="mt-2 text-sm text-purple-700">
+            Nâng cấp để luyện nói với AI chấm sửa mỗi ngày.
+          </p>
+          <Button asChild className="mt-4 kid-btn-fun rounded-full">
+            <Link href="/pricing">Xem bảng giá</Link>
+          </Button>
+        </div>
+      ) : (
+        <AudioRecorder
+          onTranscript={(text) => onSpeakingTranscript?.(text)}
+          disabled={disabled}
+          hideTranscript={hideScript}
+          maxWords={maxWords}
+        />
+      )}
     </div>
   );
 }

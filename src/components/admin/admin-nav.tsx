@@ -1,19 +1,37 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import {
+  ROUTE_PERMISSIONS,
+  type AdminPermission,
+} from "@/lib/admin/permissions";
+import { hasPermission } from "@/lib/admin/access";
 
 const LINKS = [
-  { href: "/admin", label: "Dashboard", exact: true },
-  { href: "/admin/questions", label: "Câu hỏi" },
-  { href: "/admin/papers", label: "Đề thi" },
-  { href: "/admin/users", label: "Tài khoản" },
-  { href: "/admin/placement", label: "Placement" },
-  { href: "/admin/reports", label: "Báo lỗi" },
+  { href: "/admin", label: "Dashboard", exact: true, permission: "dashboard.view" as AdminPermission },
+  { href: "/admin/questions", label: "Câu hỏi", permission: "questions.manage" as AdminPermission },
+  { href: "/admin/papers", label: "Đề thi", permission: "papers.manage" as AdminPermission },
+  { href: "/admin/users", label: "Tài khoản", permission: "users.view" as AdminPermission },
+  { href: "/admin/placement", label: "Placement", permission: "placement.view" as AdminPermission },
+  { href: "/admin/reports", label: "Báo lỗi", permission: "reports.manage" as AdminPermission },
+  { href: "/admin/payments", label: "Thanh toán", permission: "payments.manage" as AdminPermission },
+  { href: "/admin/roles", label: "Phân quyền", permission: "roles.manage" as AdminPermission },
 ];
 
-export function AdminNav({ currentPath }: { currentPath: string }) {
+export function AdminNav({
+  currentPath,
+  permissions,
+}: {
+  currentPath: string;
+  permissions: AdminPermission[];
+}) {
+  const visible = LINKS.filter((link) => {
+    const required = ROUTE_PERMISSIONS[link.href] ?? link.permission;
+    return hasPermission(permissions, required);
+  });
+
   return (
     <nav className="mb-8 flex flex-wrap gap-2 rounded-2xl border-2 border-purple-200 bg-purple-50/50 p-2">
-      {LINKS.map((link) => {
+      {visible.map((link) => {
         const active =
           link.exact ? currentPath === link.href : currentPath.startsWith(link.href);
         return (

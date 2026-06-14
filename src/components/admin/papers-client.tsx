@@ -206,9 +206,11 @@ function PaperForm({
 export function AdminPapersClient({
   papers,
   questions,
+  permissions,
 }: {
   papers: PaperRow[];
   questions: QuestionRow[];
+  permissions: import("@/lib/admin/permissions").AdminPermission[];
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -252,7 +254,7 @@ export function AdminPapersClient({
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-2 text-3xl font-bold">Quản lý đề thi</h1>
-      <AdminNav currentPath="/admin/papers" />
+      <AdminNav currentPath="/admin/papers" permissions={permissions} />
 
       <div className="mb-4 flex flex-wrap gap-2">
         <Button

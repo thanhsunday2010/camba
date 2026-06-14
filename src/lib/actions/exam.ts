@@ -10,6 +10,7 @@ import { markAssignmentsComplete } from "@/lib/exam/assignments";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
 import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
 import { QuestionType, ExamLevel, Skill, PaperKind, Prisma } from "@prisma/client";
+import { requireAdminPermission } from "@/lib/admin/access";
 
 const questionSchema = z.object({
   type: z.enum(["MCQ", "GAP_FILL", "FREE_TEXT", "SPEAKING_PROMPT"]),
@@ -106,10 +107,8 @@ async function revalidateQuestionPaths(questionId: string) {
 }
 
 export async function createQuestionAction(formData: FormData) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("questions.manage");
+  if (authError) return { error: authError };
 
   const parsed = questionSchema.safeParse({
     type: formData.get("type"),
@@ -160,10 +159,8 @@ export async function createQuestionAction(formData: FormData) {
 }
 
 export async function deleteQuestionAction(id: string) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("questions.manage");
+  if (authError) return { error: authError };
 
   await db.question.delete({ where: { id } });
   revalidatePath("/admin/questions");
@@ -171,10 +168,8 @@ export async function deleteQuestionAction(id: string) {
 }
 
 export async function getQuestionByIdAction(id: string) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" as const };
-  }
+  const { error: authError } = await requireAdminPermission("questions.manage");
+  if (authError) return { error: authError };
 
   const question = await db.question.findUnique({
     where: { id },
@@ -196,10 +191,8 @@ export async function getQuestionByIdAction(id: string) {
 }
 
 export async function updateQuestionAction(formData: FormData) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("questions.manage");
+  if (authError) return { error: authError };
 
   const id = formData.get("id") as string;
   if (!id) return { error: "Thiếu ID câu hỏi" };
@@ -275,6 +268,18 @@ export async function startAttemptAction(paperId: string) {
     where: { id: paperId, published: true },
   });
   if (!paper) return { error: "Không tìm thấy đề" };
+
+  if (paper.paperKind === PaperKind.PRACTICE && session.user.id) {
+    const { canUsePractice } = await import("@/lib/subscription/service");
+    const allowed = await canUsePractice(session.user.id);
+    if (!allowed) {
+      const { getUserPlanLimits } = await import("@/lib/subscription/service");
+      const limits = await getUserPlanLimits(session.user.id);
+      return {
+        error: `Đã hết ${limits.dailyPracticeQuestions} câu luyện tập hôm nay. Nâng cấp gói tại /pricing`,
+      };
+    }
+  }
 
   const existing = await db.attempt.findFirst({
     where: {
@@ -454,10 +459,8 @@ export async function assignPaperAction(formData: FormData): Promise<void> {
 }
 
 export async function createPaperAction(formData: FormData) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("papers.manage");
+  if (authError) return { error: authError };
 
   const parsed = paperSchema.safeParse(parsePaperFormData(formData));
 
@@ -490,10 +493,8 @@ export async function createPaperAction(formData: FormData) {
 }
 
 export async function updatePaperAction(formData: FormData) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("papers.manage");
+  if (authError) return { error: authError };
 
   const id = formData.get("id") as string;
   if (!id) return { error: "Thiếu ID đề thi" };
@@ -537,10 +538,8 @@ export async function updatePaperAction(formData: FormData) {
 }
 
 export async function addQuestionToPaperAction(paperId: string, questionId: string) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("papers.manage");
+  if (authError) return { error: authError };
 
   const count = await db.paperQuestion.count({ where: { paperId } });
   await db.paperQuestion.upsert({
@@ -554,10 +553,8 @@ export async function addQuestionToPaperAction(paperId: string, questionId: stri
 }
 
 export async function removeQuestionFromPaperAction(paperQuestionId: string) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("papers.manage");
+  if (authError) return { error: authError };
 
   await db.paperQuestion.delete({ where: { id: paperQuestionId } });
   revalidatePath("/admin/papers");
@@ -568,10 +565,8 @@ export async function movePaperQuestionAction(
   paperQuestionId: string,
   direction: "up" | "down"
 ) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("papers.manage");
+  if (authError) return { error: authError };
 
   const current = await db.paperQuestion.findUnique({
     where: { id: paperQuestionId },
@@ -604,10 +599,8 @@ export async function movePaperQuestionAction(
 }
 
 export async function deletePaperAction(paperId: string) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("papers.manage");
+  if (authError) return { error: authError };
 
   const paper = await db.examPaper.findUnique({
     where: { id: paperId },

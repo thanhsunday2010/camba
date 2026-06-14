@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth-session";
 import { getCachedPracticePaper } from "@/lib/exam/cached-practice";
 import { PracticeClient } from "@/components/exam/practice-client";
 import { parseSections } from "@/lib/exam/paper-sections";
+import { getUserPlanLimits } from "@/lib/subscription/service";
 
 export const revalidate = 300;
 
@@ -14,7 +15,10 @@ export default async function PracticePage({
   const [{ paperId }, session] = await Promise.all([params, getSession()]);
   if (!session) redirect("/login");
 
-  const paper = await getCachedPracticePaper(paperId);
+  const [paper, planLimits] = await Promise.all([
+    getCachedPracticePaper(paperId),
+    getUserPlanLimits(session.user.id),
+  ]);
   if (!paper) notFound();
 
   const instantFeedback = paper.paperKind === "PRACTICE" && !paper.isMockTest;
@@ -46,6 +50,8 @@ export default async function PracticePage({
       sections={sections}
       questions={questions}
       instantFeedback={instantFeedback}
+      maxWritingWords={planLimits.writingWordLimit}
+      maxSpeakingWords={planLimits.speakingWordLimit}
     />
   );
 }

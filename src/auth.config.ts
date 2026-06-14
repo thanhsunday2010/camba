@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import type { AdminPermission } from "@/lib/admin/permissions";
 
 /**
  * Shared auth config — no Prisma/bcrypt (safe for Edge).
@@ -29,6 +30,11 @@ export const authConfig = {
         session.user.id = (token.id as string) ?? "";
         session.user.role = (token.role as string) ?? "STUDENT";
         session.user.targetExam = (token.targetExam as string) ?? "KET";
+        session.user.adminRoleSlug = (token.adminRoleSlug as string | null) ?? null;
+        session.user.adminRoleName = (token.adminRoleName as string | null) ?? null;
+        session.user.adminPermissions = (
+          (token.adminPermissions as AdminPermission[] | undefined) ?? []
+        );
       }
       return session;
     },

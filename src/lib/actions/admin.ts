@@ -3,17 +3,9 @@
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { ExamLevel, Role } from "@prisma/client";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" as const, session: null };
-  }
-  return { session, error: null };
-}
+import { requireAdminPermission } from "@/lib/admin/access";
 
 const userCreateSchema = z.object({
   name: z.string().min(2),
@@ -22,6 +14,7 @@ const userCreateSchema = z.object({
   role: z.enum(["STUDENT", "TEACHER", "ADMIN"]),
   grade: z.string().optional(),
   targetExam: z.enum(["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"]),
+  adminRoleId: z.string().optional(),
 });
 
 const userUpdateSchema = z.object({
@@ -32,10 +25,11 @@ const userUpdateSchema = z.object({
   role: z.enum(["STUDENT", "TEACHER", "ADMIN"]),
   grade: z.string().optional(),
   targetExam: z.enum(["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"]),
+  adminRoleId: z.string().optional(),
 });
 
 export async function createUserAction(formData: FormData) {
-  const { error: authError } = await requireAdmin();
+  const { error: authError } = await requireAdminPermission("users.manage");
   if (authError) return { error: authError };
 
   const parsed = userCreateSchema.safeParse({
@@ -45,12 +39,20 @@ export async function createUserAction(formData: FormData) {
     role: formData.get("role"),
     grade: formData.get("grade") || undefined,
     targetExam: formData.get("targetExam"),
+    adminRoleId: formData.get("adminRoleId") || undefined,
   });
 
   if (!parsed.success) return { error: "Thông tin không hợp lệ" };
 
   const existing = await db.user.findUnique({ where: { email: parsed.data.email } });
   if (existing) return { error: "Email đã được sử dụng" };
+
+  let adminRoleId: string | null = null;
+  if (parsed.data.role === "ADMIN" && parsed.data.adminRoleId) {
+    const role = await db.adminRole.findUnique({ where: { id: parsed.data.adminRoleId } });
+    if (!role) return { error: "Vai trò admin không hợp lệ" };
+    adminRoleId = role.id;
+  }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
 
@@ -62,6 +64,7 @@ export async function createUserAction(formData: FormData) {
       role: parsed.data.role as Role,
       grade: parsed.data.grade,
       targetExam: parsed.data.targetExam as ExamLevel,
+      adminRoleId,
     },
   });
 
@@ -70,7 +73,7 @@ export async function createUserAction(formData: FormData) {
 }
 
 export async function updateUserAction(formData: FormData) {
-  const { session, error: authError } = await requireAdmin();
+  const { session, error: authError } = await requireAdminPermission("users.manage");
   if (authError) return { error: authError };
 
   const parsed = userUpdateSchema.safeParse({
@@ -81,6 +84,7 @@ export async function updateUserAction(formData: FormData) {
     role: formData.get("role"),
     grade: formData.get("grade") || undefined,
     targetExam: formData.get("targetExam"),
+    adminRoleId: formData.get("adminRoleId") || undefined,
   });
 
   if (!parsed.success) return { error: "Thông tin không hợp lệ" };
@@ -93,6 +97,13 @@ export async function updateUserAction(formData: FormData) {
     if (dup) return { error: "Email đã được sử dụng" };
   }
 
+  let adminRoleId: string | null = null;
+  if (parsed.data.role === "ADMIN" && parsed.data.adminRoleId) {
+    const role = await db.adminRole.findUnique({ where: { id: parsed.data.adminRoleId } });
+    if (!role) return { error: "Vai trò admin không hợp lệ" };
+    adminRoleId = role.id;
+  }
+
   const data: {
     name: string;
     email: string;
@@ -100,12 +111,14 @@ export async function updateUserAction(formData: FormData) {
     grade?: string;
     targetExam: ExamLevel;
     passwordHash?: string;
+    adminRoleId: string | null;
   } = {
     name: parsed.data.name,
     email: parsed.data.email,
     role: parsed.data.role as Role,
     grade: parsed.data.grade,
     targetExam: parsed.data.targetExam as ExamLevel,
+    adminRoleId: parsed.data.role === "ADMIN" ? adminRoleId : null,
   };
 
   if (parsed.data.password && parsed.data.password.length >= 6) {
@@ -119,7 +132,7 @@ export async function updateUserAction(formData: FormData) {
 }
 
 export async function deleteUserAction(userId: string) {
-  const { session, error: authError } = await requireAdmin();
+  const { session, error: authError } = await requireAdminPermission("users.manage");
   if (authError) return { error: authError };
 
   if (session!.user.id === userId) {

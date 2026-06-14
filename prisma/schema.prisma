@@ -57,10 +57,48 @@ enum BugReportStatus {
   RESOLVED
 }
 
+enum SubscriptionPlan {
+  FREE
+  PRO
+  VIP
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  MOMO
+  VNPAY
+  VISA
+  ATM
+  QR
+  ZALOPAY
+  SHOPEEPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String?   @unique
+  phone         String?   @unique
+  emailVerified DateTime?
+  image         String?
   passwordHash  String?
   role          Role      @default(STUDENT)
   grade         String?
@@ -70,11 +108,58 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  accounts      Account[]
   attempts      Attempt[]
   aiFeedbacks   AIFeedback[]
   assignedBy    Assignment[] @relation("AssignedBy")
   assignments   Assignment[] @relation("AssignedTo")
   bugReports    BugReport[]
+  subscriptions UserSubscription[]
+  paymentOrders PaymentOrder[]
+  dailyUsage    DailyUsage[]
+  adminRoleId   String?
+  adminRole     AdminRole? @relation(fields: [adminRoleId], references: [id], onDelete: SetNull)
+}
+
+model AdminRole {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  permissions String[]
+  isSystem    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Question {
@@ -212,4 +297,55 @@ model BugReport {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
+}
+
+model UserSubscription {
+  id           String             @id @default(cuid())
+  userId       String
+  plan         SubscriptionPlan
+  billingCycle BillingCycle?
+  status       SubscriptionStatus @default(ACTIVE)
+  startsAt     DateTime           @default(now())
+  expiresAt    DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments PaymentOrder[]
+
+  @@index([userId, status])
+}
+
+model PaymentOrder {
+  id             String           @id @default(cuid())
+  userId         String
+  subscriptionId String?
+  plan           SubscriptionPlan
+  billingCycle   BillingCycle
+  amount         Int
+  method         PaymentMethod
+  status         PaymentStatus    @default(PENDING)
+  transferCode   String?          @unique
+  providerRef    String?
+  paidAt         DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription UserSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+}
+
+model DailyUsage {
+  id             String   @id @default(cuid())
+  userId         String
+  date           DateTime @db.Date
+  practiceCount  Int      @default(0)
+  aiGradingCount Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }

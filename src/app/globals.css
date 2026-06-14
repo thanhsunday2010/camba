@@ -32,7 +32,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-base text-foreground;
     background-image:
       radial-gradient(circle at 10% 20%, rgba(255, 182, 193, 0.15) 0%, transparent 40%),
       radial-gradient(circle at 90% 10%, rgba(135, 206, 250, 0.15) 0%, transparent 40%),

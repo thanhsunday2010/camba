@@ -1,24 +1,40 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { AdminUsersClient } from "@/components/admin/users-client";
+import { requireAdminPage, hasPermission } from "@/lib/admin/access";
 
 export default async function AdminUsersPage() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") redirect("/dashboard");
+  const { access } = await requireAdminPage("users.view");
 
-  const users = await db.user.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      grade: true,
-      targetExam: true,
-      createdAt: true,
-    },
-  });
+  const [users, adminRoles] = await Promise.all([
+    db.user.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        grade: true,
+        targetExam: true,
+        createdAt: true,
+        adminRoleId: true,
+        adminRole: { select: { id: true, name: true, slug: true } },
+      },
+    }),
+    hasPermission(access, "users.manage")
+      ? db.adminRole.findMany({
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, name: true, slug: true },
+        })
+      : Promise.resolve([]),
+  ]);
 
-  return <AdminUsersClient users={users} />;
+  return (
+    <AdminUsersClient
+      users={users}
+      adminRoles={adminRoles}
+      permissions={access.permissions}
+      canManage={hasPermission(access, "users.manage")}
+    />
+  );
 }

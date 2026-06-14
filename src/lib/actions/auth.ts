@@ -8,14 +8,20 @@ import { db } from "@/lib/db";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { ExamLevel } from "@prisma/client";
+import { isPhoneInput, isValidPhone, normalizePhone } from "@/lib/auth/phone";
 
-const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
-  grade: z.string().optional(),
-  targetExam: z.enum(["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"]),
-});
+const registerSchema = z
+  .object({
+    name: z.string().min(2),
+    email: z.string().email().optional().or(z.literal("")),
+    phone: z.string().optional().or(z.literal("")),
+    password: z.string().min(6),
+    grade: z.string().optional(),
+    targetExam: z.enum(["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"]),
+  })
+  .refine((data) => Boolean(data.email?.trim() || data.phone?.trim()), {
+    message: "Cần email hoặc số điện thoại",
+  });
 
 function dbErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
@@ -29,6 +35,9 @@ function dbErrorMessage(error: unknown): string {
   }
   if (message.includes("does not exist") || message.includes("P2021")) {
     return "Database chưa có bảng. Chạy: npx prisma migrate deploy && npm run db:seed";
+  }
+  if (message.includes("Unique constraint") || message.includes("P2002")) {
+    return "Email hoặc số điện thoại đã được sử dụng";
   }
   return "Lỗi hệ thống. Vui lòng thử lại sau.";
 }
@@ -45,24 +54,43 @@ function isFailedSignIn(url: string | undefined): boolean {
 }
 
 export async function registerAction(formData: FormData) {
+  const emailRaw = String(formData.get("email") ?? "").trim();
+  const phoneRaw = String(formData.get("phone") ?? "").trim();
+
   const parsed = registerSchema.safeParse({
     name: formData.get("name"),
-    email: formData.get("email"),
+    email: emailRaw,
+    phone: phoneRaw,
     password: formData.get("password"),
     grade: formData.get("grade") || undefined,
     targetExam: formData.get("targetExam"),
   });
 
   if (!parsed.success) {
-    return { error: "Thông tin không hợp lệ" };
+    return { error: "Thông tin không hợp lệ. Cần email hoặc số điện thoại hợp lệ." };
+  }
+
+  const email = emailRaw ? emailRaw.toLowerCase() : undefined;
+  let phone: string | undefined;
+  if (phoneRaw) {
+    if (!isValidPhone(phoneRaw)) {
+      return { error: "Số điện thoại không hợp lệ (VD: 0912345678)" };
+    }
+    phone = normalizePhone(phoneRaw)!;
+  }
+
+  if (!email && !phone) {
+    return { error: "Vui lòng nhập email hoặc số điện thoại" };
   }
 
   try {
-    const existing = await db.user.findUnique({
-      where: { email: parsed.data.email },
-    });
-    if (existing) {
-      return { error: "Email đã được sử dụng" };
+    if (email) {
+      const existingEmail = await db.user.findUnique({ where: { email } });
+      if (existingEmail) return { error: "Email đã được sử dụng" };
+    }
+    if (phone) {
+      const existingPhone = await db.user.findUnique({ where: { phone } });
+      if (existingPhone) return { error: "Số điện thoại đã được sử dụng" };
     }
 
     const passwordHash = await bcrypt.hash(parsed.data.password, 10);
@@ -70,7 +98,8 @@ export async function registerAction(formData: FormData) {
     await db.user.create({
       data: {
         name: parsed.data.name,
-        email: parsed.data.email,
+        email: email ?? null,
+        phone: phone ?? null,
         passwordHash,
         grade: parsed.data.grade,
         targetExam: parsed.data.targetExam,
@@ -82,9 +111,11 @@ export async function registerAction(formData: FormData) {
     return { error: dbErrorMessage(error) };
   }
 
+  const identifier = email ?? phoneRaw;
+
   try {
     const result = await signIn("credentials", {
-      email: parsed.data.email,
+      identifier,
       password: parsed.data.password,
       redirect: false,
     });
@@ -102,23 +133,31 @@ export async function registerAction(formData: FormData) {
 }
 
 export async function loginAction(formData: FormData) {
-  const email = String(formData.get("email") ?? "");
+  const identifier = String(formData.get("identifier") ?? formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+
+  if (!identifier || password.length < 6) {
+    return { error: "Email/SĐT hoặc mật khẩu không hợp lệ" };
+  }
+
+  if (isPhoneInput(identifier) && !isValidPhone(identifier)) {
+    return { error: "Số điện thoại không hợp lệ" };
+  }
 
   try {
     const result = await signIn("credentials", {
-      email,
+      identifier: isPhoneInput(identifier) ? identifier : identifier.toLowerCase(),
       password,
       redirect: false,
     });
     if (typeof result === "string" && isFailedSignIn(result)) {
-      return { error: "Email hoặc mật khẩu không đúng" };
+      return { error: "Email/SĐT hoặc mật khẩu không đúng" };
     }
     return { success: true };
   } catch (error) {
     console.error("[loginAction]", error);
     if (error instanceof AuthError) {
-      return { error: "Email hoặc mật khẩu không đúng" };
+      return { error: "Email/SĐT hoặc mật khẩu không đúng" };
     }
     return { error: dbErrorMessage(error) };
   }

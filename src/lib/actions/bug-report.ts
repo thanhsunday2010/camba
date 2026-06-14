@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { requireAdminPermission } from "@/lib/admin/access";
 import { db } from "@/lib/db";
 import { BugReportStatus } from "@prisma/client";
 
@@ -66,10 +67,8 @@ export async function submitBugReportAction(formData: FormData) {
 }
 
 export async function updateBugReportStatusAction(id: string, status: BugReportStatus) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("reports.manage");
+  if (authError) return { error: authError };
 
   await db.bugReport.update({
     where: { id },
@@ -82,10 +81,8 @@ export async function updateBugReportStatusAction(id: string, status: BugReportS
 }
 
 export async function deleteBugReportAction(id: string) {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    return { error: "Không có quyền" };
-  }
+  const { error: authError } = await requireAdminPermission("reports.manage");
+  if (authError) return { error: authError };
 
   await db.bugReport.delete({ where: { id } });
   revalidatePath("/admin");
