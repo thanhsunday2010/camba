@@ -1,49 +1,9 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { PaymentMethod } from "@prisma/client";
-
-function normalizeAccountNumber(raw: string): string {
-  return raw.replace(/\D/g, "");
-}
-
-function readBankAccount(): string {
-  return (
-    process.env.CAMBA_BANK_ACCOUNT?.trim() ||
-    process.env.NEXT_PUBLIC_CAMBA_BANK_ACCOUNT?.trim() ||
-    ""
-  );
-}
-
-function readBankName(): string {
-  return (
-    process.env.CAMBA_BANK_NAME?.trim() ||
-    process.env.NEXT_PUBLIC_CAMBA_BANK_NAME?.trim() ||
-    ""
-  );
-}
-
-function readBankBin(): string {
-  return (
-    process.env.CAMBA_BANK_BIN?.trim() ||
-    process.env.NEXT_PUBLIC_CAMBA_BANK_BIN?.trim() ||
-    ""
-  );
-}
-
-function readBankHolder(): string {
-  return (
-    process.env.CAMBA_BANK_HOLDER?.trim() ||
-    process.env.NEXT_PUBLIC_CAMBA_BANK_HOLDER?.trim() ||
-    ""
-  );
-}
-
-function readBankBranch(): string {
-  return (
-    process.env.CAMBA_BANK_BRANCH?.trim() ||
-    process.env.NEXT_PUBLIC_CAMBA_BANK_BRANCH?.trim() ||
-    ""
-  );
-}
+import {
+  getBankTransferSettings,
+  isBankTransferConfiguredAsync,
+} from "@/lib/payment/get-bank-transfer-settings";
 
 export interface PaymentMethodOption {
   id: PaymentMethod;
@@ -148,11 +108,11 @@ export function isBankTransferOnlyMode(): boolean {
   return process.env.CAMBA_PAYMENT_BANK_ONLY !== "false";
 }
 
-export function getAvailablePaymentGroups(): PaymentMethodGroup[] {
+export async function getAvailablePaymentGroups(): Promise<PaymentMethodGroup[]> {
   noStore();
 
   if (isBankTransferOnlyMode()) {
-    if (!isBankTransferConfigured()) return [];
+    if (!(await isBankTransferConfiguredAsync())) return [];
     return [
       {
         title: "Chuyển khoản",
@@ -162,10 +122,12 @@ export function getAvailablePaymentGroups(): PaymentMethodGroup[] {
     ];
   }
 
+  const bankConfigured = await isBankTransferConfiguredAsync();
+
   const methodAvailable = (id: PaymentMethod): boolean => {
     switch (id) {
       case "BANK_TRANSFER":
-        return isBankTransferConfigured();
+        return bankConfigured;
       case "MOMO":
         return isMomoConfigured();
       case "ZALOPAY":
@@ -186,25 +148,6 @@ export function getAvailablePaymentGroups(): PaymentMethodGroup[] {
     ...group,
     methods: group.methods.filter(methodAvailable),
   })).filter((group) => group.methods.length > 0);
-}
-
-export function getBankTransferConfig() {
-  noStore();
-
-  const accountNumber = normalizeAccountNumber(readBankAccount());
-
-  return {
-    bankName: readBankName() || "ACB",
-    bankBin: readBankBin() || "970416",
-    accountNumber,
-    accountName: readBankHolder(),
-    branch: readBankBranch(),
-  };
-}
-
-export function isBankTransferConfigured(): boolean {
-  const { bankBin, accountNumber } = getBankTransferConfig();
-  return Boolean(bankBin && accountNumber);
 }
 
 export function isVnpayConfigured(): boolean {
@@ -245,3 +188,5 @@ export function getAppBaseUrl(): string {
   const url = raw.startsWith("http") ? raw : `https://${raw}`;
   return url.replace(/\/$/, "");
 }
+
+export { getBankTransferSettings, isBankTransferConfiguredAsync };

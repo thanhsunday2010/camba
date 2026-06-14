@@ -1,75 +1,75 @@
-import { notFound, redirect } from "next/navigation";
-import { getSession } from "@/lib/auth-session";
-import { db } from "@/lib/db";
-import { PaymentInstructions } from "@/components/pricing/payment-instructions";
-import { getBankTransferConfig } from "@/lib/payment/config";
-import { getVietQrImageUrl } from "@/lib/payment/vietqr";
-
-function buildPaymentView(order: {
-  id: string;
-  amount: number;
-  status: string;
-  method: string;
-  transferCode: string | null;
-}) {
-  const bank = getBankTransferConfig();
-  const transferContent = order.transferCode ?? order.id.slice(-8).toUpperCase();
-  const showQr =
-    order.status === "PENDING" &&
-    (order.method === "BANK_TRANSFER" || order.method === "QR");
-  const vietQrUrl = showQr
-    ? getVietQrImageUrl({ amount: order.amount, transferCode: transferContent })
-    : null;
-
-  return { bank, transferContent, vietQrUrl };
-}
-
-export default async function PaymentPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ orderId: string }>;
-  searchParams: Promise<{ status?: string }>;
-}) {
-  const session = await getSession();
-  if (!session) redirect("/login");
-
-  const [{ orderId }, query] = await Promise.all([params, searchParams]);
-  const order = await db.paymentOrder.findUnique({ where: { id: orderId } });
-  if (!order || order.userId !== session.user.id) {
-    if (session.user.role === "ADMIN") {
-      const adminOrder = await db.paymentOrder.findUnique({ where: { id: orderId } });
-      if (!adminOrder) notFound();
-      const view = buildPaymentView(adminOrder);
-      return (
-        <div className="container mx-auto max-w-2xl px-4 py-10">
-          <PaymentInstructions
-            order={adminOrder}
-            bank={view.bank}
-            transferContent={view.transferContent}
-            vietQrUrl={view.vietQrUrl}
-            isAdmin
-            paymentStatus={query.status}
-          />
-        </div>
-      );
-    }
-    notFound();
-  }
-
-  const view = buildPaymentView(order);
-
-  return (
-    <div className="container mx-auto max-w-2xl px-4 py-10">
-      <h1 className="mb-6 text-3xl font-extrabold kid-gradient-text">Thanh toán</h1>
-      <PaymentInstructions
-        order={order}
-        bank={view.bank}
-        transferContent={view.transferContent}
-        vietQrUrl={view.vietQrUrl}
-        isAdmin={session.user.role === "ADMIN"}
-        paymentStatus={query.status}
-      />
-    </div>
-  );
-}
+import { notFound, redirect } from "next/navigation";
+import { getSession } from "@/lib/auth-session";
+import { db } from "@/lib/db";
+import { PaymentInstructions } from "@/components/pricing/payment-instructions";
+import { getBankTransferSettings } from "@/lib/payment/get-bank-transfer-settings";
+import { getVietQrImageUrl } from "@/lib/payment/vietqr";
+
+async function buildPaymentView(order: {
+  id: string;
+  amount: number;
+  status: string;
+  method: string;
+  transferCode: string | null;
+}) {
+  const bank = await getBankTransferSettings();
+  const transferContent = order.transferCode ?? order.id.slice(-8).toUpperCase();
+  const showQr =
+    order.status === "PENDING" &&
+    (order.method === "BANK_TRANSFER" || order.method === "QR");
+  const vietQrUrl = showQr
+    ? getVietQrImageUrl(bank, { amount: order.amount, transferCode: transferContent })
+    : null;
+
+  return { bank, transferContent, vietQrUrl };
+}
+
+export default async function PaymentPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orderId: string }>;
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const [{ orderId }, query] = await Promise.all([params, searchParams]);
+  const order = await db.paymentOrder.findUnique({ where: { id: orderId } });
+  if (!order || order.userId !== session.user.id) {
+    if (session.user.role === "ADMIN") {
+      const adminOrder = await db.paymentOrder.findUnique({ where: { id: orderId } });
+      if (!adminOrder) notFound();
+      const view = await buildPaymentView(adminOrder);
+      return (
+        <div className="container mx-auto max-w-2xl px-4 py-10">
+          <PaymentInstructions
+            order={adminOrder}
+            bank={view.bank}
+            transferContent={view.transferContent}
+            vietQrUrl={view.vietQrUrl}
+            isAdmin
+            paymentStatus={query.status}
+          />
+        </div>
+      );
+    }
+    notFound();
+  }
+
+  const view = await buildPaymentView(order);
+
+  return (
+    <div className="container mx-auto max-w-2xl px-4 py-10">
+      <h1 className="mb-6 text-3xl font-extrabold kid-gradient-text">Thanh toán</h1>
+      <PaymentInstructions
+        order={order}
+        bank={view.bank}
+        transferContent={view.transferContent}
+        vietQrUrl={view.vietQrUrl}
+        isAdmin={session.user.role === "ADMIN"}
+        paymentStatus={query.status}
+      />
+    </div>
+  );
+}

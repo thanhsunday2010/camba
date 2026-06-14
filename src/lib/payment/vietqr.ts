@@ -1,10 +1,13 @@
-import { getBankTransferConfig } from "@/lib/payment/config";
+import type { BankTransferSettings } from "@/lib/payment/bank-transfer-settings";
 
-export function getVietQrImageUrl(params: {
-  amount: number;
-  transferCode: string;
-}): string | null {
-  const { bankBin, accountNumber, accountName } = getBankTransferConfig();
+export function getVietQrImageUrl(
+  bank: BankTransferSettings,
+  params: {
+    amount: number;
+    transferCode: string;
+  }
+): string | null {
+  const { bankBin, accountNumber, accountName } = bank;
   if (!bankBin || !accountNumber) {
     return null;
   }

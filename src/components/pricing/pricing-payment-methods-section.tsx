@@ -5,7 +5,7 @@ import {
 import { PricingSignupNote } from "@/components/pricing/pricing-signup-note";
 
 export async function PricingPaymentMethodsSection() {
-  const paymentGroups = getAvailablePaymentGroups();
+  const paymentGroups = await getAvailablePaymentGroups();
 
   return (
     <section className="mt-16 rounded-3xl border-2 border-purple-100 bg-gradient-to-br from-purple-50 to-pink-50 p-8">
@@ -15,9 +15,7 @@ export async function PricingPaymentMethodsSection() {
       </p>
       {paymentGroups.length === 0 ? (
         <p className="mt-4 text-sm text-amber-800">
-          Chưa cấu hình tài khoản nhận tiền trên server. Admin: kiểm tra biến{" "}
-          <code className="rounded bg-white px-1">CAMBA_BANK_ACCOUNT</code> trên Vercel và
-          redeploy.
+          Chưa cấu hình tài khoản nhận tiền. Liên hệ admin.
         </p>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">

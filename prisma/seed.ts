@@ -2,6 +2,10 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedAllBulkContent } from "./seed/bulk-seed";
 import { seedAdminRoles } from "./seed/admin-roles";
+import {
+  BANK_TRANSFER_SETTING_KEY,
+  DEFAULT_BANK_TRANSFER_SETTINGS,
+} from "../src/lib/payment/bank-transfer-settings";
 
 const db = new PrismaClient();
 
@@ -25,6 +29,15 @@ async function main() {
   });
 
   await seedAdminRoles(db);
+
+  await db.siteSetting.upsert({
+    where: { key: BANK_TRANSFER_SETTING_KEY },
+    update: {},
+    create: {
+      key: BANK_TRANSFER_SETTING_KEY,
+      value: DEFAULT_BANK_TRANSFER_SETTINGS,
+    },
+  });
 
   await db.user.upsert({
     where: { email: "teacher@camba.vn" },
