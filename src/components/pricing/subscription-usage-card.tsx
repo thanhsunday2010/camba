@@ -9,20 +9,41 @@ interface SubscriptionUsageCardProps {
   userId: string;
 }
 
+function usagePct(count: number, limit: number) {
+  if (limit <= 0) return 0;
+  return Math.min(100, Math.round((count / limit) * 100));
+}
+
 export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardProps) {
   const { plan, usage, expiresAt, billingCycle } = await getSubscriptionSummary(userId);
-  const practicePct = Math.min(
-    100,
-    Math.round((usage.practiceCount / usage.practiceLimit) * 100)
-  );
-  const writingAiPct = Math.min(
-    100,
-    Math.round((usage.writingAiGradingCount / usage.writingAiGradingLimit) * 100)
-  );
-  const speakingAiPct = Math.min(
-    100,
-    Math.round((usage.speakingAiGradingCount / usage.speakingAiGradingLimit) * 100)
-  );
+
+  const aiRows = [
+    {
+      label: "AI Writing",
+      count: usage.writingAiGradingCount,
+      limit: usage.writingAiGradingLimit,
+    },
+    {
+      label: "AI Speaking",
+      count: usage.speakingAiGradingCount,
+      limit: usage.speakingAiGradingLimit,
+    },
+    {
+      label: "AI Reading",
+      count: usage.readingAiGradingCount,
+      limit: usage.readingAiGradingLimit,
+    },
+    {
+      label: "AI Listening",
+      count: usage.listeningAiGradingCount,
+      limit: usage.listeningAiGradingLimit,
+    },
+    {
+      label: "AI Use of English",
+      count: usage.useOfEnglishAiGradingCount,
+      limit: usage.useOfEnglishAiGradingLimit,
+    },
+  ];
 
   return (
     <Card className="border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white">
@@ -49,26 +70,21 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
               {usage.practiceCount}/{usage.practiceLimit} câu
             </span>
           </div>
-          <Progress value={practicePct} />
+          <Progress value={usagePct(usage.practiceCount, usage.practiceLimit)} />
         </div>
-        <div>
-          <div className="mb-1 flex justify-between text-sm">
-            <span>AI chấm Writing hôm nay</span>
-            <span>
-              {usage.writingAiGradingCount}/{usage.writingAiGradingLimit} lượt
-            </span>
+
+        {aiRows.map((row) => (
+          <div key={row.label}>
+            <div className="mb-1 flex justify-between text-sm">
+              <span>{row.label}</span>
+              <span>
+                {row.count}/{row.limit} lượt
+              </span>
+            </div>
+            <Progress value={usagePct(row.count, row.limit)} />
           </div>
-          <Progress value={writingAiPct} />
-        </div>
-        <div>
-          <div className="mb-1 flex justify-between text-sm">
-            <span>AI chấm Speaking hôm nay</span>
-            <span>
-              {usage.speakingAiGradingCount}/{usage.speakingAiGradingLimit} lượt
-            </span>
-          </div>
-          <Progress value={speakingAiPct} />
-        </div>
+        ))}
+
         <p className="text-xs text-muted-foreground">
           Writing tối đa {usage.writingWordLimit} từ/lần · Speaking tối đa{" "}
           {usage.speakingWordLimit} từ/lần
@@ -77,7 +93,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
           <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
             <p className="font-semibold">Camba Pro — từ 30.000₫/tháng</p>
             <p className="text-muted-foreground">
-              100 câu/ngày · 25 Writing + 25 Speaking AI · 150 từ/lần
+              100 câu/ngày · 25 lượt AI/kỹ năng · 150 từ Writing/Speaking
             </p>
           </div>
         )}

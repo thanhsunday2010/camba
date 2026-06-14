@@ -16,6 +16,7 @@ import {
   Shield,
   Target,
   Users,
+  LayoutTemplate,
 } from "lucide-react";
 
 const MODULES: {
@@ -80,6 +81,13 @@ const MODULES: {
     desc: "Sửa vai trò và quyền cho từng cấp admin",
     icon: Shield,
     permission: "roles.manage",
+  },
+  {
+    href: "/admin/footer",
+    title: "Chân trang",
+    desc: "Sửa menu và thông tin liên hệ ở cuối website",
+    icon: LayoutTemplate,
+    permission: "site.manage",
   },
 ];
 

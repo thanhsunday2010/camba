@@ -141,8 +141,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.adminRoleName = adminFields.adminRoleName;
         token.adminPermissions = adminFields.adminPermissions;
       }
-      if (trigger === "update" && session?.targetExam) {
-        token.targetExam = session.targetExam as string;
+      if (trigger === "update" && session) {
+        if (session.targetExam) token.targetExam = session.targetExam as string;
+        if (session.name) token.name = session.name as string;
+        if ("image" in session) token.picture = session.image as string | null | undefined;
       }
       return token;
     },

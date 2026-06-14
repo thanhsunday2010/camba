@@ -15,6 +15,7 @@ const LINKS = [
   { href: "/admin/reports", label: "Báo lỗi", permission: "reports.manage" as AdminPermission },
   { href: "/admin/payments", label: "Thanh toán", permission: "payments.manage" as AdminPermission },
   { href: "/admin/roles", label: "Phân quyền", permission: "roles.manage" as AdminPermission },
+  { href: "/admin/footer", label: "Chân trang", permission: "site.manage" as AdminPermission },
 ];
 
 export function AdminNav({

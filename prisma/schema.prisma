@@ -100,6 +100,7 @@ model User {
   emailVerified DateTime?
   image         String?
   passwordHash  String?
+  dateOfBirth   DateTime? @db.Date
   role          Role      @default(STUDENT)
   grade         String?
   targetExam    ExamLevel @default(KET)
@@ -345,8 +346,17 @@ model DailyUsage {
   practiceCount         Int      @default(0)
   writingAiGradingCount Int      @default(0)
   speakingAiGradingCount Int     @default(0)
+  readingAiGradingCount Int      @default(0)
+  listeningAiGradingCount Int    @default(0)
+  useOfEnglishAiGradingCount Int @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }

@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { UserRound } from "lucide-react";
 import { getSession } from "@/lib/auth-session";
 import { db } from "@/lib/db";
 import { getCachedLeaderboard } from "@/lib/dashboard/cached-stats";
@@ -12,6 +14,8 @@ import { CambaMascot } from "@/components/kids/camba-mascot";
 import { LevelPicker } from "@/components/exam/level-picker";
 import { Flame, Target, TrendingUp, ClipboardList, CalendarClock } from "lucide-react";
 import { SubscriptionUsageCard } from "@/components/pricing/subscription-usage-card";
+import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
+import type { UserProfileData } from "@/lib/actions/profile";
 
 export const revalidate = 60;
 
@@ -27,9 +31,14 @@ export default async function DashboardPage() {
         where: { id: userId },
         select: {
           name: true,
+          email: true,
+          phone: true,
+          image: true,
           targetExam: true,
           grade: true,
           streak: true,
+          dateOfBirth: true,
+          passwordHash: true,
         },
       }),
       db.attempt.count({
@@ -87,6 +96,18 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login");
 
+  const profile: UserProfileData = {
+    id: userId,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    image: user.image,
+    grade: user.grade,
+    targetExam: user.targetExam,
+    dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : null,
+    hasPassword: Boolean(user.passwordHash),
+  };
+
   const bySkill: Record<string, { total: number; count: number }> = {};
   for (const s of SKILLS) bySkill[s.value] = { total: 0, count: 0 };
   for (const a of skillStats) {
@@ -97,21 +118,8 @@ export default async function DashboardPage() {
     }
   }
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex animate-bounce-in items-center gap-4">
-        <CambaMascot size="lg" mood="wave" />
-        <div>
-        <h1 className="text-3xl font-extrabold kid-gradient-text">
-          Xin chào, {user.name}! 👋
-        </h1>
-        <p className="font-semibold text-muted-foreground">
-          Mục tiêu: {formatExamLevel(user.targetExam)} 🎯
-          {user.grade && ` · ${user.grade}`}
-        </p>
-        </div>
-      </div>
-
+  const overview = (
+    <>
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
           <CardHeader className="pb-2">
@@ -307,6 +315,39 @@ export default async function DashboardPage() {
           </Button>
         </div>
       </div>
+    </>
+  );
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8 flex animate-bounce-in items-center gap-4">
+        {user.image ? (
+          <Image
+            src={user.image}
+            alt={user.name ?? "Avatar"}
+            width={72}
+            height={72}
+            unoptimized
+            className="h-[72px] w-[72px] rounded-full border-4 border-purple-200 object-cover shadow-md"
+          />
+        ) : (
+          <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-4 border-purple-200 bg-gradient-to-br from-purple-100 to-pink-100 shadow-md">
+            <UserRound className="h-8 w-8 text-purple-500" />
+          </div>
+        )}
+        <div>
+          <h1 className="text-3xl font-extrabold kid-gradient-text">
+            Xin chào, {user.name}! 👋
+          </h1>
+          <p className="font-semibold text-muted-foreground">
+            Mục tiêu: {formatExamLevel(user.targetExam)} 🎯
+            {user.grade && ` · ${user.grade}`}
+            {user.dateOfBirth && ` · ${new Date(user.dateOfBirth).toLocaleDateString("vi-VN")}`}
+          </p>
+        </div>
+      </div>
+
+      <DashboardTabs overview={overview} profile={profile} />
     </div>
   );
 }

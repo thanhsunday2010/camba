@@ -83,6 +83,7 @@ export function ResultsClient({ attempt, aiFeedbacks }: ResultsClientProps) {
           question: content.question ?? "Question",
           correctAnswer: JSON.stringify(answer.question.correctAnswer),
           studentAnswer: JSON.stringify(answer.answer),
+          paperSkill: attempt.paper.skill,
         }),
       });
       const data = await res.json();

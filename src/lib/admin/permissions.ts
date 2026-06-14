@@ -44,6 +44,11 @@ export const ADMIN_PERMISSIONS = {
     group: "Hệ thống",
     description: "Sửa vai trò admin và phân quyền (chỉ Super Admin)",
   },
+  "site.manage": {
+    label: "Quản lý chân trang",
+    group: "Hệ thống",
+    description: "Sửa menu và thông tin liên hệ ở chân trang website",
+  },
 } as const;
 
 export type AdminPermission = keyof typeof ADMIN_PERMISSIONS;
@@ -71,6 +76,7 @@ export const ROUTE_PERMISSIONS: Record<string, AdminPermission> = {
   "/admin/reports": "reports.manage",
   "/admin/payments": "payments.manage",
   "/admin/roles": "roles.manage",
+  "/admin/footer": "site.manage",
 };
 
 export const SUPER_ADMIN_SLUG = "super-admin";

@@ -2,10 +2,20 @@ import { BillingCycle, SubscriptionPlan } from "@prisma/client";
 
 export type PlanId = SubscriptionPlan;
 
+export type AiGradingSkill =
+  | "writing"
+  | "speaking"
+  | "reading"
+  | "listening"
+  | "useOfEnglish";
+
 export interface PlanLimits {
   dailyPracticeQuestions: number;
   dailyWritingAiGrading: number;
   dailySpeakingAiGrading: number;
+  dailyReadingAiGrading: number;
+  dailyListeningAiGrading: number;
+  dailyUseOfEnglishAiGrading: number;
   writingWordLimit: number;
   speakingWordLimit: number;
 }
@@ -35,16 +45,23 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     name: "Camba Free",
     tagline: "Bắt đầu học miễn phí",
     limits: {
-      dailyPracticeQuestions: 1,
+      dailyPracticeQuestions: 10,
       dailyWritingAiGrading: 1,
       dailySpeakingAiGrading: 1,
+      dailyReadingAiGrading: 1,
+      dailyListeningAiGrading: 1,
+      dailyUseOfEnglishAiGrading: 1,
       writingWordLimit: 200,
       speakingWordLimit: 100,
     },
     pricing: { monthly: 0, yearly: 0 },
     features: [
-      "1 lượt Writing & AI chấm sửa mỗi ngày (200 từ)",
-      "1 lượt Speaking & AI chấm sửa mỗi ngày (100 từ)",
+      "10 câu luyện tập mỗi ngày",
+      "1 lượt AI chấm Writing/ngày (200 từ)",
+      "1 lượt AI chấm Speaking/ngày (100 từ)",
+      "1 lượt AI giải thích Reading/ngày",
+      "1 lượt AI giải thích Listening/ngày",
+      "1 lượt AI chấm Use of English/ngày",
       "Miễn phí mãi mãi",
     ],
   },
@@ -57,6 +74,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       dailyPracticeQuestions: 100,
       dailyWritingAiGrading: 25,
       dailySpeakingAiGrading: 25,
+      dailyReadingAiGrading: 25,
+      dailyListeningAiGrading: 25,
+      dailyUseOfEnglishAiGrading: 25,
       writingWordLimit: 150,
       speakingWordLimit: 150,
     },
@@ -66,8 +86,10 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "100 câu luyện tập mỗi ngày",
       "25 lượt AI chấm Writing mỗi ngày",
       "25 lượt AI chấm Speaking mỗi ngày",
+      "25 lượt AI giải thích Reading mỗi ngày",
+      "25 lượt AI giải thích Listening mỗi ngày",
+      "25 lượt AI chấm Use of English mỗi ngày",
       "Writing & Speaking tối đa 150 từ/lần",
-      "Ưu tiên hỗ trợ qua email",
     ],
   },
   VIP: {
@@ -79,6 +101,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       dailyPracticeQuestions: 200,
       dailyWritingAiGrading: 50,
       dailySpeakingAiGrading: 50,
+      dailyReadingAiGrading: 50,
+      dailyListeningAiGrading: 50,
+      dailyUseOfEnglishAiGrading: 50,
       writingWordLimit: 300,
       speakingWordLimit: 300,
     },
@@ -87,11 +112,27 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "200 câu luyện tập mỗi ngày",
       "50 lượt AI chấm Writing mỗi ngày",
       "50 lượt AI chấm Speaking mỗi ngày",
+      "50 lượt AI giải thích Reading mỗi ngày",
+      "50 lượt AI giải thích Listening mỗi ngày",
+      "50 lượt AI chấm Use of English mỗi ngày",
       "Writing & Speaking tối đa 300 từ/lần",
       "Hỗ trợ ưu tiên & cập nhật sớm",
     ],
   },
 };
+
+const AI_SKILL_LIMITS: Record<AiGradingSkill, keyof PlanLimits> = {
+  writing: "dailyWritingAiGrading",
+  speaking: "dailySpeakingAiGrading",
+  reading: "dailyReadingAiGrading",
+  listening: "dailyListeningAiGrading",
+  useOfEnglish: "dailyUseOfEnglishAiGrading",
+};
+
+export function getAiGradingLimit(planId: PlanId, skill: AiGradingSkill): number {
+  const limits = PLANS[planId].limits;
+  return limits[AI_SKILL_LIMITS[skill]] as number;
+}
 
 export function getPlan(planId: PlanId): PlanDefinition {
   return PLANS[planId];
@@ -141,4 +182,23 @@ export function countWords(text: string): number {
 
 export function hasSpeakingAccess(planId: PlanId): boolean {
   return PLANS[planId].limits.dailySpeakingAiGrading > 0;
+}
+
+export const AI_SKILL_LABELS: Record<AiGradingSkill, string> = {
+  writing: "Writing",
+  speaking: "Speaking",
+  reading: "Reading",
+  listening: "Listening",
+  useOfEnglish: "Use of English",
+};
+
+export const EXPLAIN_AI_SKILLS = ["reading", "listening", "useOfEnglish"] as const;
+
+export function paperSkillToAiGradingSkill(skill: string): AiGradingSkill {
+  if (skill === "LISTENING") return "listening";
+  if (skill === "USE_OF_ENGLISH") return "useOfEnglish";
+  if (skill === "READING") return "reading";
+  if (skill === "SPEAKING") return "speaking";
+  if (skill === "WRITING") return "writing";
+  return "reading";
 }

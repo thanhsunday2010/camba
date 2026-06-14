@@ -4,6 +4,7 @@ import { AppToaster } from "@/components/layout/app-toaster";
 import { Navbar } from "@/components/layout/navbar";
 import { FloatingDecor } from "@/components/kids/floating-decor";
 import { MascotProviderWrapper } from "@/components/kids/mascot-buddy-wrapper";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { BugReportButton } from "@/components/feedback/bug-report-button";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { SoundProvider } from "@/components/kids/sound-provider";
@@ -32,9 +33,10 @@ export default function RootLayout({
           <SoundProvider>
             <MascotProviderWrapper>
               <FloatingDecor />
-              <div className="relative z-10">
+              <div className="relative z-10 flex min-h-screen flex-col">
                 <Navbar />
-                <main>{children}</main>
+                <main className="flex-1">{children}</main>
+                <SiteFooter />
               </div>
               <BugReportButton />
             </MascotProviderWrapper>

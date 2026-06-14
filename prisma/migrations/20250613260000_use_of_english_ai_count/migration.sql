@@ -1,0 +1,1 @@
+ALTER TABLE "DailyUsage" ADD COLUMN "useOfEnglishAiGradingCount" INTEGER NOT NULL DEFAULT 0;
