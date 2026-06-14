@@ -18,11 +18,12 @@ import { cn } from "@/lib/utils";
 
 interface RegisterFormProps {
   oauthProviders: OAuthProviderId[];
+  hasReferralInvite?: boolean;
 }
 
 type RegisterMode = "email" | "phone";
 
-export function RegisterForm({ oauthProviders }: RegisterFormProps) {
+export function RegisterForm({ oauthProviders, hasReferralInvite = false }: RegisterFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetExam, setTargetExam] = useState("KET");
@@ -61,7 +62,11 @@ export function RegisterForm({ oauthProviders }: RegisterFormProps) {
     if (signInResult?.error) {
       toast.error("Đăng ký thành công nhưng đăng nhập thất bại. Hãy thử đăng nhập thủ công.");
     } else {
-      toast.success("Đăng ký thành công!");
+      if (result.referralBonus) {
+        toast.success("Đăng ký thành công! Bạn đã nhận Camba Pro 1 tháng miễn phí 🎁");
+      } else {
+        toast.success("Đăng ký thành công!");
+      }
       router.push("/dashboard");
       router.refresh();
     }
@@ -71,7 +76,11 @@ export function RegisterForm({ oauthProviders }: RegisterFormProps) {
     <Card className="w-full max-w-md border-2 border-purple-100">
       <CardHeader>
         <CardTitle>Đăng ký</CardTitle>
-        <CardDescription>Tạo tài khoản học sinh Camba — miễn phí</CardDescription>
+        <CardDescription>
+          {hasReferralInvite
+            ? "Tạo tài khoản mới để nhận Camba Pro 1 tháng miễn phí"
+            : "Tạo tài khoản học sinh Camba — miễn phí"}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <OAuthSignInButtons providers={oauthProviders} callbackUrl="/dashboard" mode="register" />

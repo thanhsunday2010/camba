@@ -46,7 +46,7 @@ export function AdminNav({
             key={link.href}
             href={link.href}
             className={cn(
-              "rounded-xl px-4 py-2 text-sm font-bold transition-colors",
+              "rounded-xl px-3 py-1.5 text-xs font-bold transition-colors",
               active
                 ? "bg-purple-600 text-white shadow"
                 : "text-purple-800 hover:bg-purple-100"

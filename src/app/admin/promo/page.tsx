@@ -17,7 +17,16 @@ export default async function AdminPromoPage() {
 
   const codes = await db.promoCode.findMany({
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { redemptions: true } } },
+    include: {
+      _count: { select: { redemptions: true } },
+      redemptions: {
+        orderBy: { redeemedAt: "desc" },
+        take: 5,
+        include: {
+          user: { select: { name: true, email: true, phone: true } },
+        },
+      },
+    },
   });
 
   return (

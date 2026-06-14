@@ -42,14 +42,14 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     name: "Camba Free",
     tagline: "Bắt đầu học miễn phí",
     limits: {
-      dailyPracticeQuestions: 10,
+      dailyPracticeQuestions: 100,
       dailyAiGrading: 5,
       writingWordLimit: 200,
       speakingWordLimit: 100,
     },
     pricing: { monthly: 0, yearly: 0 },
     features: [
-      "10 câu luyện tập mỗi ngày",
+      "100 câu luyện tập mỗi ngày",
       "5 lượt AI/ngày (chấm sửa & giải thích — dùng chung)",
       "Writing tối đa 200 từ/lần · Speaking 100 từ/lần",
       "Miễn phí mãi mãi",

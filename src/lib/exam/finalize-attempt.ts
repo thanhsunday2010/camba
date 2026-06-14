@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { AttemptStatus } from "@prisma/client";
 import { markAssignmentsComplete } from "@/lib/exam/assignments";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
+import { processAttemptGamification } from "@/lib/gamification/service";
 
 export async function finalizeAttemptGrading(attemptId: string) {
   const attempt = await db.attempt.findUnique({
@@ -29,5 +30,6 @@ export async function finalizeAttemptGrading(attemptId: string) {
   if (allGraded && attempt.userId) {
     await markAssignmentsComplete(attempt.userId, attempt.paperId);
     await updateUserStreak(attempt.userId);
+    await processAttemptGamification(attemptId);
   }
 }

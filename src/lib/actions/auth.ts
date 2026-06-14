@@ -9,6 +9,10 @@ import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { ExamLevel } from "@prisma/client";
 import { isPhoneInput, isValidPhone, normalizePhone } from "@/lib/auth/phone";
+import {
+  applyReferralBonusForNewUser,
+  generateUniqueReferralCode,
+} from "@/lib/referral/service";
 
 const registerSchema = z
   .object({
@@ -83,6 +87,8 @@ export async function registerAction(formData: FormData) {
     return { error: "Vui lòng nhập email hoặc số điện thoại" };
   }
 
+  let referralBonus = false;
+
   try {
     if (email) {
       const existingEmail = await db.user.findUnique({ where: { email } });
@@ -94,8 +100,9 @@ export async function registerAction(formData: FormData) {
     }
 
     const passwordHash = await bcrypt.hash(parsed.data.password, 10);
+    const referralCode = await generateUniqueReferralCode();
 
-    await db.user.create({
+    const newUser = await db.user.create({
       data: {
         name: parsed.data.name,
         email: email ?? null,
@@ -104,14 +111,22 @@ export async function registerAction(formData: FormData) {
         grade: parsed.data.grade,
         targetExam: parsed.data.targetExam,
         role: "STUDENT",
+        referralCode,
       },
     });
+
+    const referral = await applyReferralBonusForNewUser(newUser.id);
+    referralBonus = referral.applied;
   } catch (error) {
     console.error("[registerAction]", error);
     return { error: dbErrorMessage(error) };
   }
 
-  return { success: true, identifier: email ?? phoneRaw };
+  return {
+    success: true,
+    identifier: email ?? phoneRaw,
+    referralBonus: referralBonus,
+  };
 }
 
 export async function loginAction(formData: FormData) {

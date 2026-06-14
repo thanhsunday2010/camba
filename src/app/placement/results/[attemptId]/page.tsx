@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { PlacementResultsClient } from "@/components/placement/placement-results-client";
 import type { PlacementReport } from "@/lib/placement/evaluate";
 import { ensurePlacementReport } from "@/lib/placement/build-report";
+import { parseGamificationSnapshot } from "@/lib/gamification/service";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,11 @@ export default async function PlacementResultsPage({
         displayName,
       }}
       isGuest={!attempt.userId}
+      gamification={
+        attempt.userId
+          ? parseGamificationSnapshot(attempt.gamificationSnapshot)
+          : null
+      }
     />
   );
 }

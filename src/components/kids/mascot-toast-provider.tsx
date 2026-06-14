@@ -12,6 +12,7 @@ import {
 import { usePathname } from "next/navigation";
 import { CambaMascot, type MascotMood } from "./camba-mascot";
 import { useKidSound } from "./sound-provider";
+import { ConfettiBurst } from "./confetti-burst";
 import { MASCOT_DEFAULT_DURATION_MS, type MascotToastPayload } from "@/lib/kids/mascot-messages";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,9 @@ export function MascotToastProvider({
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [toast, setToast] = useState<{
     message: string;
+    subtitle?: string;
     mood: MascotMood;
+    confetti?: boolean;
   } | null>(null);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
@@ -69,8 +72,13 @@ export function MascotToastProvider({
 
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
 
-      setToast({ message, mood: normalized.mood ?? "happy" });
-      play("pop");
+      setToast({
+        message,
+        subtitle: normalized.subtitle,
+        mood: normalized.mood ?? "happy",
+        confetti: normalized.confetti,
+      });
+      play(normalized.confetti ? "celebrate" : "pop");
 
       if (!normalized.persist) {
         hideTimerRef.current = setTimeout(() => {
@@ -96,22 +104,28 @@ export function MascotToastProvider({
     <MascotToastContext.Provider value={{ showMascot, hideMascot }}>
       {children}
       {!hidden && toast && (
-        <div
-          className="pointer-events-none fixed bottom-4 right-4 z-[110] flex flex-col items-end gap-2 animate-bounce-in md:bottom-6 md:right-6"
-          role="status"
-          aria-live="polite"
-        >
-          <div className="max-w-[240px] rounded-2xl rounded-br-sm border-2 border-purple-200 bg-white px-4 py-3 shadow-xl md:max-w-[280px]">
-            <p className="text-base font-bold leading-snug text-purple-900">{toast.message}</p>
-          </div>
+        <>
+          <ConfettiBurst active={Boolean(toast.confetti)} />
           <div
-            className={cn(
-              "rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-1 shadow-lg ring-2 ring-purple-200"
-            )}
+            className="pointer-events-none fixed bottom-4 right-4 z-[110] flex flex-col items-end gap-2 animate-bounce-in md:bottom-6 md:right-6"
+            role="status"
+            aria-live="polite"
           >
-            <CambaMascot size="md" mood={toast.mood} />
+            <div className="max-w-[260px] rounded-2xl rounded-br-sm border-2 border-purple-200 bg-white px-4 py-3 shadow-xl md:max-w-[300px]">
+              <p className="text-base font-bold leading-snug text-purple-900">{toast.message}</p>
+              {toast.subtitle && (
+                <p className="mt-1 text-sm font-medium text-purple-700/90">{toast.subtitle}</p>
+              )}
+            </div>
+            <div
+              className={cn(
+                "rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-1 shadow-lg ring-2 ring-purple-200"
+              )}
+            >
+              <CambaMascot size="md" mood={toast.mood} />
+            </div>
           </div>
-        </div>
+        </>
       )}
     </MascotToastContext.Provider>
   );

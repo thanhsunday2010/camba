@@ -13,6 +13,7 @@ import {
   validatePromoForCheckout,
 } from "@/lib/promo/service";
 import { describePromoBenefit } from "@/lib/promo/labels";
+import { DEFAULT_PROMO_MAX_REDEMPTIONS } from "@/lib/promo/constants";
 import { parseBillingCycle, parsePlanId } from "@/lib/subscription/plans";
 import { BillingCycle, PromoBenefitType, SubscriptionPlan } from "@prisma/client";
 
@@ -66,7 +67,7 @@ const promoFormSchema = z.object({
   benefitType: z.enum(["FREE_PERIOD", "PERCENT_OFF", "FIXED_AMOUNT_OFF"]),
   discountPercent: z.coerce.number().int().min(1).max(100).optional(),
   discountAmount: z.coerce.number().int().min(0).optional(),
-  maxRedemptions: z.coerce.number().int().min(1).optional().nullable(),
+  maxRedemptions: z.coerce.number().int().min(1).max(100_000).default(DEFAULT_PROMO_MAX_REDEMPTIONS),
   active: z.coerce.boolean(),
   showInPopup: z.coerce.boolean(),
   popupTitle: z.string().optional(),
@@ -138,7 +139,7 @@ export async function upsertPromoCodeAction(formData: FormData) {
       benefitType === PromoBenefitType.PERCENT_OFF ? data.discountPercent : null,
     discountAmount:
       benefitType === PromoBenefitType.FIXED_AMOUNT_OFF ? data.discountAmount : null,
-    maxRedemptions: data.maxRedemptions ?? null,
+    maxRedemptions: data.maxRedemptions ?? DEFAULT_PROMO_MAX_REDEMPTIONS,
     active: data.active,
     showInPopup: data.showInPopup,
     popupTitle: data.popupTitle?.trim() || null,

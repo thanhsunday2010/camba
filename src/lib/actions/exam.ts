@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
+import { processAttemptGamification } from "@/lib/gamification/service";
 import { markAssignmentsComplete } from "@/lib/exam/assignments";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
 import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
@@ -429,11 +430,16 @@ export async function submitAttemptAction(
     await updateUserStreak(session.user.id);
   }
 
+  let gamification = null;
+  if (status === "GRADED" && attempt.userId) {
+    gamification = await processAttemptGamification(attemptId);
+  }
+
   revalidatePath("/dashboard");
   revalidatePath("/placement");
   revalidatePath("/admin/placement");
   revalidatePath(`/placement/results/${attemptId}`);
-  return { attemptId, needsAI, score: totalScore, maxScore, placementReport };
+  return { attemptId, needsAI, score: totalScore, maxScore, placementReport, gamification };
 }
 
 export async function assignPaperAction(formData: FormData): Promise<void> {

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SoundToggle } from "@/components/kids/sound-toggle";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { logoutAction } from "@/lib/actions/auth";
+import { ReferralShareButton } from "@/components/referral/referral-share-button";
 import { Menu, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,10 +18,12 @@ type NavUser = {
 
 function NavLinks({
   user,
+  referralCode,
   onNavigate,
   vertical = false,
 }: {
   user?: NavUser;
+  referralCode?: string | null;
   onNavigate?: () => void;
   vertical?: boolean;
 }) {
@@ -62,6 +65,9 @@ function NavLinks({
         >
           💎 Bảng giá
         </Link>
+        {referralCode && (
+          <ReferralShareButton referralCode={referralCode} variant="nav" />
+        )}
         {vertical && (
           <Link
             href="/dashboard?tab=profile"
@@ -126,7 +132,13 @@ function NavLinks({
   );
 }
 
-export function NavbarClient({ initialUser }: { initialUser?: Session["user"] }) {
+export function NavbarClient({
+  initialUser,
+  referralCode = null,
+}: {
+  initialUser?: Session["user"];
+  referralCode?: string | null;
+}) {
   const { data: session } = useSession();
   const user = session?.user ?? initialUser;
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -159,7 +171,7 @@ export function NavbarClient({ initialUser }: { initialUser?: Session["user"] })
           <SoundToggle />
 
           <div className="hidden items-center gap-4 md:flex">
-            <NavLinks user={user} />
+            <NavLinks user={user} referralCode={referralCode} />
           </div>
 
           <Button
@@ -185,7 +197,12 @@ export function NavbarClient({ initialUser }: { initialUser?: Session["user"] })
             onClick={() => setMobileOpen(false)}
           />
           <div className="absolute right-0 top-0 flex h-[calc(100vh-4rem)] w-[min(100%,20rem)] flex-col gap-1 overflow-y-auto border-l-2 border-purple-100 bg-white p-4 shadow-xl">
-            <NavLinks user={user} vertical onNavigate={() => setMobileOpen(false)} />
+            <NavLinks
+              user={user}
+              referralCode={referralCode}
+              vertical
+              onNavigate={() => setMobileOpen(false)}
+            />
           </div>
         </div>
       )}

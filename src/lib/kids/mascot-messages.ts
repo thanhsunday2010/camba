@@ -2,10 +2,13 @@ import type { MascotMood } from "@/components/kids/camba-mascot";
 
 export type MascotToastPayload = {
   message: string;
+  subtitle?: string;
   mood?: MascotMood;
   durationMs?: number;
   /** Keep visible until hideMascot() or navigation */
   persist?: boolean;
+  /** Trigger confetti burst */
+  confetti?: boolean;
 };
 
 export const MASCOT_DEFAULT_DURATION_MS = 3000;

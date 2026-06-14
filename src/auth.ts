@@ -10,6 +10,10 @@ import { authConfig } from "@/auth.config";
 import { ensureAuthPublicUrl } from "@/lib/auth-url";
 import { isPhoneInput, normalizePhone } from "@/lib/auth/phone";
 import { loadAdminAccessForToken } from "@/lib/admin/access";
+import {
+  applyReferralBonusForNewUser,
+  generateUniqueReferralCode,
+} from "@/lib/referral/service";
 
 ensureAuthPublicUrl();
 
@@ -89,13 +93,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   events: {
     async createUser({ user }) {
       if (!user.id) return;
+      const referralCode = await generateUniqueReferralCode();
       await db.user.update({
         where: { id: user.id },
         data: {
           role: "STUDENT",
           targetExam: "KET",
+          referralCode,
         },
       });
+      await applyReferralBonusForNewUser(user.id);
     },
   },
   callbacks: {

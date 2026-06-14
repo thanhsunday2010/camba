@@ -9,18 +9,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   deletePromoCodeAction,
   upsertPromoCodeAction,
 } from "@/lib/actions/promo";
+import { DEFAULT_PROMO_MAX_REDEMPTIONS } from "@/lib/promo/constants";
 import { describePromoBenefit } from "@/lib/promo/labels";
 import type { BillingCycle, PromoBenefitType, PromoCode, SubscriptionPlan } from "@prisma/client";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
-type PromoRow = PromoCode & { _count: { redemptions: number } };
+type PromoRow = PromoCode & {
+  _count: { redemptions: number };
+  redemptions: {
+    id: string;
+    redeemedAt: Date;
+    user: { name: string | null; email: string | null; phone: string | null };
+  }[];
+};
 
 interface PromoCodesClientProps {
   initialCodes: PromoRow[];
+}
+
+function redemptionUsed(row: PromoRow): number {
+  return Math.max(row.redemptionCount, row._count.redemptions);
+}
+
+function usagePercent(used: number, max: number | null): number {
+  if (!max || max <= 0) return 0;
+  return Math.min(100, Math.round((used / max) * 100));
 }
 
 const emptyForm = {
@@ -32,7 +50,7 @@ const emptyForm = {
   benefitType: "FREE_PERIOD" as PromoBenefitType,
   discountPercent: "",
   discountAmount: "",
-  maxRedemptions: "",
+  maxRedemptions: "300",
   active: true,
   showInPopup: true,
   popupTitle: "",
@@ -62,7 +80,7 @@ export function PromoCodesClient({ initialCodes }: PromoCodesClientProps) {
       benefitType: row.benefitType,
       discountPercent: row.discountPercent?.toString() ?? "",
       discountAmount: row.discountAmount?.toString() ?? "",
-      maxRedemptions: row.maxRedemptions?.toString() ?? "",
+      maxRedemptions: row.maxRedemptions?.toString() ?? String(DEFAULT_PROMO_MAX_REDEMPTIONS),
       active: row.active,
       showInPopup: row.showInPopup,
       popupTitle: row.popupTitle ?? "",
@@ -109,8 +127,45 @@ export function PromoCodesClient({ initialCodes }: PromoCodesClientProps) {
     router.refresh();
   }
 
+  const totalUsed = initialCodes.reduce((sum, row) => sum + redemptionUsed(row), 0);
+  const activeCodes = initialCodes.filter((row) => row.active).length;
+  const exhaustedCodes = initialCodes.filter((row) => {
+    const max = row.maxRedemptions;
+    return max != null && redemptionUsed(row) >= max;
+  }).length;
+
   return (
     <div className="space-y-8">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="border-2 border-purple-100">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">Mã đang hoạt động</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-extrabold text-purple-700">{activeCodes}</p>
+            <p className="text-xs text-muted-foreground">/{initialCodes.length} mã tổng</p>
+          </CardContent>
+        </Card>
+        <Card className="border-2 border-purple-100">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">Tổng lượt đã dùng</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-extrabold text-purple-700">{totalUsed}</p>
+            <p className="text-xs text-muted-foreground">trên tất cả mã</p>
+          </CardContent>
+        </Card>
+        <Card className="border-2 border-purple-100">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">Mã đã hết lượt</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-extrabold text-amber-700">{exhaustedCodes}</p>
+            <p className="text-xs text-muted-foreground">đạt giới hạn tối đa</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Super Admin quản lý mã ưu đãi, quyền lợi và nội dung popup cho user gói Free.
@@ -215,11 +270,12 @@ export function PromoCodesClient({ initialCodes }: PromoCodesClientProps) {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="maxRedemptions">Giới hạn lượt dùng (để trống = không giới hạn)</Label>
+                <Label htmlFor="maxRedemptions">Giới hạn lượt dùng (mặc định {DEFAULT_PROMO_MAX_REDEMPTIONS})</Label>
                 <Input
                   id="maxRedemptions"
                   type="number"
                   min={1}
+                  required
                   value={form.maxRedemptions}
                   onChange={(e) => setForm((f) => ({ ...f, maxRedemptions: e.target.value }))}
                 />
@@ -299,27 +355,55 @@ export function PromoCodesClient({ initialCodes }: PromoCodesClientProps) {
       )}
 
       <div className="grid gap-4">
-        {initialCodes.map((row) => (
+        {initialCodes.map((row) => {
+          const used = redemptionUsed(row);
+          const max = row.maxRedemptions ?? DEFAULT_PROMO_MAX_REDEMPTIONS;
+          const pct = usagePercent(used, max);
+          const isExhausted = used >= max;
+          const remaining = Math.max(0, max - used);
+
+          return (
           <Card key={row.id} className="border-2 border-purple-100">
             <CardContent className="flex flex-wrap items-start justify-between gap-4 p-5">
-              <div className="space-y-2">
+              <div className="min-w-0 flex-1 space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xl font-extrabold tracking-wide text-purple-800">
                     {row.code}
                   </span>
-                  <Badge variant={row.active ? "default" : "secondary"}>
-                    {row.active ? "Hoạt động" : "Tắt"}
+                  <Badge variant={row.active && !isExhausted ? "default" : "secondary"}>
+                    {!row.active ? "Tắt" : isExhausted ? "Hết lượt" : "Hoạt động"}
                   </Badge>
-                  {row.showInPopup && <Badge variant="outline">Popup</Badge>}
+                  {row.showInPopup && !isExhausted && <Badge variant="outline">Popup</Badge>}
                 </div>
                 <p className="text-sm font-semibold text-purple-700">{describePromoBenefit(row)}</p>
                 {row.description && (
                   <p className="text-sm text-muted-foreground">{row.description}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Đã dùng: {row._count.redemptions}
-                  {row.maxRedemptions != null ? ` / ${row.maxRedemptions}` : ""} · Mỗi user 1 lần
-                </p>
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="font-bold text-purple-900">
+                      {used} / {max} lượt đã dùng
+                    </span>
+                    <span className="text-muted-foreground">Còn {remaining} · Mỗi user 1 lần</span>
+                  </div>
+                  <Progress value={pct} className="h-2" />
+                  <p className="text-xs text-muted-foreground">{pct}% đã sử dụng</p>
+                </div>
+                {row.redemptions.length > 0 && (
+                  <div className="rounded-xl border border-purple-100 bg-purple-50/50 p-3">
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-purple-700">
+                      Lượt dùng gần đây
+                    </p>
+                    <ul className="space-y-1 text-xs text-muted-foreground">
+                      {row.redemptions.map((r) => (
+                        <li key={r.id}>
+                          {r.user.name ?? r.user.email ?? r.user.phone ?? "User"} ·{" "}
+                          {new Date(r.redeemedAt).toLocaleString("vi-VN")}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -344,7 +428,8 @@ export function PromoCodesClient({ initialCodes }: PromoCodesClientProps) {
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
         {initialCodes.length === 0 && (
           <p className="text-sm text-muted-foreground">Chưa có mã ưu đãi nào.</p>
         )}

@@ -12,6 +12,12 @@ import { QuestionType } from "@prisma/client";
 import Link from "next/link";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotScoreMessage } from "@/lib/kids/mascot-messages";
+import {
+  mascotGamificationCelebration,
+  mascotLessonCompleteMessage,
+} from "@/lib/gamification/mascot-messages";
+import { GamificationCelebrationCard } from "@/components/gamification/gamification-celebration-card";
+import type { GamificationSnapshot } from "@/lib/gamification/types";
 import { notifyFreeLimitHit } from "@/lib/promo/events";
 
 interface ResultAnswer {
@@ -50,13 +56,14 @@ interface ResultsClientProps {
     maxScore: number | null;
     status: string;
     timeSpent: number | null;
-    paper: { title: string; skill: string; level: string };
+    paper: { title: string; skill: string; level: string; paperKind?: string };
     answers: ResultAnswer[];
   };
   aiFeedbacks: AIFeedbackItem[];
+  gamification?: GamificationSnapshot | null;
 }
 
-export function ResultsClient({ attempt, aiFeedbacks }: ResultsClientProps) {
+export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsClientProps) {
   const [explaining, setExplaining] = useState<string | null>(null);
   const [explanations, setExplanations] = useState<Record<string, string>>({});
   const { showMascot } = useMascotToast();
@@ -68,10 +75,33 @@ export function ResultsClient({ attempt, aiFeedbacks }: ResultsClientProps) {
       : null;
 
   useEffect(() => {
-    if (pct === null || mascotShownRef.current) return;
+    if (mascotShownRef.current) return;
     mascotShownRef.current = true;
-    showMascot(mascotScoreMessage(pct));
-  }, [pct, showMascot]);
+
+    const paperKind = attempt.paper.paperKind;
+
+    if (gamification) {
+      showMascot(mascotLessonCompleteMessage(paperKind));
+      const t = setTimeout(() => {
+        showMascot(mascotGamificationCelebration(gamification));
+      }, 3200);
+      if (pct !== null) {
+        setTimeout(() => {
+          showMascot(mascotScoreMessage(pct));
+        }, gamification.levelUp || gamification.unlockedAchievements.length ? 9000 : 6500);
+      }
+      return () => clearTimeout(t);
+    }
+
+    if (pct !== null) {
+      showMascot(mascotScoreMessage(pct));
+      return;
+    }
+
+    if (attempt.status === "GRADED" || attempt.status === "SUBMITTED") {
+      showMascot(mascotLessonCompleteMessage(paperKind));
+    }
+  }, [pct, showMascot, gamification, attempt.status, attempt.paper.paperKind]);
 
   async function explainAnswer(answer: ResultAnswer) {
     const content = answer.question.content as { question?: string };
@@ -111,6 +141,8 @@ export function ResultsClient({ attempt, aiFeedbacks }: ResultsClientProps) {
         <h1 className="mt-2 text-3xl font-bold">{attempt.paper.title}</h1>
         <p className="text-muted-foreground">Kết quả bài làm</p>
       </div>
+
+      {gamification && <GamificationCelebrationCard snapshot={gamification} />}
 
       <Card className="mb-8">
         <CardContent className="flex flex-wrap items-center gap-6 pt-6">

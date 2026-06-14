@@ -11,6 +11,9 @@ import { formatSkill } from "@/lib/constants";
 import { Award, BookOpen, Target } from "lucide-react";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotPlacementResultMessage } from "@/lib/kids/mascot-messages";
+import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
+import { GamificationCelebrationCard } from "@/components/gamification/gamification-celebration-card";
+import type { GamificationSnapshot } from "@/lib/gamification/types";
 
 const SKILL_LABELS: Record<string, string> = {
   READING: "Reading",
@@ -31,9 +34,14 @@ interface PlacementResultsClientProps {
     displayName?: string;
   };
   isGuest?: boolean;
+  gamification?: GamificationSnapshot | null;
 }
 
-export function PlacementResultsClient({ attempt, isGuest = false }: PlacementResultsClientProps) {
+export function PlacementResultsClient({
+  attempt,
+  isGuest = false,
+  gamification,
+}: PlacementResultsClientProps) {
   const report = attempt.placementReport;
   const { showMascot } = useMascotToast();
   const mascotShownRef = useRef(false);
@@ -43,15 +51,32 @@ export function PlacementResultsClient({ attempt, isGuest = false }: PlacementRe
       : null;
 
   useEffect(() => {
-    if (!report || mascotShownRef.current) return;
+    if (mascotShownRef.current) return;
     mascotShownRef.current = true;
+
+    if (gamification) {
+      showMascot(mascotGamificationCelebration(gamification));
+      if (report) {
+        setTimeout(() => {
+          showMascot(
+            mascotPlacementResultMessage(
+              report.cambridgeLevel,
+              attempt.displayName ?? attempt.guestFullName ?? undefined
+            )
+          );
+        }, 4500);
+      }
+      return;
+    }
+
+    if (!report) return;
     showMascot(
       mascotPlacementResultMessage(
         report.cambridgeLevel,
         attempt.displayName ?? attempt.guestFullName ?? undefined
       )
     );
-  }, [report, showMascot, attempt.displayName, attempt.guestFullName]);
+  }, [report, showMascot, gamification, attempt.displayName, attempt.guestFullName]);
 
   if (!report) {
     return (
@@ -81,6 +106,8 @@ export function PlacementResultsClient({ attempt, isGuest = false }: PlacementRe
           </p>
         )}
       </div>
+
+      {gamification && <GamificationCelebrationCard snapshot={gamification} />}
 
       <Card className="mb-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
         <CardHeader>

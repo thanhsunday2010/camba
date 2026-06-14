@@ -165,9 +165,9 @@ export default async function AdminPage({
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <LayoutDashboard className="h-8 w-8 text-purple-600" />
+        <LayoutDashboard className="h-5 w-5 text-purple-600" />
         <div>
-          <h1 className="text-3xl font-extrabold kid-gradient-text">Admin Dashboard</h1>
+          <h1 className="text-xs font-extrabold kid-gradient-text">Admin Dashboard</h1>
           <p className="text-muted-foreground">
             Xin chào {session.user.name ?? session.user.email} ·{" "}
             <Badge variant="outline">{access.roleName}</Badge>
@@ -176,7 +176,7 @@ export default async function AdminPage({
       </div>
 
       {params.denied === "1" && (
-        <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+        <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-900">
           Bạn không có quyền truy cập mục đó. Liên hệ Super Admin nếu cần thêm quyền.
         </div>
       )}
@@ -188,12 +188,12 @@ export default async function AdminPage({
         {access.canManageRoles && (
           <Card className="border-2 border-violet-300 bg-violet-50/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Shield className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-xs">
+                <Shield className="h-4 w-4" />
                 Quản lý phân quyền
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-3">
               <p className="text-muted-foreground">
                 Bạn là Super Admin — có thể chỉnh quyền cho từng cấp: Quản trị viên, Quản lý
                 nội dung, Hỗ trợ, Phân tích...
@@ -213,46 +213,46 @@ export default async function AdminPage({
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="border-purple-200 bg-purple-50/50">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-muted-foreground">Tài khoản</CardTitle>
+              <CardTitle className="text-xs font-semibold text-muted-foreground">Tài khoản</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-extrabold text-purple-700">{stats.users}</p>
+              <p className="text-xs font-extrabold text-purple-700">{stats.users}</p>
             </CardContent>
           </Card>
           {hasPermission(access, "questions.manage") && (
             <Card className="border-emerald-200 bg-emerald-50/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-muted-foreground">Câu hỏi</CardTitle>
+                <CardTitle className="text-xs font-semibold text-muted-foreground">Câu hỏi</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-extrabold text-emerald-700">{stats.questions}</p>
+                <p className="text-xs font-extrabold text-emerald-700">{stats.questions}</p>
               </CardContent>
             </Card>
           )}
           {hasPermission(access, "papers.manage") && (
             <Card className="border-sky-200 bg-sky-50/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-muted-foreground">Đề thi</CardTitle>
+                <CardTitle className="text-xs font-semibold text-muted-foreground">Đề thi</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-extrabold text-sky-700">{stats.papers}</p>
+                <p className="text-xs font-extrabold text-sky-700">{stats.papers}</p>
               </CardContent>
             </Card>
           )}
           {hasPermission(access, "reports.manage") && (
             <Card className="border-amber-200 bg-amber-50/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-muted-foreground">Báo lỗi mới</CardTitle>
+                <CardTitle className="text-xs font-semibold text-muted-foreground">Báo lỗi mới</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-extrabold text-amber-700">{stats.openReports}</p>
+                <p className="text-xs font-extrabold text-amber-700">{stats.openReports}</p>
               </CardContent>
             </Card>
           )}
         </div>
       )}
 
-      <h2 className="mb-4 text-xl font-bold">Quản lý</h2>
+      <h2 className="mb-4 text-xs font-bold">Quản lý</h2>
       <div className="mb-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {visibleModules.map((item) => {
           const Icon = item.icon;
@@ -268,8 +268,8 @@ export default async function AdminPage({
               >
                 <CardHeader>
                   <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Icon className="h-5 w-5 text-purple-600" />
+                    <CardTitle className="flex items-center gap-2 text-xs">
+                      <Icon className="h-4 w-4 text-purple-600" />
                       {item.title}
                     </CardTitle>
                     {item.statKey && (
@@ -280,7 +280,7 @@ export default async function AdminPage({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  <p className="text-muted-foreground">{item.desc}</p>
                 </CardContent>
               </Card>
             </Link>
@@ -291,23 +291,23 @@ export default async function AdminPage({
       {hasPermission(access, "reports.manage") && (
         <>
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xl font-bold">Báo lỗi gần đây</h2>
-            <Link href="/admin/reports" className="text-sm font-semibold text-purple-600 hover:underline">
+            <h2 className="text-xs font-bold">Báo lỗi gần đây</h2>
+            <Link href="/admin/reports" className="text-xs font-semibold text-purple-600 hover:underline">
               Xem tất cả →
             </Link>
           </div>
           <Card className="mt-4">
             <CardContent className="divide-y pt-4">
               {recentReports.length === 0 ? (
-                <p className="py-4 text-sm text-muted-foreground">Chưa có báo lỗi.</p>
+                <p className="py-4 text-muted-foreground">Chưa có báo lỗi.</p>
               ) : (
                 recentReports.map((r) => (
                   <div key={r.id} className="flex flex-wrap items-start justify-between gap-2 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold">
+                      <p className="text-xs font-semibold">
                         {r.userName ?? r.userEmail ?? "Ẩn danh"}
                       </p>
-                      <p className="line-clamp-2 text-sm text-muted-foreground">{r.message}</p>
+                      <p className="line-clamp-2 text-muted-foreground">{r.message}</p>
                     </div>
                     <Badge variant={r.status === "OPEN" ? "default" : "outline"}>{r.status}</Badge>
                   </div>
@@ -320,15 +320,15 @@ export default async function AdminPage({
 
       {footerSettings && (
         <section className="mt-10">
-          <h2 className="mb-2 text-xl font-bold">Chân trang website</h2>
-          <p className="mb-6 text-sm text-muted-foreground">
+          <h2 className="mb-2 text-xs font-bold">Chân trang website</h2>
+          <p className="mb-6 text-muted-foreground">
             Super Admin có thể sửa menu và thông tin liên hệ hiển thị ở cuối mọi trang
           </p>
           <FooterSettingsClient initialSettings={footerSettings} />
         </section>
       )}
 
-      <div className="mt-8 rounded-2xl border-2 border-dashed border-purple-200 bg-purple-50/30 p-4 text-sm text-muted-foreground">
+      <div className="mt-8 rounded-2xl border-2 border-dashed border-purple-200 bg-purple-50/30 p-4 text-muted-foreground">
         <p className="flex items-center gap-2 font-semibold text-purple-800">
           <ClipboardList className="h-4 w-4" />
           Phân quyền admin

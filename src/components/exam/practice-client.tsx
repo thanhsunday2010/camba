@@ -22,7 +22,9 @@ import {
   mascotPlacementSubmitWaitMessage,
   mascotSpeakingDoneMessage,
   mascotStreakMessage,
+  mascotTestCompleteMessage,
 } from "@/lib/kids/mascot-messages";
+import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
 import { notifyFreeLimitHit } from "@/lib/promo/events";
 
 interface PaperQuestion {
@@ -240,6 +242,12 @@ export function PracticeClient({
 
     setShowConfetti(true);
     toast.success("Tuyệt vời! Nộp bài thành công! 🎉");
+
+    if (result.gamification) {
+      showMascot(mascotGamificationCelebration(result.gamification));
+    } else if (paperKind !== "PLACEMENT") {
+      showMascot(mascotTestCompleteMessage(paperKind));
+    }
 
     if (paperKind === "PLACEMENT") {
       router.push(`/placement/results/${attemptId}`);

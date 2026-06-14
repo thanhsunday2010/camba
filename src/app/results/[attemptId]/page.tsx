@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { ResultsClient } from "@/components/exam/results-client";
+import { parseGamificationSnapshot } from "@/lib/gamification/service";
 
 export default async function ResultsPage({
   params,
@@ -30,5 +31,13 @@ export default async function ResultsPage({
     where: { userId: session.user.id, attemptId },
   });
 
-  return <ResultsClient attempt={attempt} aiFeedbacks={aiFeedbacks} />;
+  const gamification = parseGamificationSnapshot(attempt.gamificationSnapshot);
+
+  return (
+    <ResultsClient
+      attempt={attempt}
+      aiFeedbacks={aiFeedbacks}
+      gamification={gamification}
+    />
+  );
 }

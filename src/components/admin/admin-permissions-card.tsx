@@ -22,11 +22,11 @@ export function AdminPermissionsCard({
   return (
     <Card className="border-2 border-violet-200 bg-gradient-to-br from-violet-50/80 to-white">
       <CardHeader>
-        <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
+        <CardTitle className="flex flex-wrap items-center gap-2 text-xs">
           🔐 Phân quyền của bạn
           <Badge variant="outline">{access.roleName}</Badge>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs">
           {access.canManageRoles
             ? "Bạn có quyền Super Admin — có thể sửa vai trò tại mục Phân quyền."
             : `${access.permissions.length} quyền được cấp cho vai trò này`}
@@ -45,7 +45,7 @@ export function AdminPermissionsCard({
 
           return (
             <div key={group}>
-              <p className="mb-2 text-sm font-extrabold text-purple-800">{group}</p>
+              <p className="mb-2 text-xs font-extrabold text-purple-800">{group}</p>
               <ul className="space-y-1.5">
                 {visible.map((key) => {
                   const meta = ADMIN_PERMISSIONS[key];
@@ -53,7 +53,7 @@ export function AdminPermissionsCard({
                   return (
                     <li
                       key={key}
-                      className="flex items-start gap-2 rounded-lg border border-purple-100 bg-white/80 px-3 py-2 text-sm"
+                      className="flex items-start gap-2 rounded-lg border border-purple-100 bg-white/80 px-3 py-2"
                     >
                       {showAllCatalog ? (
                         ok ? (

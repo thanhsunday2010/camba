@@ -111,6 +111,8 @@ model User {
   grade         String?
   targetExam    ExamLevel @default(KET)
   streak        Int       @default(0)
+  xp            Int       @default(0)
+  activeTitle   String?
   lastActiveAt  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -127,6 +129,11 @@ model User {
   promoRedemptions PromoRedemption[]
   adminRoleId   String?
   adminRole     AdminRole? @relation(fields: [adminRoleId], references: [id], onDelete: SetNull)
+  referralCode  String?    @unique
+  referredById  String?
+  referredBy    User?      @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals     User[]     @relation("UserReferrals")
+  achievements  UserAchievement[]
 }
 
 model AdminRole {
@@ -234,6 +241,8 @@ model Attempt {
   startedAt       DateTime      @default(now())
   submittedAt     DateTime?
   timeSpent       Int?
+  gamificationProcessed Boolean @default(false)
+  gamificationSnapshot  Json?
 
   user    User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
   paper   ExamPaper       @relation(fields: [paperId], references: [id], onDelete: Cascade)
@@ -409,4 +418,16 @@ model SiteSetting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+model UserAchievement {
+  id             String   @id @default(cuid())
+  userId         String
+  achievementKey String
+  unlockedAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementKey])
+  @@index([userId])
 }
