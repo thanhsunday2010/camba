@@ -1,16 +1,48 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { PaymentMethod } from "@prisma/client";
 
-function readEnv(...keys: string[]): string {
-  for (const key of keys) {
-    const value = process.env[key]?.trim();
-    if (value) return value;
-  }
-  return "";
-}
-
 function normalizeAccountNumber(raw: string): string {
   return raw.replace(/\D/g, "");
+}
+
+function readBankAccount(): string {
+  return (
+    process.env.CAMBA_BANK_ACCOUNT?.trim() ||
+    process.env.NEXT_PUBLIC_CAMBA_BANK_ACCOUNT?.trim() ||
+    ""
+  );
+}
+
+function readBankName(): string {
+  return (
+    process.env.CAMBA_BANK_NAME?.trim() ||
+    process.env.NEXT_PUBLIC_CAMBA_BANK_NAME?.trim() ||
+    ""
+  );
+}
+
+function readBankBin(): string {
+  return (
+    process.env.CAMBA_BANK_BIN?.trim() ||
+    process.env.NEXT_PUBLIC_CAMBA_BANK_BIN?.trim() ||
+    ""
+  );
+}
+
+function readBankHolder(): string {
+  return (
+    process.env.CAMBA_BANK_HOLDER?.trim() ||
+    process.env.NEXT_PUBLIC_CAMBA_BANK_HOLDER?.trim() ||
+    ""
+  );
+}
+
+function readBankBranch(): string {
+  return (
+    process.env.CAMBA_BANK_BRANCH?.trim() ||
+    process.env.NEXT_PUBLIC_CAMBA_BANK_BRANCH?.trim() ||
+    ""
+  );
 }
 
 export interface PaymentMethodOption {
@@ -159,16 +191,14 @@ export function getAvailablePaymentGroups(): PaymentMethodGroup[] {
 export function getBankTransferConfig() {
   noStore();
 
-  const accountNumber = normalizeAccountNumber(
-    readEnv("CAMBA_BANK_ACCOUNT", "NEXT_PUBLIC_CAMBA_BANK_ACCOUNT")
-  );
+  const accountNumber = normalizeAccountNumber(readBankAccount());
 
   return {
-    bankName: readEnv("CAMBA_BANK_NAME", "NEXT_PUBLIC_CAMBA_BANK_NAME") || "ACB",
-    bankBin: readEnv("CAMBA_BANK_BIN", "NEXT_PUBLIC_CAMBA_BANK_BIN") || "970416",
+    bankName: readBankName() || "ACB",
+    bankBin: readBankBin() || "970416",
     accountNumber,
-    accountName: readEnv("CAMBA_BANK_HOLDER", "NEXT_PUBLIC_CAMBA_BANK_HOLDER"),
-    branch: readEnv("CAMBA_BANK_BRANCH", "NEXT_PUBLIC_CAMBA_BANK_BRANCH"),
+    accountName: readBankHolder(),
+    branch: readBankBranch(),
   };
 }
 
