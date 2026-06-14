@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { gradeSpeaking, transcribeAudio } from "@/lib/ai/grading";
 import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
-import { checkAIRateLimit } from "@/lib/ai/rate-limit";
+import { checkSpeakingAIRateLimit, getSpeakingAIRateLimitInfo } from "@/lib/ai/rate-limit";
 import { getGeminiApiKey, getSpeechToTextMode } from "@/lib/ai/config";
 import { z } from "zod";
 
@@ -19,12 +19,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const allowed = await checkAIRateLimit(session.user.id);
+  const allowed = await checkSpeakingAIRateLimit(session.user.id);
   if (!allowed) {
-    const { getAIRateLimitInfo } = await import("@/lib/ai/rate-limit");
-    const info = await getAIRateLimitInfo(session.user.id);
+    const info = await getSpeakingAIRateLimitInfo(session.user.id);
     return NextResponse.json(
-      { error: `Đã hết lượt chấm AI hôm nay (${info.limit} lượt/ngày). Nâng cấp gói tại trang Bảng giá.` },
+      { error: `Đã hết lượt chấm Speaking hôm nay (${info.limit} lượt/ngày). Nâng cấp gói tại trang Bảng giá.` },
       { status: 429 }
     );
   }
@@ -84,14 +83,6 @@ export async function POST(req: NextRequest) {
   const { getUserPlanLimits } = await import("@/lib/subscription/service");
   const { countWords } = await import("@/lib/subscription/plans");
   const limits = await getUserPlanLimits(session.user.id);
-  if (limits.speakingWordLimit <= 0) {
-    return NextResponse.json(
-      {
-        error: "Gói Free chưa hỗ trợ Speaking. Nâng cấp Pro hoặc VIP tại trang Bảng giá.",
-      },
-      { status: 403 }
-    );
-  }
   const wordCount = countWords(transcript);
   if (wordCount > limits.speakingWordLimit) {
     return NextResponse.json(
@@ -128,8 +119,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const { recordAiGradingUsage } = await import("@/lib/subscription/service");
-    await recordAiGradingUsage(session.user.id);
+    const { recordSpeakingAiGradingUsage } = await import("@/lib/subscription/service");
+    await recordSpeakingAiGradingUsage(session.user.id);
 
     if (attemptId) {
       await db.attemptAnswer.updateMany({

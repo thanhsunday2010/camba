@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
 import { gradeWriting } from "@/lib/ai/grading";
 import { getGeminiApiKey } from "@/lib/ai/config";
-import { checkAIRateLimit } from "@/lib/ai/rate-limit";
+import { checkWritingAIRateLimit, getWritingAIRateLimitInfo } from "@/lib/ai/rate-limit";
 import { z } from "zod";
 
 const writingSchema = z.object({
@@ -19,12 +19,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const allowed = await checkAIRateLimit(session.user.id);
+  const allowed = await checkWritingAIRateLimit(session.user.id);
   if (!allowed) {
-    const { getAIRateLimitInfo } = await import("@/lib/ai/rate-limit");
-    const info = await getAIRateLimitInfo(session.user.id);
+    const info = await getWritingAIRateLimitInfo(session.user.id);
     return NextResponse.json(
-      { error: `Đã hết lượt chấm AI hôm nay (${info.limit} lượt/ngày). Nâng cấp gói tại trang Bảng giá.` },
+      { error: `Đã hết lượt chấm Writing hôm nay (${info.limit} lượt/ngày). Nâng cấp gói tại trang Bảng giá.` },
       { status: 429 }
     );
   }
@@ -89,8 +88,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const { recordAiGradingUsage } = await import("@/lib/subscription/service");
-    await recordAiGradingUsage(session.user.id);
+    const { recordWritingAiGradingUsage } = await import("@/lib/subscription/service");
+    await recordWritingAiGradingUsage(session.user.id);
 
     if (parsed.data.attemptId) {
       await db.attemptAnswer.updateMany({

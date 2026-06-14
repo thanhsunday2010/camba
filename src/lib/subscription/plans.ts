@@ -4,7 +4,8 @@ export type PlanId = SubscriptionPlan;
 
 export interface PlanLimits {
   dailyPracticeQuestions: number;
-  dailyAiGrading: number;
+  dailyWritingAiGrading: number;
+  dailySpeakingAiGrading: number;
   writingWordLimit: number;
   speakingWordLimit: number;
 }
@@ -34,17 +35,16 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     name: "Camba Free",
     tagline: "Bắt đầu học miễn phí",
     limits: {
-      dailyPracticeQuestions: 30,
-      dailyAiGrading: 3,
-      writingWordLimit: 50,
-      speakingWordLimit: 0,
+      dailyPracticeQuestions: 1,
+      dailyWritingAiGrading: 1,
+      dailySpeakingAiGrading: 1,
+      writingWordLimit: 200,
+      speakingWordLimit: 100,
     },
     pricing: { monthly: 0, yearly: 0 },
     features: [
-      "30 câu luyện tập mỗi ngày",
-      "3 lượt AI chấm sửa mỗi ngày",
-      "Writing tối đa 50 từ/lần",
-      "Speaking — nâng cấp Pro để mở",
+      "1 lượt Writing & AI chấm sửa mỗi ngày (200 từ)",
+      "1 lượt Speaking & AI chấm sửa mỗi ngày (100 từ)",
       "Miễn phí mãi mãi",
     ],
   },
@@ -55,7 +55,8 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     tagline: "Luyện thi hiệu quả hơn",
     limits: {
       dailyPracticeQuestions: 100,
-      dailyAiGrading: 25,
+      dailyWritingAiGrading: 25,
+      dailySpeakingAiGrading: 25,
       writingWordLimit: 150,
       speakingWordLimit: 150,
     },
@@ -63,7 +64,8 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     highlighted: true,
     features: [
       "100 câu luyện tập mỗi ngày",
-      "25 lượt AI chấm sửa mỗi ngày",
+      "25 lượt AI chấm Writing mỗi ngày",
+      "25 lượt AI chấm Speaking mỗi ngày",
       "Writing & Speaking tối đa 150 từ/lần",
       "Ưu tiên hỗ trợ qua email",
     ],
@@ -75,14 +77,16 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     tagline: "Trọn bộ công cụ luyện thi",
     limits: {
       dailyPracticeQuestions: 200,
-      dailyAiGrading: 50,
+      dailyWritingAiGrading: 50,
+      dailySpeakingAiGrading: 50,
       writingWordLimit: 300,
       speakingWordLimit: 300,
     },
     pricing: { monthly: 50_000, yearly: 500_000 },
     features: [
       "200 câu luyện tập mỗi ngày",
-      "50 lượt AI chấm sửa mỗi ngày",
+      "50 lượt AI chấm Writing mỗi ngày",
+      "50 lượt AI chấm Speaking mỗi ngày",
       "Writing & Speaking tối đa 300 từ/lần",
       "Hỗ trợ ưu tiên & cập nhật sớm",
     ],
@@ -136,5 +140,5 @@ export function countWords(text: string): number {
 }
 
 export function hasSpeakingAccess(planId: PlanId): boolean {
-  return PLANS[planId].limits.speakingWordLimit > 0;
+  return PLANS[planId].limits.dailySpeakingAiGrading > 0;
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { explainWrongAnswer } from "@/lib/ai/grading";
 import { getGeminiApiKey } from "@/lib/ai/config";
-import { checkAIRateLimit } from "@/lib/ai/rate-limit";
+import { checkWritingAIRateLimit } from "@/lib/ai/rate-limit";
 import { db } from "@/lib/db";
 import { z } from "zod";
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "GOOGLE_AI_API_KEY chưa được cấu hình" }, { status: 503 });
   }
 
-  const allowed = await checkAIRateLimit(session.user.id);
+  const allowed = await checkWritingAIRateLimit(session.user.id);
   if (!allowed) {
     return NextResponse.json(
       { error: "Đã hết 10 lượt AI hôm nay. Thử lại vào ngày mai." },

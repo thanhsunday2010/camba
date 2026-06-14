@@ -339,11 +339,12 @@ model PaymentOrder {
 }
 
 model DailyUsage {
-  id             String   @id @default(cuid())
-  userId         String
-  date           DateTime @db.Date
-  practiceCount  Int      @default(0)
-  aiGradingCount Int      @default(0)
+  id                    String   @id @default(cuid())
+  userId                String
+  date                  DateTime @db.Date
+  practiceCount         Int      @default(0)
+  writingAiGradingCount Int      @default(0)
+  speakingAiGradingCount Int     @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

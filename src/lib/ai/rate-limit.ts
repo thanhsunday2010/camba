@@ -1,17 +1,35 @@
 import { db } from "@/lib/db";
-import { canUseAiGrading, getAiGradingRemaining } from "@/lib/subscription/service";
+import {
+  canUseWritingAiGrading,
+  canUseSpeakingAiGrading,
+  getWritingAiGradingRemaining,
+  getSpeakingAiGradingRemaining,
+  getUserPlanLimits,
+} from "@/lib/subscription/service";
 
-export async function checkAIRateLimit(userId: string): Promise<boolean> {
-  return canUseAiGrading(userId);
+export async function checkWritingAIRateLimit(userId: string): Promise<boolean> {
+  return canUseWritingAiGrading(userId);
 }
 
-export async function getAIRateLimitInfo(userId: string) {
-  const remaining = await getAiGradingRemaining(userId);
-  const { getUserPlanLimits } = await import("@/lib/subscription/service");
+export async function checkSpeakingAIRateLimit(userId: string): Promise<boolean> {
+  return canUseSpeakingAiGrading(userId);
+}
+
+export async function getWritingAIRateLimitInfo(userId: string) {
+  const remaining = await getWritingAiGradingRemaining(userId);
   const limits = await getUserPlanLimits(userId);
   return {
     remaining,
-    limit: limits.dailyAiGrading,
+    limit: limits.dailyWritingAiGrading,
+  };
+}
+
+export async function getSpeakingAIRateLimitInfo(userId: string) {
+  const remaining = await getSpeakingAiGradingRemaining(userId);
+  const limits = await getUserPlanLimits(userId);
+  return {
+    remaining,
+    limit: limits.dailySpeakingAiGrading,
   };
 }
 

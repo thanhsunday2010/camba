@@ -15,9 +15,13 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
     100,
     Math.round((usage.practiceCount / usage.practiceLimit) * 100)
   );
-  const aiPct = Math.min(
+  const writingAiPct = Math.min(
     100,
-    Math.round((usage.aiGradingCount / usage.aiGradingLimit) * 100)
+    Math.round((usage.writingAiGradingCount / usage.writingAiGradingLimit) * 100)
+  );
+  const speakingAiPct = Math.min(
+    100,
+    Math.round((usage.speakingAiGradingCount / usage.speakingAiGradingLimit) * 100)
   );
 
   return (
@@ -34,7 +38,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
             ? `Hết hạn: ${expiresAt.toLocaleDateString("vi-VN")}`
             : plan.id === "FREE"
               ? "Miễn phí — nâng cấp để mở thêm giới hạn"
-              : "Đang dùng gói miễn phí"}
+              : "Đang dùng gói trả phí"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -49,25 +53,32 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
         </div>
         <div>
           <div className="mb-1 flex justify-between text-sm">
-            <span>AI chấm sửa hôm nay</span>
+            <span>AI chấm Writing hôm nay</span>
             <span>
-              {usage.aiGradingCount}/{usage.aiGradingLimit} lượt
+              {usage.writingAiGradingCount}/{usage.writingAiGradingLimit} lượt
             </span>
           </div>
-          <Progress value={aiPct} />
+          <Progress value={writingAiPct} />
+        </div>
+        <div>
+          <div className="mb-1 flex justify-between text-sm">
+            <span>AI chấm Speaking hôm nay</span>
+            <span>
+              {usage.speakingAiGradingCount}/{usage.speakingAiGradingLimit} lượt
+            </span>
+          </div>
+          <Progress value={speakingAiPct} />
         </div>
         <p className="text-xs text-muted-foreground">
-          Writing tối đa {usage.writingWordLimit} từ/lần
-          {usage.speakingWordLimit > 0 ? (
-            <> · Speaking tối đa {usage.speakingWordLimit} từ/lần</>
-          ) : (
-            <> · Speaking chưa có (nâng cấp Pro)</>
-          )}
+          Writing tối đa {usage.writingWordLimit} từ/lần · Speaking tối đa{" "}
+          {usage.speakingWordLimit} từ/lần
         </p>
         {plan.id === "FREE" && (
           <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
             <p className="font-semibold">Camba Pro — từ 30.000₫/tháng</p>
-            <p className="text-muted-foreground">100 câu/ngày · 25 lượt AI · 150 từ Writing/Speaking</p>
+            <p className="text-muted-foreground">
+              100 câu/ngày · 25 Writing + 25 Speaking AI · 150 từ/lần
+            </p>
           </div>
         )}
         <Button asChild className="w-full rounded-full" variant={plan.id === "FREE" ? "fun" : "outline"}>
