@@ -55,7 +55,7 @@ export default async function PlacementPage() {
         </p>
       )}
 
-      {placementUsage && (
+      {placementUsage && !placementUsage.unlimited && placementUsage.limit != null && (
         <p className="mb-6 rounded-xl border-2 border-sky-100 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-900">
           Tuần này bạn còn{" "}
           <strong>{placementUsage.remaining}</strong>/{placementUsage.limit} lượt placement

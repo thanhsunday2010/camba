@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
 
 export const footerLinkSchema = z.object({
   label: z.string().min(1).max(80),
@@ -43,6 +44,7 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
         { label: "Đăng ký miễn phí", href: "/register" },
         { label: "Đăng nhập", href: "/login" },
         { label: "Trang của tôi", href: "/dashboard" },
+        { label: VTEN_COURSE_LABEL, href: VTEN_COURSE_URL },
       ],
     },
     {
@@ -61,4 +63,25 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
 
 export function renderCopyright(template: string): string {
   return template.replace("{year}", String(new Date().getFullYear()));
+}
+
+/** Cột 2 footer luôn có link VTEN — kể cả khi admin đã lưu cấu hình cũ. */
+export function ensureVtenCourseFooterLink(settings: FooterSettings): FooterSettings {
+  if (settings.columns.length < 2) return settings;
+
+  const columns = settings.columns.map((column, index) => {
+    if (index !== 1) return column;
+    const hasLink = column.links.some((link) => link.href === VTEN_COURSE_URL);
+    if (hasLink) return column;
+    return {
+      ...column,
+      links: [...column.links, { label: VTEN_COURSE_LABEL, href: VTEN_COURSE_URL }],
+    };
+  });
+
+  return { ...settings, columns };
+}
+
+export function isExternalFooterHref(href: string): boolean {
+  return href.startsWith("http://") || href.startsWith("https://");
 }

@@ -36,6 +36,8 @@ export interface PlacementReport {
   strengths: string[];
   weaknesses: string[];
   recommendation: string;
+  /** Level Camba đề xuất bắt đầu luyện (khớp kết quả test) */
+  recommendedExamLevel?: ExamLevel;
   summary: string;
 }
 
@@ -129,9 +131,66 @@ function mapCambridgeSecondary(percent: number): { level: string; exam: string }
   return { level: "C1 Advanced (CAE)", exam: "Cambridge C1 Advanced preparation" };
 }
 
+function buildWeakSkillFocus(
+  weaknesses: string[],
+  weakest: SkillResult | undefined
+): string {
+  if (weaknesses.length >= 2) {
+    return `Ưu tiên tập trung vào các kỹ năng yếu: ${weaknesses.join(", ")}.`;
+  }
+  if (weaknesses.length === 1) {
+    return `Ưu tiên tập trung vào kỹ năng yếu: ${weaknesses[0]}.`;
+  }
+  if (weakest && weakest.percent < 70) {
+    return `Chú ý củng cố thêm ${SKILL_LABELS[weakest.skill]} (${weakest.percent}%) — kỹ năng thấp nhất trong bài test.`;
+  }
+  return "Duy trì luyện đều tất cả kỹ năng; không có kỹ năng nào cần ưu tiên đặc biệt.";
+}
+
+function examLevelFromCefr(cefr: string): ExamLevel | undefined {
+  switch (cefr) {
+    case "Pre A1":
+      return "STARTERS";
+    case "A1":
+      return "MOVERS";
+    case "A2":
+      return "KET";
+    case "B1":
+      return "PET";
+    case "B2":
+    case "C1":
+      return "FCE";
+    default:
+      return undefined;
+  }
+}
+
+function examLevelFromCambridgeLabel(level: string): ExamLevel | undefined {
+  const l = level.toLowerCase();
+  if (l.includes("starters") || l.includes("pre a1")) return "STARTERS";
+  if (l.includes("movers")) return "MOVERS";
+  if (l.includes("flyers")) return "FLYERS";
+  if (l.includes("ket") || l.includes("a2 key")) return "KET";
+  if (l.includes("pet") || l.includes("b1 preliminary")) return "PET";
+  if (l.includes("fce") || l.includes("b2 first") || l.includes("cae") || l.includes("c1 advanced")) {
+    return "FCE";
+  }
+  return undefined;
+}
+
+/** Báo cáo cũ có thể thiếu recommendedExamLevel — suy ra từ track/level. */
+export function resolveRecommendedExamLevel(report: PlacementReport): ExamLevel | undefined {
+  if (report.recommendedExamLevel) return report.recommendedExamLevel;
+  if (report.track === "IELTS" || report.track === "ADULT") {
+    return examLevelFromCefr(report.cefrLevel);
+  }
+  return examLevelFromCambridgeLabel(report.cambridgeLevel);
+}
+
 function buildAdultRoute(
   cefrLevel: string,
   sub: CefrSubLevel,
+  weaknesses: string[],
   weakest: SkillResult | undefined
 ): string {
   const band = `${cefrLevel} (${cefrSubLevelLabelVi(sub)})`;
@@ -140,20 +199,27 @@ function buildAdultRoute(
     mid: "Mở rộng hội thoại công việc: họp ngắn, gọi điện khách hàng và email lịch sự.",
     end: "Luyện thuyết trình ngắn, xử lý tình huống công sở và email chuyên nghiệp phức tạp hơn.",
   };
-  const skillHint =
-    weakest && weakest.percent < 60
-      ? ` Ưu tiên củng cố ${SKILL_LABELS[weakest.skill]} qua tình huống giao tiếp hàng ngày và công sở.`
-      : " Tiếp tục luyện hội thoại đời sống và giao tiếp nơi làm việc.";
-  return `Trình độ CEFR ${band}. ${stageTips[sub]}${skillHint}`;
+  const focus = buildWeakSkillFocus(weaknesses, weakest);
+  return `Bắt đầu luyện tập tại trình độ CEFR ${band} — đúng với kết quả bài test. ${stageTips[sub]} ${focus}`;
 }
 
-function buildIeltsRoute(band: string, weakest: SkillResult | undefined): string {
+function buildIeltsRoute(
+  band: string,
+  weaknesses: string[],
+  weakest: SkillResult | undefined
+): string {
   const cefr = ieltsBandToCefr(band);
-  const skillHint =
-    weakest && weakest.percent < 60
-      ? ` Ưu tiên luyện ${SKILL_LABELS[weakest.skill]} — thường là kỹ năng kéo band xuống.`
-      : " Tiếp tục luyện đề IELTS full và rút gọn để ổn định band.";
-  return `Band IELTS ước lượng: ${band} (tương đương CEFR ${cefr}).${skillHint} Lộ trình đầy đủ gồm cả 4 kỹ năng như thi thật.`;
+  const focus = buildWeakSkillFocus(weaknesses, weakest);
+  return `Bắt đầu luyện tập ở mức IELTS band ${band} (CEFR ${cefr}) — trùng với kết quả bài test. ${focus} Lộ trình đầy đủ gồm cả 4 kỹ năng như thi thật.`;
+}
+
+function buildCambridgeRoute(
+  cambridge: { level: string; exam: string },
+  weaknesses: string[],
+  weakest: SkillResult | undefined
+): string {
+  const focus = buildWeakSkillFocus(weaknesses, weakest);
+  return `Bắt đầu luyện tập tại trình độ ${cambridge.level} (${cambridge.exam}) — đúng với kết quả bài test. ${focus} Sau đó làm đề mock ${cambridge.exam} để theo dõi tiến bộ.`;
 }
 
 export function evaluatePlacement(
@@ -197,12 +263,15 @@ export function evaluatePlacement(
 
   const recommendation =
     track === "ADULT"
-      ? buildAdultRoute(mapCefr(overallPercent), cefrSubLevel, weakest)
+      ? buildAdultRoute(mapCefr(overallPercent), cefrSubLevel, weaknesses, weakest)
       : track === "IELTS"
-        ? buildIeltsRoute(ieltsBand!, weakest)
-        : weakest
-          ? `Nên luyện thêm ${SKILL_LABELS[weakest.skill]} trước khi thi ${cambridge.exam}.`
-          : `Tiếp tục luyện đề mock ${cambridge.exam} để củng cố kỹ năng.`;
+        ? buildIeltsRoute(ieltsBand!, weaknesses, weakest)
+        : buildCambridgeRoute(cambridge, weaknesses, weakest);
+
+  const recommendedExamLevel =
+    track === "IELTS" || track === "ADULT"
+      ? examLevelFromCefr(cefrLevel)
+      : examLevelFromCambridgeLabel(cambridge.level);
 
   const summary =
     track === "ADULT"
@@ -235,6 +304,7 @@ export function evaluatePlacement(
     strengths,
     weaknesses,
     recommendation,
+    recommendedExamLevel,
     summary,
   };
 }

@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import {
   DEFAULT_FOOTER_SETTINGS,
+  ensureVtenCourseFooterLink,
   FOOTER_SETTING_KEY,
   footerSettingsSchema,
   type FooterSettings,
@@ -15,14 +16,14 @@ async function fetchFooterSettingsFromDb(): Promise<FooterSettings> {
       where: { key: FOOTER_SETTING_KEY },
     });
 
-    if (!row) return DEFAULT_FOOTER_SETTINGS;
+    if (!row) return ensureVtenCourseFooterLink(DEFAULT_FOOTER_SETTINGS);
 
     const parsed = footerSettingsSchema.safeParse(row.value);
-    if (!parsed.success) return DEFAULT_FOOTER_SETTINGS;
+    if (!parsed.success) return ensureVtenCourseFooterLink(DEFAULT_FOOTER_SETTINGS);
 
-    return parsed.data;
+    return ensureVtenCourseFooterLink(parsed.data);
   } catch {
-    return DEFAULT_FOOTER_SETTINGS;
+    return ensureVtenCourseFooterLink(DEFAULT_FOOTER_SETTINGS);
   }
 }
 

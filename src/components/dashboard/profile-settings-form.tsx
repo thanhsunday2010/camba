@@ -19,6 +19,7 @@ import {
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { ReferralShareInline } from "@/components/referral/referral-share-block";
 import { REFERRAL_BUTTON_LABEL } from "@/lib/referral/constants";
+import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
 import { Camera, Trash2, UserRound } from "lucide-react";
 
 interface ProfileSettingsFormProps {
@@ -129,6 +130,22 @@ export function ProfileSettingsForm({ profile, referralCode }: ProfileSettingsFo
           </CardContent>
         </Card>
       )}
+
+      <Card className="border-2 border-sky-200 bg-gradient-to-br from-sky-50/80 to-white">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-extrabold">👩‍🏫 {VTEN_COURSE_LABEL}</CardTitle>
+          <CardDescription>
+            Học trực tuyến cùng giáo viên tại VTEN — bổ sung luyện tập trên Camba
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild className="kid-btn-fun rounded-full">
+            <a href={VTEN_COURSE_URL} target="_blank" rel="noopener noreferrer">
+              {VTEN_COURSE_LABEL}
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50/80 to-white">
         <CardHeader>

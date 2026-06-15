@@ -246,7 +246,7 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
                           onClick={() => explainAnswer(answer)}
                           disabled={explaining === answer.id}
                         >
-                          {explaining === answer.id ? "Đang giải thích..." : "Giải thích (AI)"}
+                          {explaining === answer.id ? "Đang giải thích..." : "AI Camba giải thích"}
                         </Button>
                         {explanations[answer.id] && (
                           <p className="whitespace-pre-line rounded-lg border bg-blue-50 p-3 text-sm leading-relaxed">

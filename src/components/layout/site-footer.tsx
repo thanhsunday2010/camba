@@ -4,7 +4,7 @@ import { CambaMascot } from "@/components/kids/camba-mascot";
 import { ReferralShareInline } from "@/components/referral/referral-share-block";
 import { ensureUserReferralCode } from "@/lib/referral/codes";
 import { getFooterSettings } from "@/lib/site/get-footer-settings";
-import { renderCopyright } from "@/lib/site/footer";
+import { renderCopyright, isExternalFooterHref } from "@/lib/site/footer";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 export async function SiteFooter() {
@@ -64,12 +64,23 @@ export async function SiteFooter() {
                 <ul className="space-y-2">
                   {column.links.map((link) => (
                     <li key={`${column.title}-${link.href}-${link.label}`}>
-                      <Link
-                        href={link.href}
-                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-purple-700"
-                      >
-                        {link.label}
-                      </Link>
+                      {isExternalFooterHref(link.href) ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-muted-foreground transition-colors hover:text-purple-700"
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          href={link.href}
+                          className="text-sm font-medium text-muted-foreground transition-colors hover:text-purple-700"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

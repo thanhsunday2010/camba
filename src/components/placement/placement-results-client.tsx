@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { PlacementReport } from "@/lib/placement/evaluate";
-import { computePlacementShields } from "@/lib/placement/evaluate";
-import { formatSkill } from "@/lib/constants";
+import { computePlacementShields, resolveRecommendedExamLevel } from "@/lib/placement/evaluate";
+import { formatExamLevel, formatSkill } from "@/lib/constants";
 import { Award, BookOpen, Target } from "lucide-react";
 import { PlacementShields } from "@/components/placement/placement-shields";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
@@ -40,8 +40,9 @@ interface PlacementResultsClientProps {
   isGuest?: boolean;
   placementWeekly?: {
     used: number;
-    limit: number;
-    remaining: number;
+    limit: number | null;
+    remaining: number | null;
+    unlimited?: boolean;
   } | null;
   gamification?: GamificationSnapshot | null;
 }
@@ -53,6 +54,7 @@ export function PlacementResultsClient({
   gamification,
 }: PlacementResultsClientProps) {
   const report = attempt.placementReport;
+  const startExamLevel = report ? resolveRecommendedExamLevel(report) : undefined;
   const shields =
     report && (report.track === "YLE" || report.track === "SECONDARY")
       ? computePlacementShields(report.skills)
@@ -71,6 +73,8 @@ export function PlacementResultsClient({
     const showWeeklyRemaining = () => {
       if (
         placementWeekly &&
+        !placementWeekly.unlimited &&
+        placementWeekly.remaining != null &&
         placementWeekly.used >= 1 &&
         placementWeekly.remaining > 0
       ) {
@@ -160,7 +164,10 @@ export function PlacementResultsClient({
 
       {gamification && <GamificationCelebrationCard snapshot={gamification} />}
 
-      {placementWeekly && placementWeekly.remaining > 0 && (
+      {placementWeekly &&
+        !placementWeekly.unlimited &&
+        placementWeekly.remaining != null &&
+        placementWeekly.remaining > 0 && (
         <p className="mb-6 rounded-xl border-2 border-sky-100 bg-sky-50/80 px-4 py-3 text-center text-sm font-semibold text-sky-900">
           Tuần này bạn còn{" "}
           <strong>{placementWeekly.remaining}</strong>/{placementWeekly.limit} lượt Test trình độ.
@@ -288,15 +295,41 @@ export function PlacementResultsClient({
         </div>
       )}
 
-      <Card className="mb-8">
+      <Card className="mb-8 border-2 border-purple-100">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-extrabold">
             <BookOpen className="h-5 w-5" />
             Gợi ý lộ trình
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm font-medium">{report.recommendation}</p>
+        <CardContent className="space-y-4">
+          {startExamLevel && (
+            <div className="rounded-xl border-2 border-purple-200 bg-purple-50/80 p-4">
+              <p className="text-sm font-extrabold text-purple-900">
+                👉 Bắt đầu luyện tập tại{" "}
+                {formatExamLevel(startExamLevel)} — đúng trình độ với kết quả bài test
+              </p>
+              {!isGuest && (
+                <Button asChild size="sm" className="mt-3 kid-btn-fun">
+                  <Link href={`/exams/${startExamLevel}`}>
+                    Vào luyện {formatExamLevel(startExamLevel)}
+                  </Link>
+                </Button>
+              )}
+            </div>
+          )}
+          <p className="text-sm font-medium leading-relaxed">{report.recommendation}</p>
+          {report.weaknesses.length > 0 && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-sm font-semibold text-amber-900">
+              🎯 Tập trung củng cố:{" "}
+              {report.weaknesses.map((w) => w.replace(/\s*\(\d+%\)/, "")).join(" · ")}
+            </p>
+          )}
+          {report.weaknesses.length === 0 && report.strengths.length > 0 && (
+            <p className="text-sm font-medium text-muted-foreground">
+              Các kỹ năng đều ổn — tiếp tục luyện đều và thử mock test để theo dõi tiến bộ.
+            </p>
+          )}
         </CardContent>
       </Card>
 

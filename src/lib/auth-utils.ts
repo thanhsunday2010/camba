@@ -1,6 +1,15 @@
 import { auth } from "@/auth";
+import { db } from "@/lib/db";
 import { getAdminAccess, hasPermission } from "@/lib/admin/access";
 import type { AdminPermission } from "@/lib/admin/permissions";
+
+export async function isAdminUserId(userId: string): Promise<boolean> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return user?.role === "ADMIN";
+}
 
 export async function getSessionUser() {
   const session = await auth();

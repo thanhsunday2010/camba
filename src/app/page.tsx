@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EXAM_LEVELS } from "@/lib/constants";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 import { MascotHero } from "@/components/kids/mascot-buddy";
-import { HomeHeroCtas, HomeStreakCta } from "@/components/home/home-session-ctas";
+import { HomeStreakCta } from "@/components/home/home-session-ctas";
+import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
 import { Trophy, Target, Gem, ArrowRight, Star } from "lucide-react";
 
 export const revalidate = 3600;
@@ -34,16 +35,20 @@ export default function HomePage() {
                 App học Tiếng Anh miễn phí có AI chấm sửa.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4 lg:justify-start">
-                <HomeHeroCtas />
                 <Button asChild size="lg" variant="fun" className="rounded-full">
                   <Link href="/placement">🎯 Test trình độ</Link>
+                </Button>
+                <Button asChild size="lg" variant="secondary" className="kid-btn-fun rounded-full text-purple-800">
+                  <Link href="/exams">📚 Chọn cấp độ luyện tập</Link>
                 </Button>
                 <Button
                   asChild
                   size="lg"
-                  className="rounded-full border-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 font-bold text-white shadow-lg hover:from-violet-600 hover:to-fuchsia-600"
+                  className="rounded-full border-2 border-white bg-white/10 font-bold text-white hover:bg-white/20"
                 >
-                  <Link href="/pricing">💎 Bảng giá</Link>
+                  <a href={VTEN_COURSE_URL} target="_blank" rel="noopener noreferrer">
+                    👩‍🏫 {VTEN_COURSE_LABEL}
+                  </a>
                 </Button>
               </div>
             </div>

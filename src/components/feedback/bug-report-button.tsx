@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { submitBugReportAction } from "@/lib/actions/bug-report";
+import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
 import { cn } from "@/lib/utils";
 
 const HIDDEN_PREFIXES = ["/admin", "/login", "/register", "/teacher"];
@@ -54,15 +55,25 @@ export function BugReportButton() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-full border-2 border-amber-300 bg-gradient-to-r from-amber-100 to-orange-100 px-4 py-2 text-sm font-bold text-amber-900 shadow-lg transition-transform hover:scale-105 md:bottom-6 md:left-6"
-        aria-label="Báo lỗi"
-      >
-        <Bug className="h-4 w-4" />
-        Báo lỗi
-      </button>
+      <div className="fixed bottom-4 left-4 z-50 flex flex-col items-start gap-2 md:bottom-6 md:left-6">
+        <a
+          href={VTEN_COURSE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-full border-2 border-sky-300 bg-gradient-to-r from-sky-100 to-blue-100 px-4 py-2 text-sm font-bold text-sky-900 shadow-lg transition-transform hover:scale-105"
+        >
+          👩‍🏫 {VTEN_COURSE_LABEL}
+        </a>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 rounded-full border-2 border-amber-300 bg-gradient-to-r from-amber-100 to-orange-100 px-4 py-2 text-sm font-bold text-amber-900 shadow-lg transition-transform hover:scale-105"
+          aria-label="Báo lỗi"
+        >
+          <Bug className="h-4 w-4" />
+          Báo lỗi
+        </button>
+      </div>
 
       {open && (
         <div

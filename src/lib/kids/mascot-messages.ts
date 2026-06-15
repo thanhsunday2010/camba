@@ -24,10 +24,7 @@ export const MASCOT_DEFAULT_DURATION_MS = 3000;
 
 export function mascotTestCompleteMessage(paperKind?: string): MascotToastPayload {
   if (paperKind === "PLACEMENT") {
-    return {
-      message: "Xong rồi! Thỏ đang chấm để gợi ý level phù hợp cho bạn 🎯",
-      mood: "think",
-    };
+    return mascotPlacementSubmitWaitMessage();
   }
   if (paperKind === "MOCK_FULL" || paperKind === "MOCK_SKILL") {
     return {
@@ -129,9 +126,26 @@ export function mascotGradingWaitMessage(): MascotToastPayload {
   };
 }
 
+const PLACEMENT_GRADING_WAIT_LINES: { en: string; vi: string }[] = [
+  { en: "Checking your answers…", vi: "Đang kiểm tra câu trả lời của bạn…" },
+  { en: "Finding your best level…", vi: "Đang tìm trình độ phù hợp nhất…" },
+  { en: "Almost done — hang on!", vi: "Sắp xong rồi — chờ chút nhé!" },
+  { en: "Smart Camba Rabbit is thinking…", vi: "Thỏ thông minh Camba đang phân tích…" },
+  { en: "Reviewing each skill…", vi: "Đang xem từng kỹ năng của bạn…" },
+  { en: "Building your learning path…", vi: "Đang dựng lộ trình học cho bạn…" },
+  { en: "Just a few more seconds!", vi: "Chỉ vài giây nữa thôi!" },
+  { en: "Preparing detailed feedback…", vi: "Đang chuẩn bị nhận xét chi tiết…" },
+];
+
 export function mascotPlacementSubmitWaitMessage(): MascotToastPayload {
+  const line =
+    PLACEMENT_GRADING_WAIT_LINES[
+      Math.floor(Math.random() * PLACEMENT_GRADING_WAIT_LINES.length)
+    ]!;
   return {
-    message: "Xong rồi! Thỏ đang chấm để gợi ý level phù hợp cho bạn 🎯",
+    message:
+      "Bạn chờ khoảng 30s để Thỏ thông minh Camba chấm và nhận xét chi tiết nhé!",
+    subtitle: `${line.en} — ${line.vi}`,
     mood: "think",
     persist: true,
   };

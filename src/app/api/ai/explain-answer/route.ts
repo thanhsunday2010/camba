@@ -38,21 +38,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Giải thích AI chỉ áp dụng cho bài Reading, Listening và Use of English",
+          "AI Camba giải thích chỉ áp dụng cho bài Reading, Listening và Use of English",
       },
       { status: 400 }
     );
   }
 
-  const allowed = await checkAiGradingRateLimit(session.user.id, aiSkill);
-  if (!allowed) {
-    const info = await getAiGradingRateLimitInfo(session.user.id, aiSkill);
-    return NextResponse.json(
-      {
-        error: `Đã hết ${info.limit} lượt AI hôm nay (dùng chung). Nâng cấp gói tại trang Bảng giá.`,
-      },
-      { status: 429 }
-    );
+  const isAdmin = session.user.role === "ADMIN";
+
+  if (!isAdmin) {
+    const allowed = await checkAiGradingRateLimit(session.user.id, aiSkill);
+    if (!allowed) {
+      const info = await getAiGradingRateLimitInfo(session.user.id, aiSkill);
+      return NextResponse.json(
+        {
+          error: `Đã hết ${info.limit} lượt AI hôm nay (dùng chung). Nâng cấp gói tại trang Bảng giá.`,
+        },
+        { status: 429 }
+      );
+    }
   }
 
   try {
@@ -67,7 +71,9 @@ export async function POST(req: NextRequest) {
     });
 
     const { recordAiGradingUsage } = await import("@/lib/subscription/service");
-    await recordAiGradingUsage(session.user.id, aiSkill);
+    if (!isAdmin) {
+      await recordAiGradingUsage(session.user.id, aiSkill);
+    }
 
     return NextResponse.json({ explanation });
   } catch (e) {

@@ -1,5 +1,6 @@
 import { PaperKind, SubscriptionStatus } from "@prisma/client";
 import { db } from "@/lib/db";
+import { isAdminUserId } from "@/lib/auth-utils";
 import {
   getPlacementWeeklyLimit,
   getPlan,
@@ -26,6 +27,24 @@ function startOfMonth(): Date {
 /** Khách (không đăng ký): 1 lượt placement bất kỳ loại nào / tháng (theo SĐT) */
 export const GUEST_PLACEMENT_MONTHLY_LIMIT = 1;
 
+export type PlacementWeeklySnapshot =
+  | {
+      planId: PlanId;
+      planName: string;
+      used: number;
+      limit: null;
+      remaining: null;
+      unlimited: true;
+    }
+  | {
+      planId: PlanId;
+      planName: string;
+      used: number;
+      limit: number;
+      remaining: number;
+      unlimited: false;
+    };
+
 async function resolveUserPlanId(userId: string): Promise<PlanId> {
   const now = new Date();
   const sub = await db.userSubscription.findFirst({
@@ -50,7 +69,19 @@ export async function countWeeklyPlacementAttempts(userId: string): Promise<numb
   });
 }
 
-export async function getPlacementWeeklySnapshot(userId: string) {
+export async function getPlacementWeeklySnapshot(userId: string): Promise<PlacementWeeklySnapshot> {
+  if (await isAdminUserId(userId)) {
+    const used = await countWeeklyPlacementAttempts(userId);
+    return {
+      planId: "FREE",
+      planName: "Admin",
+      used,
+      limit: null,
+      remaining: null,
+      unlimited: true,
+    };
+  }
+
   const [planId, used] = await Promise.all([
     resolveUserPlanId(userId),
     countWeeklyPlacementAttempts(userId),
@@ -62,6 +93,7 @@ export async function getPlacementWeeklySnapshot(userId: string) {
     used,
     limit,
     remaining: Math.max(0, limit - used),
+    unlimited: false,
   };
 }
 
@@ -73,10 +105,14 @@ export async function canStartPlacementAttempt(userId: string): Promise<{
   ok: boolean;
   error?: string;
   used?: number;
-  limit?: number;
-  remaining?: number;
+  limit?: number | null;
+  remaining?: number | null;
+  unlimited?: boolean;
 }> {
   const snapshot = await getPlacementWeeklySnapshot(userId);
+  if (snapshot.unlimited) {
+    return { ok: true, unlimited: true };
+  }
   if (snapshot.used >= snapshot.limit) {
     return {
       ok: false,
