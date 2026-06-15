@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   description: "Luyện thi Cambridge cho trẻ em với game, âm thanh và AI chấm bài thông minh",
 };
 
+/** Chạy SSR/API gần Supabase (Singapore) và user VN */
+export const preferredRegion = "sin1";
+
 export default function RootLayout({
   children,
 }: Readonly<{

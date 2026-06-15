@@ -86,6 +86,7 @@ function parseQuestionJsonField(
 
 function revalidatePaperCache(level?: ExamLevel) {
   revalidateTag("papers");
+  revalidateTag("placement-papers");
   if (level) revalidateTag(`papers-${level}`);
 }
 
@@ -448,6 +449,10 @@ export async function submitAttemptAction(
   revalidatePath("/placement");
   revalidatePath("/admin/placement");
   revalidatePath(`/placement/results/${attemptId}`);
+  revalidatePath("/exams", "layout");
+  if (attempt.userId) {
+    revalidateTag(`user-progress-${attempt.userId}`);
+  }
   return { attemptId, needsAI, score: totalScore, maxScore, placementReport, gamification };
 }
 

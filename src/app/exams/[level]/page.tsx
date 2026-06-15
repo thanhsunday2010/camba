@@ -18,7 +18,7 @@ const SKILL_EMOJI: Record<string, string> = {
 
 const YLE_LEVELS = new Set(["STARTERS", "MOVERS", "FLYERS"]);
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function ExamsLevelPage({
   params,
