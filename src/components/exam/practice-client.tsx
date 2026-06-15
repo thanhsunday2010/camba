@@ -15,7 +15,7 @@ import {
 import { startAttemptAction, submitAttemptAction } from "@/lib/actions/exam";
 import { QuestionType } from "@prisma/client";
 import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
-import { getSectionForIndex } from "@/lib/exam/paper-sections";
+import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections";
 import { formatDuration } from "@/lib/constants";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import {
@@ -38,14 +38,6 @@ interface PaperQuestion {
   skill?: string;
   title?: string | null;
   correctAnswer?: unknown;
-}
-
-interface PaperSection {
-  skill: string;
-  label: string;
-  startIndex: number;
-  endIndex: number;
-  timeLimit?: number;
 }
 
 interface PracticeClientProps {
