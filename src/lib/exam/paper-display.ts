@@ -8,5 +8,6 @@ export function shortPaperListTitle(title: string): string {
     return "Full Mock 1";
   }
   t = t.replace(/^Full Mock Test\s+/i, "Full Mock ");
+  t = t.replace(/^Grammar & UoE /i, "Grammar ");
   return t;
 }

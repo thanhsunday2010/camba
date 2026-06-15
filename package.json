@@ -13,6 +13,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "content:reseed-practice": "tsx scripts/reseed-practice.ts",
     "content:reseed-placement": "tsx scripts/reseed-placement.ts",
+    "content:seed-uoe": "tsx scripts/seed-uoe-practice.ts",
     "content:import-placement": "tsx scripts/import-placement.ts",
     "content:clear-placement": "tsx scripts/clear-placement.ts",
     "content:prune-placement": "tsx scripts/prune-placement.ts",

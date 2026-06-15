@@ -167,3 +167,27 @@ export function mascotPlacementWeeklyRemainingMessage(remaining: number): Mascot
     durationMs: 5500,
   };
 }
+
+const PLACEMENT_OPENING_WAIT_LINES: { en: string; vi: string }[] = [
+  { en: "Getting your test ready…", vi: "Đang chuẩn bị đề cho bạn…" },
+  { en: "Just a moment — almost there!", vi: "Chờ chút nhé — sắp xong rồi!" },
+  { en: "Hang tight! Your placement test is loading.", vi: "Kiên nhẫn nhé! Đề placement đang mở." },
+  { en: "Preparing questions for you…", vi: "Đang chọn câu hỏi phù hợp…" },
+  { en: "One sec — let's find your level!", vi: "Một chút thôi — tìm level phù hợp nhé!" },
+  { en: "Loading your Cambridge-style test…", vi: "Đang tải bài test theo format Cambridge…" },
+  { en: "Please wait — good things take a second!", vi: "Đợi chút — sắp vào bài rồi!" },
+  { en: "Setting up your exam room…", vi: "Đang mở phòng thi cho bạn…" },
+];
+
+export function mascotPlacementOpeningWaitMessage(): MascotToastPayload {
+  const line =
+    PLACEMENT_OPENING_WAIT_LINES[
+      Math.floor(Math.random() * PLACEMENT_OPENING_WAIT_LINES.length)
+    ]!;
+  return {
+    message: line.en,
+    subtitle: line.vi,
+    mood: "wave",
+    persist: true,
+  };
+}

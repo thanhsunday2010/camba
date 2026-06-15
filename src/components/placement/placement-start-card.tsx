@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import { startPlacementAttemptAction } from "@/lib/actions/placement";
 import { notifyGuestPlacementLimitHit } from "@/lib/promo/events";
+import { useMascotToast } from "@/components/kids/mascot-toast-provider";
+import { mascotPlacementOpeningWaitMessage } from "@/lib/kids/mascot-messages";
 import {
   PLACEMENT_CARD_THEMES,
   type PlacementCategoryTheme,
@@ -38,6 +40,7 @@ export function PlacementStartCard({
   const cardTheme = PLACEMENT_CARD_THEMES[theme];
   const router = useRouter();
   const { data: session } = useSession();
+  const { showMascot, hideMascot } = useMascotToast();
   const isLoggedIn = !!session?.user;
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -46,23 +49,32 @@ export function PlacementStartCard({
 
   async function begin(guest?: { fullName: string; phone: string }) {
     setLoading(true);
-    const res = await startPlacementAttemptAction(paper.id, guest);
-    setLoading(false);
+    showMascot(mascotPlacementOpeningWaitMessage());
+    try {
+      const res = await startPlacementAttemptAction(paper.id, guest);
 
-    if (res.error || !res.attemptId) {
-      if (!isLoggedIn && res.error?.includes("trong tháng")) {
-        notifyGuestPlacementLimitHit();
+      if (res.error || !res.attemptId) {
+        hideMascot();
+        if (!isLoggedIn && res.error?.includes("trong tháng")) {
+          notifyGuestPlacementLimitHit();
+          return;
+        }
+        toast.error(res.error ?? "Không thể bắt đầu bài test");
         return;
       }
-      toast.error(res.error ?? "Không thể bắt đầu bài test");
-      return;
-    }
 
-    if (res.resumed) {
-      toast.info("Tiếp tục bài placement đang dở");
-    }
+      if (res.resumed) {
+        toast.info("Tiếp tục bài placement đang dở");
+      }
 
-    router.push(`/placement/take/${paper.id}?attemptId=${res.attemptId}`);
+      hideMascot();
+      router.push(`/placement/take/${paper.id}?attemptId=${res.attemptId}`);
+    } catch {
+      hideMascot();
+      toast.error("Không thể bắt đầu bài test");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

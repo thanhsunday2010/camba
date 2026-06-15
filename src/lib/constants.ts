@@ -12,7 +12,7 @@ export const SKILLS = [
   { value: "WRITING", label: "Writing", icon: "PenLine" },
   { value: "LISTENING", label: "Listening", icon: "Headphones" },
   { value: "SPEAKING", label: "Speaking", icon: "Mic" },
-  { value: "USE_OF_ENGLISH", label: "Use of English", icon: "Languages" },
+  { value: "USE_OF_ENGLISH", label: "Grammar & UoE", icon: "Languages" },
 ] as const;
 
 export const QUESTION_TYPES = [
