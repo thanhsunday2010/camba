@@ -104,14 +104,24 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
   }, [pct, showMascot, gamification, attempt.status, attempt.paper.paperKind]);
 
   async function explainAnswer(answer: ResultAnswer) {
-    const content = answer.question.content as { question?: string };
+    const content = answer.question.content as {
+      question?: string;
+      passage?: string;
+      transcript?: string;
+    };
+    const contextParts: string[] = [];
+    if (content.passage?.trim()) contextParts.push(`Đoạn đọc: ${content.passage.trim()}`);
+    if (content.transcript?.trim()) contextParts.push(`Transcript: ${content.transcript.trim()}`);
+    if (content.question?.trim()) contextParts.push(`Câu hỏi: ${content.question.trim()}`);
+    const questionContext = contextParts.join("\n") || "Question";
+
     setExplaining(answer.id);
     try {
       const res = await fetch("/api/ai/explain-answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: content.question ?? "Question",
+          question: questionContext,
           correctAnswer: JSON.stringify(answer.question.correctAnswer),
           studentAnswer: JSON.stringify(answer.answer),
           paperSkill: attempt.paper.skill,
@@ -239,7 +249,7 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
                           {explaining === answer.id ? "Đang giải thích..." : "Giải thích (AI)"}
                         </Button>
                         {explanations[answer.id] && (
-                          <p className="rounded-lg border bg-blue-50 p-3 text-sm">
+                          <p className="whitespace-pre-line rounded-lg border bg-blue-50 p-3 text-sm leading-relaxed">
                             {explanations[answer.id]}
                           </p>
                         )}

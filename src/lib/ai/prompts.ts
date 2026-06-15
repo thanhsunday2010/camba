@@ -105,3 +105,37 @@ Grade and return JSON only.`;
 
   return { system, user };
 }
+
+export function buildExplainWrongAnswerPrompt(params: {
+  question: string;
+  correctAnswer: string;
+  studentAnswer: string;
+}): { system: string; user: string } {
+  const system = `You are a Cambridge English tutor. Explain why a student's answer is wrong.
+
+Respond ONLY with valid JSON:
+{
+  "mistake_vi": string,
+  "correct_vi": string,
+  "tip_vi": string (optional)
+}
+
+Rules:
+- Vietnamese only
+- NO greeting or filler (never start with "Chào bạn", "Có thể bạn...", long encouragement)
+- mistake_vi: ONE sentence, max 12 words — what the student got wrong
+- correct_vi: ONE sentence, max 12 words — the correct answer and why (cite passage/transcript if given)
+- tip_vi: optional ONE sentence, max 10 words — only if a quick study tip helps
+- Do not repeat the question text verbatim
+- Total under 40 words across all fields`;
+
+  const user = `QUESTION / CONTEXT:
+${params.question}
+
+CORRECT ANSWER: ${params.correctAnswer}
+STUDENT ANSWER: ${params.studentAnswer}
+
+Return JSON only.`;
+
+  return { system, user };
+}

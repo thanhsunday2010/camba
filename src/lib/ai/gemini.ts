@@ -66,10 +66,16 @@ function extractText(response: { text?: string }): string {
   return text;
 }
 
+type GeminiCallOptions = {
+  maxOutputTokens?: number;
+  temperature?: number;
+};
+
 export async function callGeminiJson(
   system: string,
   user: string,
-  modelName: string
+  modelName: string,
+  options: GeminiCallOptions = {}
 ): Promise<unknown> {
   const ai = getGeminiClient();
   const response = await ai.models.generateContent({
@@ -78,7 +84,10 @@ export async function callGeminiJson(
     config: {
       systemInstruction: system,
       responseMimeType: "application/json",
-      temperature: 0.3,
+      temperature: options.temperature ?? 0.3,
+      ...(options.maxOutputTokens != null
+        ? { maxOutputTokens: options.maxOutputTokens }
+        : {}),
     },
   });
 

@@ -41,4 +41,21 @@ export const speakingFeedbackSchema = z.object({
 
 export type SpeakingFeedback = z.infer<typeof speakingFeedbackSchema>;
 
+/** Giải thích câu sai — tối đa vài câu ngắn */
+export const explainWrongAnswerSchema = z.object({
+  mistake_vi: z.string(),
+  correct_vi: z.string(),
+  tip_vi: z.string().optional(),
+});
+
+export type ExplainWrongAnswer = z.infer<typeof explainWrongAnswerSchema>;
+
+export function formatExplainWrongAnswer(feedback: ExplainWrongAnswer): string {
+  const lines = [`Sai: ${feedback.mistake_vi}`, `Đúng: ${feedback.correct_vi}`];
+  if (feedback.tip_vi?.trim()) {
+    lines.push(`Gợi ý: ${feedback.tip_vi.trim()}`);
+  }
+  return lines.join("\n");
+}
+
 export const AI_DAILY_LIMIT = 10;
