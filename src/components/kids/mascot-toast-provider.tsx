@@ -9,11 +9,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CambaMascot, type MascotMood } from "./camba-mascot";
 import { useKidSound } from "./sound-provider";
 import { ConfettiBurst } from "./confetti-burst";
-import { MASCOT_DEFAULT_DURATION_MS, type MascotToastPayload } from "@/lib/kids/mascot-messages";
+import { Button } from "@/components/ui/button";
+import {
+  MASCOT_DEFAULT_DURATION_MS,
+  mascotGuestPlacementLimitMessage,
+  type MascotToastAction,
+  type MascotToastPayload,
+} from "@/lib/kids/mascot-messages";
+import { GUEST_PLACEMENT_LIMIT_HIT_EVENT } from "@/lib/promo/events";
 import { cn } from "@/lib/utils";
 
 const HIDDEN_PREFIXES = ["/admin", "/login", "/register", "/teacher"];
@@ -47,6 +55,7 @@ export function MascotToastProvider({
     subtitle?: string;
     mood: MascotMood;
     confetti?: boolean;
+    actions?: MascotToastAction[];
   } | null>(null);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
@@ -77,6 +86,7 @@ export function MascotToastProvider({
         subtitle: normalized.subtitle,
         mood: normalized.mood ?? "happy",
         confetti: normalized.confetti,
+        actions: normalized.actions,
       });
       play(normalized.confetti ? "celebrate" : "success");
 
@@ -100,6 +110,18 @@ export function MascotToastProvider({
     hideMascot();
   }, [pathname, hideMascot]);
 
+  useEffect(() => {
+    const onGuestPlacementLimit = () => {
+      showMascot(mascotGuestPlacementLimitMessage());
+    };
+
+    window.addEventListener(GUEST_PLACEMENT_LIMIT_HIT_EVENT, onGuestPlacementLimit);
+    return () =>
+      window.removeEventListener(GUEST_PLACEMENT_LIMIT_HIT_EVENT, onGuestPlacementLimit);
+  }, [showMascot]);
+
+  const hasActions = Boolean(toast?.actions?.length);
+
   return (
     <MascotToastContext.Provider value={{ showMascot, hideMascot }}>
       {children}
@@ -107,7 +129,10 @@ export function MascotToastProvider({
         <>
           <ConfettiBurst active={Boolean(toast.confetti)} />
           <div
-            className="pointer-events-none fixed inset-0 z-[110] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px]"
+            className={cn(
+              "fixed inset-0 z-[110] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px]",
+              hasActions ? "pointer-events-auto" : "pointer-events-none"
+            )}
             role="status"
             aria-live="polite"
           >
@@ -127,6 +152,33 @@ export function MascotToastProvider({
                   <p className="mt-2 text-sm font-semibold text-purple-700/90 md:text-base">
                     {toast.subtitle}
                   </p>
+                )}
+                {toast.actions && toast.actions.length > 0 && (
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                    {toast.actions.map((action) => (
+                      <Button
+                        key={action.href}
+                        asChild
+                        variant={action.primary ? "default" : "outline"}
+                        className={cn(
+                          "rounded-full font-bold",
+                          action.primary && "kid-btn-fun"
+                        )}
+                        onClick={hideMascot}
+                      >
+                        <Link href={action.href}>{action.label}</Link>
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                {hasActions && (
+                  <button
+                    type="button"
+                    onClick={hideMascot}
+                    className="mt-3 text-sm font-semibold text-muted-foreground underline-offset-2 hover:underline"
+                  >
+                    Để sau
+                  </button>
                 )}
                 <span className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-l-2 border-t-2 border-purple-200 bg-white" />
               </div>

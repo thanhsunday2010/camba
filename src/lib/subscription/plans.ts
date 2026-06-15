@@ -11,13 +11,16 @@ export type AiGradingSkill =
 
 export interface PlanLimits {
   dailyPracticeQuestions: number;
-  /** Lượt placement bất kỳ loại nào / ngày */
-  dailyPlacementAttempts: number;
+  /** Lượt placement bất kỳ loại nào / tuần (Free, Pro, VIP) */
+  weeklyPlacementAttempts: number;
   /** Lượt AI dùng chung — Writing, Speaking, Reading, Listening, UoE */
   dailyAiGrading: number;
   writingWordLimit: number;
   speakingWordLimit: number;
 }
+
+/** Mọi gói đăng ký: 2 lượt placement / tuần */
+export const PLACEMENT_WEEKLY_LIMIT = 2;
 
 export interface PlanPricing {
   monthly: number;
@@ -45,7 +48,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     tagline: "Bắt đầu học miễn phí",
     limits: {
       dailyPracticeQuestions: 100,
-      dailyPlacementAttempts: 2,
+      weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
       dailyAiGrading: 5,
       writingWordLimit: 200,
       speakingWordLimit: 100,
@@ -53,7 +56,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     pricing: { monthly: 0, yearly: 0 },
     features: [
       "100 câu luyện tập mỗi ngày",
-      "2 lượt placement/ngày (mọi loại đề)",
+      "2 lượt placement/tuần (mọi loại đề)",
       "5 lượt AI/ngày (chấm sửa & giải thích — dùng chung)",
       "Writing tối đa 200 từ/lần · Speaking 100 từ/lần",
       "Miễn phí mãi mãi",
@@ -66,7 +69,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     tagline: "Luyện thi hiệu quả hơn",
     limits: {
       dailyPracticeQuestions: 100,
-      dailyPlacementAttempts: 4,
+      weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
       dailyAiGrading: 25,
       writingWordLimit: 150,
       speakingWordLimit: 150,
@@ -75,7 +78,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     highlighted: true,
     features: [
       "100 câu luyện tập mỗi ngày",
-      "4 lượt placement/ngày (mọi loại đề)",
+      "2 lượt placement/tuần (mọi loại đề)",
       "25 lượt AI/ngày (chấm sửa & giải thích — dùng chung)",
       "Writing & Speaking tối đa 150 từ/lần",
     ],
@@ -87,7 +90,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     tagline: "Trọn bộ công cụ luyện thi",
     limits: {
       dailyPracticeQuestions: 200,
-      dailyPlacementAttempts: 6,
+      weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
       dailyAiGrading: 50,
       writingWordLimit: 300,
       speakingWordLimit: 300,
@@ -95,7 +98,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     pricing: { monthly: 50_000, yearly: 500_000 },
     features: [
       "200 câu luyện tập mỗi ngày",
-      "6 lượt placement/ngày (mọi loại đề)",
+      "2 lượt placement/tuần (mọi loại đề)",
       "50 lượt AI/ngày (chấm sửa & giải thích — dùng chung)",
       "Writing & Speaking tối đa 300 từ/lần",
       "Hỗ trợ ưu tiên & cập nhật sớm",
@@ -107,8 +110,8 @@ export function getAiGradingLimit(planId: PlanId): number {
   return PLANS[planId].limits.dailyAiGrading;
 }
 
-export function getPlacementDailyLimit(planId: PlanId): number {
-  return PLANS[planId].limits.dailyPlacementAttempts;
+export function getPlacementWeeklyLimit(_planId?: PlanId): number {
+  return PLACEMENT_WEEKLY_LIMIT;
 }
 
 export function getPlan(planId: PlanId): PlanDefinition {

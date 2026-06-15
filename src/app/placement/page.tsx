@@ -3,7 +3,7 @@ import { PlacementRecentAttempts } from "@/components/placement/placement-recent
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { getPublishedPlacementPapers } from "@/lib/exam/cached-papers";
 import { getSession } from "@/lib/auth-session";
-import { getPlacementDailySnapshot } from "@/lib/subscription/placement-limit";
+import { getPlacementWeeklySnapshot } from "@/lib/subscription/placement-limit";
 import {
   groupPlacementPapersByCategory,
   PLACEMENT_CATEGORY_ORDER,
@@ -18,7 +18,7 @@ export default async function PlacementPage() {
   ]);
 
   const placementUsage = session?.user?.id
-    ? await getPlacementDailySnapshot(session.user.id)
+    ? await getPlacementWeeklySnapshot(session.user.id)
     : null;
 
   const grouped = groupPlacementPapersByCategory(papers);
@@ -31,18 +31,36 @@ export default async function PlacementPage() {
           <h1 className="text-3xl font-extrabold kid-gradient-text">Test trình độ</h1>
           <p className="mt-2 font-semibold leading-relaxed text-muted-foreground">
             Chọn nhóm placement phù hợp — <strong>IELTS</strong>,{" "}
-            <strong>Cambridge</strong> hoặc <strong>General English</strong>. Làm miễn phí không
-            cần đăng ký (chỉ cần Họ tên & SĐT).
+            <strong>Cambridge</strong> hoặc <strong>General English</strong>.
+            {session?.user?.id ? (
+              <> Tài khoản: <strong>2 lượt placement/tuần</strong> (mọi loại đề).</>
+            ) : (
+              <>
+                {" "}
+                Khách không cần đăng ký (Họ tên & SĐT) — <strong>1 lượt/tháng</strong> theo SĐT.
+              </>
+            )}
           </p>
         </div>
       </div>
 
+      {!session?.user?.id && (
+        <p className="mb-6 rounded-xl border-2 border-purple-100 bg-purple-50/80 px-4 py-3 text-sm font-semibold text-purple-900">
+          Khách (không đăng ký): <strong>1 lượt placement/tháng</strong> theo số điện thoại, áp dụng
+          mọi loại đề.{" "}
+          <a href="/register" className="font-bold underline">
+            Đăng ký miễn phí
+          </a>{" "}
+          để làm thêm (2 lượt/tuần).
+        </p>
+      )}
+
       {placementUsage && (
         <p className="mb-6 rounded-xl border-2 border-sky-100 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-900">
-          Hôm nay bạn còn{" "}
+          Tuần này bạn còn{" "}
           <strong>{placementUsage.remaining}</strong>/{placementUsage.limit} lượt placement
-          (gói {placementUsage.planName}) — áp dụng mọi nhóm đề. Tiếp tục bài đang dở không tính
-          thêm lượt.
+          tuần này (gói {placementUsage.planName}) — áp dụng mọi nhóm đề. Tiếp tục bài đang dở
+          không tính thêm lượt.
         </p>
       )}
 

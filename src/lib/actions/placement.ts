@@ -6,7 +6,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
 import { assignPlacementQuestionsForAttempt } from "@/lib/placement/select-questions";
-import { canStartPlacementAttempt } from "@/lib/subscription/placement-limit";
+import { canGuestStartPlacementAttempt, canStartPlacementAttempt } from "@/lib/subscription/placement-limit";
 import { PaperKind } from "@prisma/client";
 
 const guestSchema = z.object({
@@ -79,11 +79,43 @@ export async function startPlacementAttemptAction(
     return { error: parsed.error.errors[0]?.message ?? "Thông tin không hợp lệ" };
   }
 
+  const guestPhone = parsed.data.phone;
+  const guestFullName = parsed.data.fullName.trim();
+
+  const existingGuest = await db.attempt.findFirst({
+    where: {
+      userId: null,
+      guestPhone,
+      paperId,
+      status: "IN_PROGRESS",
+    },
+    include: { answers: true },
+    orderBy: { startedAt: "desc" },
+  });
+
+  if (existingGuest) {
+    await assignPlacementQuestionsForAttempt(db, existingGuest.id);
+    const savedAnswers: Record<string, unknown> = {};
+    for (const a of existingGuest.answers) {
+      savedAnswers[a.questionId] = a.answer;
+    }
+    return {
+      attemptId: existingGuest.id,
+      resumed: true,
+      savedAnswers,
+    };
+  }
+
+  const guestLimit = await canGuestStartPlacementAttempt(guestPhone);
+  if (!guestLimit.ok) {
+    return { error: guestLimit.error };
+  }
+
   const attempt = await db.attempt.create({
     data: {
       paperId,
-      guestFullName: parsed.data.fullName.trim(),
-      guestPhone: parsed.data.phone,
+      guestFullName,
+      guestPhone,
       status: "IN_PROGRESS",
     },
   });

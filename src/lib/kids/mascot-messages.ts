@@ -1,6 +1,12 @@
 import type { MascotMood } from "@/components/kids/camba-mascot";
 import type { PlacementTrack } from "@/lib/placement/evaluate";
 
+export type MascotToastAction = {
+  label: string;
+  href: string;
+  primary?: boolean;
+};
+
 export type MascotToastPayload = {
   message: string;
   subtitle?: string;
@@ -10,6 +16,8 @@ export type MascotToastPayload = {
   persist?: boolean;
   /** Trigger confetti burst */
   confetti?: boolean;
+  /** Optional CTA buttons (e.g. đăng ký) */
+  actions?: MascotToastAction[];
 };
 
 export const MASCOT_DEFAULT_DURATION_MS = 3000;
@@ -134,5 +142,28 @@ export function mascotPageLoadingMessage(): MascotToastPayload {
     message: "Chờ chút xíu nha",
     mood: "wave",
     persist: true,
+  };
+}
+
+export function mascotGuestPlacementLimitMessage(): MascotToastPayload {
+  return {
+    message: "Bạn đã hết lượt Test trình độ tháng này! 🐰",
+    subtitle:
+      "Đăng ký tài khoản Camba miễn phí để Test trình độ (2 lượt/tuần) và Luyện tập thêm mỗi ngày nhé!",
+    mood: "think",
+    persist: true,
+    actions: [
+      { label: "Đăng ký miễn phí ✨", href: "/register", primary: true },
+      { label: "Đăng nhập", href: "/login" },
+    ],
+  };
+}
+
+export function mascotPlacementWeeklyRemainingMessage(remaining: number): MascotToastPayload {
+  return {
+    message: `Tuần này bạn còn ${remaining} lượt Test trình độ! 🎯`,
+    subtitle: "Quay lại trang Test trình độ khi muốn thử loại đề khác nhé.",
+    mood: "wave",
+    durationMs: 5500,
   };
 }

@@ -12,7 +12,7 @@ import { formatSkill } from "@/lib/constants";
 import { Award, BookOpen, Target } from "lucide-react";
 import { PlacementShields } from "@/components/placement/placement-shields";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
-import { mascotPlacementResultMessage } from "@/lib/kids/mascot-messages";
+import { mascotPlacementResultMessage, mascotPlacementWeeklyRemainingMessage } from "@/lib/kids/mascot-messages";
 import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
 import { GamificationCelebrationCard } from "@/components/gamification/gamification-celebration-card";
 import type { GamificationSnapshot } from "@/lib/gamification/types";
@@ -38,12 +38,18 @@ interface PlacementResultsClientProps {
     displayName?: string;
   };
   isGuest?: boolean;
+  placementWeekly?: {
+    used: number;
+    limit: number;
+    remaining: number;
+  } | null;
   gamification?: GamificationSnapshot | null;
 }
 
 export function PlacementResultsClient({
   attempt,
   isGuest = false,
+  placementWeekly,
   gamification,
 }: PlacementResultsClientProps) {
   const report = attempt.placementReport;
@@ -61,6 +67,16 @@ export function PlacementResultsClient({
   useEffect(() => {
     if (mascotShownRef.current) return;
     mascotShownRef.current = true;
+
+    const showWeeklyRemaining = () => {
+      if (
+        placementWeekly &&
+        placementWeekly.used >= 1 &&
+        placementWeekly.remaining > 0
+      ) {
+        showMascot(mascotPlacementWeeklyRemainingMessage(placementWeekly.remaining));
+      }
+    };
 
     if (gamification) {
       showMascot(mascotGamificationCelebration(gamification));
@@ -81,6 +97,7 @@ export function PlacementResultsClient({
               }
             )
           );
+          setTimeout(showWeeklyRemaining, 5000);
         }, 4500);
       }
       return;
@@ -102,7 +119,15 @@ export function PlacementResultsClient({
         }
       )
     );
-  }, [report, showMascot, gamification, attempt.displayName, attempt.guestFullName]);
+    setTimeout(showWeeklyRemaining, 4000);
+  }, [
+    report,
+    showMascot,
+    gamification,
+    attempt.displayName,
+    attempt.guestFullName,
+    placementWeekly,
+  ]);
 
   if (!report) {
     return (
@@ -134,6 +159,13 @@ export function PlacementResultsClient({
       </div>
 
       {gamification && <GamificationCelebrationCard snapshot={gamification} />}
+
+      {placementWeekly && placementWeekly.remaining > 0 && (
+        <p className="mb-6 rounded-xl border-2 border-sky-100 bg-sky-50/80 px-4 py-3 text-center text-sm font-semibold text-sky-900">
+          Tuần này bạn còn{" "}
+          <strong>{placementWeekly.remaining}</strong>/{placementWeekly.limit} lượt Test trình độ.
+        </p>
+      )}
 
       <Card className="mb-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
         <CardHeader>

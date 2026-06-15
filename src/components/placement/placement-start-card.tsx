@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import { startPlacementAttemptAction } from "@/lib/actions/placement";
-import { notifyFreeLimitHit } from "@/lib/promo/events";
+import { notifyGuestPlacementLimitHit } from "@/lib/promo/events";
 import {
   PLACEMENT_CARD_THEMES,
   type PlacementCategoryTheme,
@@ -50,8 +50,11 @@ export function PlacementStartCard({
     setLoading(false);
 
     if (res.error || !res.attemptId) {
+      if (!isLoggedIn && res.error?.includes("trong tháng")) {
+        notifyGuestPlacementLimitHit();
+        return;
+      }
       toast.error(res.error ?? "Không thể bắt đầu bài test");
-      if (res.error?.includes("hết")) notifyFreeLimitHit();
       return;
     }
 
@@ -85,7 +88,7 @@ export function PlacementStartCard({
           <>
             {placementRemaining != null && placementLimit != null && (
               <p className="text-sm font-semibold text-muted-foreground">
-                Còn {placementRemaining}/{placementLimit} lượt hôm nay
+                Còn {placementRemaining}/{placementLimit} lượt tuần này
               </p>
             )}
             <Button
@@ -96,15 +99,12 @@ export function PlacementStartCard({
               {loading
                 ? "Đang mở..."
                 : placementRemaining === 0
-                  ? "Đã hết lượt hôm nay"
+                  ? "Đã hết lượt tuần này"
                   : "Bắt đầu làm bài"}
             </Button>
             {placementRemaining === 0 && (
               <p className="text-center text-xs font-medium text-muted-foreground">
-                <a href="/pricing" className="font-bold text-purple-600 underline">
-                  Nâng cấp gói
-                </a>{" "}
-                để làm thêm placement
+                Hết lượt placement tuần này — thử lại từ thứ Hai tuần sau.
               </p>
             )}
           </>
@@ -112,6 +112,10 @@ export function PlacementStartCard({
           <div className="space-y-3 rounded-xl border-2 border-purple-100 bg-white p-4">
             <p className="text-sm font-bold text-purple-800">
               Thông tin bắt buộc (không cần đăng ký tài khoản)
+            </p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Khách: <strong>1 lượt placement/tháng</strong> theo SĐT (mọi loại đề). Tiếp tục bài
+              đang dở không tính thêm.
             </p>
             <div>
               <Label htmlFor={`name-${paper.id}`}>Họ tên (Full name) *</Label>
@@ -155,11 +159,11 @@ export function PlacementStartCard({
 
         {!isLoggedIn && !showGuestForm && (
           <p className="text-center text-xs font-medium text-muted-foreground">
-            Đã có tài khoản?{" "}
+            Khách: 1 lượt placement/tháng (theo SĐT).{" "}
             <a href="/login" className="font-bold text-purple-600 underline">
               Đăng nhập
             </a>{" "}
-            để bỏ qua bước nhập Họ tên & SĐT
+            để làm thêm (2 lượt/tuần).
           </p>
         )}
       </CardContent>

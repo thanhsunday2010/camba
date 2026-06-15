@@ -5,6 +5,7 @@ import { PlacementResultsClient } from "@/components/placement/placement-results
 import type { PlacementReport } from "@/lib/placement/evaluate";
 import { ensurePlacementReport } from "@/lib/placement/build-report";
 import { parseGamificationSnapshot } from "@/lib/gamification/service";
+import { getPlacementWeeklySnapshot } from "@/lib/subscription/placement-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,11 @@ export default async function PlacementResultsPage({
   const displayName =
     attempt.guestFullName ?? (attempt.userId ? undefined : "Khách");
 
+  const placementWeekly =
+    attempt.userId && session?.user?.id === attempt.userId
+      ? await getPlacementWeeklySnapshot(attempt.userId)
+      : null;
+
   return (
     <PlacementResultsClient
       attempt={{
@@ -54,6 +60,7 @@ export default async function PlacementResultsPage({
         displayName,
       }}
       isGuest={!attempt.userId}
+      placementWeekly={placementWeekly}
       gamification={
         attempt.userId
           ? parseGamificationSnapshot(attempt.gamificationSnapshot)
