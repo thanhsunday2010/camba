@@ -16,6 +16,19 @@ const guestSchema = z.object({
     .regex(/^[0-9]{10}$/, "Số điện thoại phải đúng 10 chữ số"),
 });
 
+async function assignPlacementOrError(attemptId: string): Promise<string | null> {
+  try {
+    await assignPlacementQuestionsForAttempt(db, attemptId);
+    return null;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "";
+    if (message.includes("Placement bank thiếu câu")) {
+      return "Ngân hàng câu placement trống. Admin chạy npm run content:reseed-placement.";
+    }
+    throw e;
+  }
+}
+
 export async function startPlacementAttemptAction(
   paperId: string,
   guest?: { fullName: string; phone: string }
@@ -39,7 +52,8 @@ export async function startPlacementAttemptAction(
     });
 
     if (existing) {
-      await assignPlacementQuestionsForAttempt(db, existing.id);
+      const assignError = await assignPlacementOrError(existing.id);
+      if (assignError) return { error: assignError };
       const savedAnswers: Record<string, unknown> = {};
       for (const a of existing.answers) {
         savedAnswers[a.questionId] = a.answer;
@@ -64,7 +78,8 @@ export async function startPlacementAttemptAction(
       },
     });
 
-    await assignPlacementQuestionsForAttempt(db, attempt.id);
+    const assignError = await assignPlacementOrError(attempt.id);
+    if (assignError) return { error: assignError };
 
     await updateUserStreak(session.user.id);
     return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
@@ -94,7 +109,8 @@ export async function startPlacementAttemptAction(
   });
 
   if (existingGuest) {
-    await assignPlacementQuestionsForAttempt(db, existingGuest.id);
+    const assignError = await assignPlacementOrError(existingGuest.id);
+    if (assignError) return { error: assignError };
     const savedAnswers: Record<string, unknown> = {};
     for (const a of existingGuest.answers) {
       savedAnswers[a.questionId] = a.answer;
@@ -120,7 +136,8 @@ export async function startPlacementAttemptAction(
     },
   });
 
-  await assignPlacementQuestionsForAttempt(db, attempt.id);
+  const assignError = await assignPlacementOrError(attempt.id);
+  if (assignError) return { error: assignError };
 
   return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
 }

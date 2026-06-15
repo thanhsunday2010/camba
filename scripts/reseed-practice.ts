@@ -18,6 +18,28 @@ async function main() {
   });
   const keepQuestionIds = new Set(placementQuestionLinks.map((l) => l.questionId));
 
+  // Placement bank: câu gắn placementSlug (không qua PaperQuestion trên template)
+  const placementBankQuestions = await db.question.findMany({
+    where: { placementSlug: { not: null } },
+    select: { id: true },
+  });
+  for (const q of placementBankQuestions) {
+    keepQuestionIds.add(q.id);
+  }
+
+  // Giữ câu đang gắn attempt placement (kể cả IN_PROGRESS)
+  const activePlacementAttemptQuestions = await db.attemptQuestion.findMany({
+    where: {
+      attempt: {
+        paper: { paperKind: PaperKind.PLACEMENT },
+      },
+    },
+    select: { questionId: true },
+  });
+  for (const aq of activePlacementAttemptQuestions) {
+    keepQuestionIds.add(aq.questionId);
+  }
+
   const nonPlacementPapers = await db.examPaper.findMany({
     where: { paperKind: { not: PaperKind.PLACEMENT } },
     select: { id: true },
@@ -38,7 +60,9 @@ async function main() {
   }
 
   console.log(`Removed ${deletePaperIds.length} practice/mock papers, ${orphanIds.length} questions.`);
-  console.log(`Kept ${placementPapers.length} placement papers, ${keepQuestionIds.size} placement questions.\n`);
+  console.log(
+    `Kept ${placementPapers.length} placement papers, ${keepQuestionIds.size} câu placement (bank + attempt).\n`
+  );
 
   await seedAllBulkContent(db);
 
