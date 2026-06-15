@@ -141,6 +141,7 @@ export function QuestionRenderer({
           content={content as SpeakingContent}
           questionTitle={question.title}
           hideScript={hideSpeakingScript}
+          savedTranscript={typeof value === "string" ? value : ""}
           onSpeakingTranscript={onSpeakingTranscript}
           disabled={disabled}
           maxWords={maxSpeakingWords}
@@ -311,6 +312,7 @@ function SpeakingQuestion({
   content,
   questionTitle,
   hideScript = true,
+  savedTranscript = "",
   onSpeakingTranscript,
   disabled,
   maxWords,
@@ -318,6 +320,7 @@ function SpeakingQuestion({
   content: SpeakingContent;
   questionTitle?: string | null;
   hideScript?: boolean;
+  savedTranscript?: string;
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
   maxWords?: number;
@@ -348,7 +351,12 @@ function SpeakingQuestion({
           </p>
         )}
       </div>
-      {maxWords === 0 ? (
+      {savedTranscript.trim().length >= 3 && (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900">
+          ✅ Đã lưu bài nói ({savedTranscript.trim().split(/\s+/).filter(Boolean).length} từ)
+        </p>
+      )}
+      {maxWords != null && maxWords <= 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-purple-300 bg-purple-50/50 p-6 text-center">
           <p className="font-bold text-purple-900">🔒 Speaking chỉ có ở gói Pro trở lên</p>
           <p className="mt-2 text-sm text-purple-700">
@@ -362,7 +370,7 @@ function SpeakingQuestion({
         <AudioRecorder
           onTranscript={(text) => onSpeakingTranscript?.(text)}
           disabled={disabled}
-          hideTranscript={hideScript}
+          hideLiveTranscript={hideScript}
           maxWords={maxWords}
         />
       )}

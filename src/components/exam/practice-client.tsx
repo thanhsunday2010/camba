@@ -232,6 +232,26 @@ export function PracticeClient({
           toast.error("Không thể chấm AI cho writing");
         }
       }
+      if (
+        !isGuestAttempt &&
+        q.type === "SPEAKING_PROMPT" &&
+        typeof ans === "string" &&
+        ans.trim().length >= 3
+      ) {
+        try {
+          await fetch("/api/ai/grade-speaking", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              questionId: q.id,
+              attemptId,
+              transcript: ans,
+            }),
+          });
+        } catch {
+          toast.error("Không thể chấm AI cho speaking");
+        }
+      }
     }
 
     setShowConfetti(true);
@@ -251,7 +271,7 @@ export function PracticeClient({
     hideMascot();
     router.refresh();
     router.push(`/results/${attemptId}`);
-  }, [attemptId, answers, startedAt, questions, router, paperKind, play, showMascot, hideMascot]);
+  }, [attemptId, answers, startedAt, questions, router, paperKind, play, showMascot, hideMascot, isGuestAttempt]);
 
   const current = questions[currentIndex];
   const currentSection = sections?.find(
@@ -264,6 +284,45 @@ export function PracticeClient({
     (isMockTest && paperKind === "MOCK_FULL" && !!sections?.length) ||
     (paperKind === "PLACEMENT" && !!sections && sections.length > 1);
   const firstUnansweredIndex = questions.findIndex((q) => !isAnswered(answers[q.id]));
+
+  const handleSpeakingTranscript = useCallback(
+    async (text: string, question: PaperQuestion) => {
+      if (!attemptId) return;
+
+      setAnswer(question.id, text, question);
+
+      if (isGuestAttempt) {
+        play("success");
+        toast.success("Đã lưu bài nói 🎤");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/ai/grade-speaking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            questionId: question.id,
+            attemptId,
+            transcript: text,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          const msg = err.error ?? "Không thể chấm speaking";
+          if (String(msg).toLowerCase().includes("hết")) notifyFreeLimitHit();
+          toast.error(`${msg} — câu trả lời đã được lưu.`);
+          return;
+        }
+        play("success");
+        showMascot(mascotSpeakingDoneMessage());
+        toast.success("Giỏi lắm! Đã gửi bài nói 🎤");
+      } catch {
+        toast.error("Không thể chấm speaking — câu trả lời đã được lưu.");
+      }
+    },
+    [attemptId, isGuestAttempt, play, setAnswer, showMascot]
+  );
 
   const handleSectionTimeUp = useCallback(() => {
     if (!sections?.length) {
@@ -438,32 +497,8 @@ export function PracticeClient({
                 value={answers[current.id]}
                 onChange={(v) => setAnswer(current.id, v, current)}
                 isListening={(current?.skill ?? currentSection?.skill) === "LISTENING"}
-                onSpeakingTranscript={async (text) => {
-                  if (!attemptId) return;
-                  try {
-                    const res = await fetch("/api/ai/grade-speaking", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        questionId: current.id,
-                        attemptId,
-                        transcript: text,
-                      }),
-                    });
-                    if (!res.ok) {
-                      const err = await res.json();
-                      const msg = err.error ?? "Không thể chấm speaking";
-                      if (String(msg).toLowerCase().includes("hết")) notifyFreeLimitHit();
-                      throw new Error(msg);
-                    }
-                    setAnswer(current.id, text, current);
-                    play("success");
-                    showMascot(mascotSpeakingDoneMessage());
-                    toast.success("Giỏi lắm! Đã gửi bài nói 🎤");
-                  } catch {
-                    toast.error("Không thể chấm speaking");
-                  }
-                }}
+                hideSpeakingScript={paperKind !== "PRACTICE"}
+                onSpeakingTranscript={(text) => handleSpeakingTranscript(text, current)}
                 disabled={submitting}
                 maxWritingWords={maxWritingWords}
                 maxSpeakingWords={maxSpeakingWords}

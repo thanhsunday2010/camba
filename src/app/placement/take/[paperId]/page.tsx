@@ -5,6 +5,8 @@ import { getCachedPlacementPaper } from "@/lib/exam/cached-practice";
 import { PracticeClient } from "@/components/exam/practice-client";
 import { parseSections } from "@/lib/exam/paper-sections";
 import { assignPlacementQuestionsForAttempt } from "@/lib/placement/select-questions";
+import { getUserPlanLimits } from "@/lib/subscription/service";
+import { PLANS } from "@/lib/subscription/plans";
 
 export const revalidate = 300;
 
@@ -72,6 +74,11 @@ export default async function PlacementTakePage({
 
   const sections = parseSections(paper.sections);
 
+  const planLimits =
+    attempt.userId && session
+      ? await getUserPlanLimits(session.user.id)
+      : PLANS.FREE.limits;
+
   return (
     <PracticeClient
       paperId={paper.id}
@@ -83,6 +90,8 @@ export default async function PlacementTakePage({
       questions={questions}
       initialAttemptId={attemptId}
       isGuestAttempt={!attempt.userId}
+      maxWritingWords={planLimits.writingWordLimit}
+      maxSpeakingWords={planLimits.speakingWordLimit}
     />
   );
 }

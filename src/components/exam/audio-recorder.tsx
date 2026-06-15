@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mic, Square, Upload, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,8 @@ interface AudioRecorderProps {
   /** Called with transcript from Web Speech API or manual input */
   onTranscript: (text: string) => void;
   disabled?: boolean;
-  /** Hide live transcript while recording (speaking test mode) */
-  hideTranscript?: boolean;
+  /** Hide live transcript preview while recording (speaking test mode) */
+  hideLiveTranscript?: boolean;
   maxWords?: number;
 }
 
@@ -61,24 +61,22 @@ async function requestMicrophoneAccess(): Promise<boolean> {
 export function AudioRecorder({
   onTranscript,
   disabled,
-  hideTranscript = false,
+  hideLiveTranscript = false,
   maxWords,
 }: AudioRecorderProps) {
   const [recording, setRecording] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [manualText, setManualText] = useState("");
   const [speechSupported, setSpeechSupported] = useState<boolean | null>(null);
-  const [showManualFallback, setShowManualFallback] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const finalTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
   const recordingRef = useRef(false);
 
-  const checkSupport = () => {
+  useEffect(() => {
     const supported = !!getSpeechRecognition();
     setSpeechSupported(supported);
-    return supported;
-  };
+  }, []);
 
   const collectTranscript = () =>
     (finalTranscriptRef.current + " " + interimTranscriptRef.current).trim();
@@ -87,7 +85,6 @@ export function AudioRecorder({
     const text = raw.trim();
     if (text.length < 3) {
       toast.error("Nói hoặc nhập ít nhất vài từ tiếng Anh nhé.");
-      setShowManualFallback(true);
       return;
     }
     onTranscript(maxWords ? trimToWordLimit(text, maxWords) : text);
@@ -139,7 +136,6 @@ export function AudioRecorder({
       setRecording(false);
       recognitionRef.current = null;
       setSpeechSupported(false);
-      setShowManualFallback(true);
       toast.error(speechErrorMessage(event.error));
     };
 
@@ -164,15 +160,13 @@ export function AudioRecorder({
     const SpeechRecognitionCtor = getSpeechRecognition();
     if (!SpeechRecognitionCtor) {
       setSpeechSupported(false);
-      setShowManualFallback(true);
-      toast.error("Trình duyệt không hỗ trợ nhận dạng giọng nói. Hãy dùng Chrome/Edge.");
+      toast.error("Trình duyệt không hỗ trợ nhận dạng giọng nói. Hãy dùng Chrome/Edge hoặc nhập transcript bên dưới.");
       return;
     }
 
     const micOk = await requestMicrophoneAccess();
     if (!micOk) {
       setSpeechSupported(false);
-      setShowManualFallback(true);
       toast.error(speechErrorMessage("not-allowed"));
       return;
     }
@@ -188,7 +182,7 @@ export function AudioRecorder({
   };
 
   const manualWordCount = countWords(manualText);
-  const showManual = !hideTranscript || showManualFallback || speechSupported === false;
+  const canUseSpeech = speechSupported !== false;
 
   return (
     <div className="space-y-4">
@@ -202,89 +196,78 @@ export function AudioRecorder({
         </div>
       )}
 
-      <div className="rounded-lg border bg-cambridge-50 p-4">
-        <p className="mb-2 text-sm font-medium text-cambridge-800">
-          Nhận dạng giọng nói miễn phí (Web Speech API)
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {!recording ? (
-            <Button
-              type="button"
-              onClick={() => {
-                if (speechSupported === null) checkSupport();
-                void startRecording();
-              }}
-              disabled={disabled}
-            >
-              <Mic className="h-4 w-4" />
-              Bắt đầu nói
-            </Button>
-          ) : (
-            <Button type="button" variant="destructive" onClick={stopRecording}>
-              <Square className="h-4 w-4" />
-              Dừng & gửi chấm
-            </Button>
-          )}
-          {hideTranscript && !showManualFallback && speechSupported !== false && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowManualFallback(true)}
-            >
-              Mic lỗi? Nhập tay
-            </Button>
-          )}
-        </div>
-
-        {(recording || liveTranscript) && !hideTranscript && (
-          <div className="mt-3 rounded-md bg-white p-3 text-sm">
-            <p className="mb-1 text-xs text-muted-foreground">
-              {recording ? "Đang nghe..." : "Transcript:"}
-            </p>
-            <p className="whitespace-pre-wrap">{liveTranscript || "..."}</p>
-          </div>
-        )}
-
-        {hideTranscript && recording && (
-          <p className="mt-3 text-sm font-medium text-purple-700">
-            🎙️ Đang ghi âm — hãy nói bằng tiếng Anh, rồi bấm Dừng & gửi chấm
+      {canUseSpeech && (
+        <div className="rounded-lg border bg-cambridge-50 p-4">
+          <p className="mb-2 text-sm font-medium text-cambridge-800">
+            Nhận dạng giọng nói miễn phí (Web Speech API)
           </p>
-        )}
-      </div>
+          <div className="flex flex-wrap gap-2">
+            {!recording ? (
+              <Button
+                type="button"
+                onClick={() => void startRecording()}
+                disabled={disabled}
+              >
+                <Mic className="h-4 w-4" />
+                Bắt đầu nói
+              </Button>
+            ) : (
+              <Button type="button" variant="destructive" onClick={stopRecording}>
+                <Square className="h-4 w-4" />
+                Dừng & gửi chấm
+              </Button>
+            )}
+          </div>
 
-      {showManual && (
-        <div className="space-y-2 rounded-lg border border-dashed p-4">
-          <Label className="flex items-center gap-2 text-muted-foreground">
-            <Upload className="h-4 w-4" />
-            {hideTranscript ? "Nhập transcript thủ công (nếu micro không hoạt động)" : "Hoặc nhập transcript thủ công"}
-          </Label>
-          <Textarea
-            placeholder="Type what you said in English..."
-            value={manualText}
-            onChange={(e) => {
-              const next = maxWords ? trimToWordLimit(e.target.value, maxWords) : e.target.value;
-              setManualText(next);
-            }}
-            rows={4}
-            disabled={disabled}
-          />
-          {maxWords && (
-            <p className="text-xs text-muted-foreground">
-              {manualWordCount}/{maxWords} từ (giới hạn gói)
+          {(recording || liveTranscript) && !hideLiveTranscript && (
+            <div className="mt-3 rounded-md bg-white p-3 text-sm">
+              <p className="mb-1 text-xs text-muted-foreground">
+                {recording ? "Đang nghe..." : "Transcript:"}
+              </p>
+              <p className="whitespace-pre-wrap">{liveTranscript || "..."}</p>
+            </div>
+          )}
+
+          {hideLiveTranscript && recording && (
+            <p className="mt-3 text-sm font-medium text-purple-700">
+              🎙️ Đang ghi âm — hãy nói bằng tiếng Anh, rồi bấm Dừng & gửi chấm
             </p>
           )}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={manualText.trim().length < 3 || disabled}
-            onClick={submitManual}
-          >
-            Gửi transcript
-          </Button>
         </div>
       )}
+
+      <div className="space-y-2 rounded-lg border border-dashed p-4">
+        <Label className="flex items-center gap-2 text-muted-foreground">
+          <Upload className="h-4 w-4" />
+          {hideLiveTranscript
+            ? "Nhập transcript thủ công (nếu micro không hoạt động)"
+            : "Hoặc nhập transcript thủ công"}
+        </Label>
+        <Textarea
+          placeholder="Type what you said in English..."
+          value={manualText}
+          onChange={(e) => {
+            const next = maxWords ? trimToWordLimit(e.target.value, maxWords) : e.target.value;
+            setManualText(next);
+          }}
+          rows={4}
+          disabled={disabled}
+        />
+        {maxWords != null && maxWords > 0 && (
+          <p className="text-xs text-muted-foreground">
+            {manualWordCount}/{maxWords} từ (giới hạn gói)
+          </p>
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={manualText.trim().length < 3 || disabled}
+          onClick={submitManual}
+        >
+          Gửi transcript
+        </Button>
+      </div>
     </div>
   );
 }
