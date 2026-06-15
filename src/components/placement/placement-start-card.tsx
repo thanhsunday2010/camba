@@ -11,6 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import { startPlacementAttemptAction } from "@/lib/actions/placement";
+import { notifyFreeLimitHit } from "@/lib/promo/events";
+import {
+  PLACEMENT_CARD_THEMES,
+  type PlacementCategoryTheme,
+} from "@/lib/placement/categories";
 
 interface PlacementStartCardProps {
   paper: {
@@ -19,9 +24,18 @@ interface PlacementStartCardProps {
     description: string | null;
     timeLimit: number | null;
   };
+  theme?: PlacementCategoryTheme;
+  placementRemaining?: number | null;
+  placementLimit?: number | null;
 }
 
-export function PlacementStartCard({ paper }: PlacementStartCardProps) {
+export function PlacementStartCard({
+  paper,
+  theme = "cambridge",
+  placementRemaining,
+  placementLimit,
+}: PlacementStartCardProps) {
+  const cardTheme = PLACEMENT_CARD_THEMES[theme];
   const router = useRouter();
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
@@ -37,6 +51,7 @@ export function PlacementStartCard({ paper }: PlacementStartCardProps) {
 
     if (res.error || !res.attemptId) {
       toast.error(res.error ?? "Không thể bắt đầu bài test");
+      if (res.error?.includes("hết")) notifyFreeLimitHit();
       return;
     }
 
@@ -48,11 +63,11 @@ export function PlacementStartCard({ paper }: PlacementStartCardProps) {
   }
 
   return (
-    <Card className="border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-white">
+    <Card className={cardTheme.cardClass}>
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-xl font-extrabold">{paper.title}</CardTitle>
-          <Badge className="bg-sky-500">Placement</Badge>
+          <Badge className={cardTheme.badgeClass}>Placement</Badge>
         </div>
         {paper.description && (
           <CardDescription className="font-medium">{paper.description}</CardDescription>
@@ -67,13 +82,32 @@ export function PlacementStartCard({ paper }: PlacementStartCardProps) {
         )}
 
         {isLoggedIn ? (
-          <Button
-            className="w-full kid-btn-fun"
-            disabled={loading}
-            onClick={() => begin()}
-          >
-            {loading ? "Đang mở..." : "Bắt đầu làm bài"}
-          </Button>
+          <>
+            {placementRemaining != null && placementLimit != null && (
+              <p className="text-sm font-semibold text-muted-foreground">
+                Còn {placementRemaining}/{placementLimit} lượt hôm nay
+              </p>
+            )}
+            <Button
+              className="w-full kid-btn-fun"
+              disabled={loading || placementRemaining === 0}
+              onClick={() => begin()}
+            >
+              {loading
+                ? "Đang mở..."
+                : placementRemaining === 0
+                  ? "Đã hết lượt hôm nay"
+                  : "Bắt đầu làm bài"}
+            </Button>
+            {placementRemaining === 0 && (
+              <p className="text-center text-xs font-medium text-muted-foreground">
+                <a href="/pricing" className="font-bold text-purple-600 underline">
+                  Nâng cấp gói
+                </a>{" "}
+                để làm thêm placement
+              </p>
+            )}
+          </>
         ) : showGuestForm ? (
           <div className="space-y-3 rounded-xl border-2 border-purple-100 bg-white p-4">
             <p className="text-sm font-bold text-purple-800">

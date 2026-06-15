@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminNav } from "@/components/admin/admin-nav";
 import type { PlacementReport } from "@/lib/placement/evaluate";
+import { computePlacementShields } from "@/lib/placement/evaluate";
 
 interface PlacementAttemptRow {
   id: string;
@@ -53,6 +54,7 @@ export function AdminPlacementClient({
                 <th className="px-4 py-3 font-semibold">Điểm</th>
                 <th className="px-4 py-3 font-semibold">CEFR</th>
                 <th className="px-4 py-3 font-semibold">Cambridge</th>
+                <th className="px-4 py-3 font-semibold">Khiên / Band</th>
                 <th className="px-4 py-3 font-semibold">Thời gian</th>
                 <th className="px-4 py-3 font-semibold"></th>
               </tr>
@@ -81,8 +83,32 @@ export function AdminPlacementClient({
                     <td className="px-4 py-3">
                       {pct !== null ? `${pct}%` : "—"}
                     </td>
-                    <td className="px-4 py-3">{a.placementReport?.cefrLevel ?? "—"}</td>
-                    <td className="px-4 py-3">{a.placementReport?.cambridgeLevel ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      {a.placementReport?.cefrLevel ?? "—"}
+                      {a.placementReport?.track === "ADULT" && a.placementReport.cefrSubLevelLabel
+                        ? ` (${a.placementReport.cefrSubLevelLabel})`
+                        : ""}
+                    </td>
+                    <td className="px-4 py-3">
+                      {a.placementReport?.track === "ADULT" ||
+                      a.placementReport?.track === "IELTS"
+                        ? "—"
+                        : (a.placementReport?.cambridgeLevel ?? "—")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {a.placementReport?.track === "IELTS"
+                        ? (a.placementReport.ieltsBand ?? "—")
+                        : a.placementReport &&
+                            (a.placementReport.track === "YLE" ||
+                              a.placementReport.track === "SECONDARY")
+                          ? (() => {
+                              const { total, max } = computePlacementShields(
+                                a.placementReport.skills
+                              );
+                              return `${total}/${max}`;
+                            })()
+                          : "—"}
+                    </td>
                     <td className="px-4 py-3">
                       {a.submittedAt
                         ? new Date(a.submittedAt).toLocaleString("vi-VN")

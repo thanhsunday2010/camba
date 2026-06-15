@@ -5,6 +5,8 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
+import { assignPlacementQuestionsForAttempt } from "@/lib/placement/select-questions";
+import { canStartPlacementAttempt } from "@/lib/subscription/placement-limit";
 import { PaperKind } from "@prisma/client";
 
 const guestSchema = z.object({
@@ -37,6 +39,7 @@ export async function startPlacementAttemptAction(
     });
 
     if (existing) {
+      await assignPlacementQuestionsForAttempt(db, existing.id);
       const savedAnswers: Record<string, unknown> = {};
       for (const a of existing.answers) {
         savedAnswers[a.questionId] = a.answer;
@@ -48,6 +51,11 @@ export async function startPlacementAttemptAction(
       };
     }
 
+    const limitCheck = await canStartPlacementAttempt(session.user.id);
+    if (!limitCheck.ok) {
+      return { error: limitCheck.error };
+    }
+
     const attempt = await db.attempt.create({
       data: {
         userId: session.user.id,
@@ -55,6 +63,8 @@ export async function startPlacementAttemptAction(
         status: "IN_PROGRESS",
       },
     });
+
+    await assignPlacementQuestionsForAttempt(db, attempt.id);
 
     await updateUserStreak(session.user.id);
     return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
@@ -77,6 +87,8 @@ export async function startPlacementAttemptAction(
       status: "IN_PROGRESS",
     },
   });
+
+  await assignPlacementQuestionsForAttempt(db, attempt.id);
 
   return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
 }

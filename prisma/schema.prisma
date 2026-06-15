@@ -189,22 +189,28 @@ model Question {
   points        Int          @default(1)
   orderIndex    Int          @default(0)
   audioUrl      String?
+  placementSlug String?
+  placementPool String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  paperQuestions PaperQuestion[]
+  paperQuestions  PaperQuestion[]
+  attemptQuestions AttemptQuestion[]
   answers        AttemptAnswer[]
   aiFeedbacks    AIFeedback[]
+
+  @@index([placementSlug, placementPool])
 }
 
 model ExamPaper {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  level       ExamLevel
-  skill       Skill
-  paperKind   PaperKind @default(PRACTICE)
-  sections    Json?
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  level         ExamLevel
+  skill         Skill
+  paperKind     PaperKind @default(PRACTICE)
+  placementSlug String?   @unique
+  sections      Json?
   timeLimit   Int?
   isMockTest  Boolean   @default(false)
   published   Boolean   @default(true)
@@ -244,9 +250,23 @@ model Attempt {
   gamificationProcessed Boolean @default(false)
   gamificationSnapshot  Json?
 
-  user    User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  paper   ExamPaper       @relation(fields: [paperId], references: [id], onDelete: Cascade)
-  answers AttemptAnswer[]
+  user             User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paper            ExamPaper         @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  answers          AttemptAnswer[]
+  attemptQuestions AttemptQuestion[]
+}
+
+model AttemptQuestion {
+  id         String @id @default(cuid())
+  attemptId  String
+  questionId String
+  orderIndex Int    @default(0)
+
+  attempt  Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
 }
 
 model AttemptAnswer {

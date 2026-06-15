@@ -330,6 +330,10 @@ export async function submitAttemptAction(
           },
         },
       },
+      attemptQuestions: {
+        include: { question: true },
+        orderBy: { orderIndex: "asc" },
+      },
     },
   });
 
@@ -350,8 +354,13 @@ export async function submitAttemptAction(
   const needsAI: string[] = [];
   const skillStats = new Map<Skill, { correct: number; total: number }>();
 
-  for (const pq of attempt.paper.questions) {
-    const q = pq.question;
+  const questionRows =
+    attempt.paper.paperKind === PaperKind.PLACEMENT &&
+    attempt.attemptQuestions.length > 0
+      ? attempt.attemptQuestions.map((aq) => aq.question)
+      : attempt.paper.questions.map((pq) => pq.question);
+
+  for (const q of questionRows) {
     const studentAnswer = answers[q.id];
     maxScore += q.points;
 

@@ -9,8 +9,26 @@ function dbHostHint(url: string | undefined): string {
   return match?.[1] ?? "unknown";
 }
 
+function dbUrlDiagnostics(url: string | undefined) {
+  if (!url) {
+    return { present: false as const };
+  }
+  const trimmed = url.trim();
+  return {
+    present: true as const,
+    startsWithPostgresql: trimmed.startsWith("postgresql://"),
+    hasLeadingQuote: trimmed.startsWith('"') || trimmed.startsWith("'"),
+    hasTrailingQuote: trimmed.endsWith('"') || trimmed.endsWith("'"),
+    hasWhitespace: trimmed !== url,
+    hasPgbouncer: trimmed.includes("pgbouncer=true"),
+    usesPoolerHost: trimmed.includes(".pooler.supabase.com"),
+    usesPoolerPort: trimmed.includes(":6543"),
+  };
+}
+
 export async function GET() {
   const databaseUrl = process.env.DATABASE_URL;
+  const urlCheck = dbUrlDiagnostics(databaseUrl);
   const env = {
     databaseHost: dbHostHint(databaseUrl),
     databasePort: databaseUrl?.includes(":6543")
@@ -23,6 +41,7 @@ export async function GET() {
     hasAuthSecret: Boolean(process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET),
     nextAuthUrl: process.env.NEXTAUTH_URL ?? process.env.AUTH_URL ?? null,
     vercelUrl: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    urlCheck,
   };
 
   try {

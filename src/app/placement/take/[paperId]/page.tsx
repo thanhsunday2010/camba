@@ -4,8 +4,19 @@ import { db } from "@/lib/db";
 import { getCachedPlacementPaper } from "@/lib/exam/cached-practice";
 import { PracticeClient } from "@/components/exam/practice-client";
 import { parseSections } from "@/lib/exam/paper-sections";
+import { assignPlacementQuestionsForAttempt } from "@/lib/placement/select-questions";
 
 export const revalidate = 300;
+
+const questionSelect = {
+  id: true,
+  type: true,
+  content: true,
+  audioUrl: true,
+  points: true,
+  skill: true,
+  title: true,
+} as const;
 
 export default async function PlacementTakePage({
   params,
@@ -41,14 +52,22 @@ export default async function PlacementTakePage({
     }
   }
 
-  const questions = paper.questions.map((pq) => ({
-    id: pq.question.id,
-    type: pq.question.type,
-    content: pq.question.content,
-    audioUrl: pq.question.audioUrl,
-    points: pq.question.points,
-    skill: pq.question.skill,
-    title: pq.question.title,
+  await assignPlacementQuestionsForAttempt(db, attemptId);
+
+  const attemptQuestions = await db.attemptQuestion.findMany({
+    where: { attemptId },
+    orderBy: { orderIndex: "asc" },
+    select: { question: { select: questionSelect } },
+  });
+
+  const questions = attemptQuestions.map((aq) => ({
+    id: aq.question.id,
+    type: aq.question.type,
+    content: aq.question.content,
+    audioUrl: aq.question.audioUrl,
+    points: aq.question.points,
+    skill: aq.question.skill,
+    title: aq.question.title,
   }));
 
   const sections = parseSections(paper.sections);

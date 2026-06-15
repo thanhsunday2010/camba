@@ -78,7 +78,7 @@ export function MascotToastProvider({
         mood: normalized.mood ?? "happy",
         confetti: normalized.confetti,
       });
-      play(normalized.confetti ? "celebrate" : "pop");
+      play(normalized.confetti ? "celebrate" : "success");
 
       if (!normalized.persist) {
         hideTimerRef.current = setTimeout(() => {
@@ -107,22 +107,29 @@ export function MascotToastProvider({
         <>
           <ConfettiBurst active={Boolean(toast.confetti)} />
           <div
-            className="pointer-events-none fixed bottom-4 right-4 z-[110] flex flex-col items-end gap-2 animate-bounce-in md:bottom-6 md:right-6"
+            className="pointer-events-none fixed inset-0 z-[110] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px]"
             role="status"
             aria-live="polite"
           >
-            <div className="max-w-[260px] rounded-2xl rounded-br-sm border-2 border-purple-200 bg-white px-4 py-3 shadow-xl md:max-w-[300px]">
-              <p className="text-base font-bold leading-snug text-purple-900">{toast.message}</p>
-              {toast.subtitle && (
-                <p className="mt-1 text-sm font-medium text-purple-700/90">{toast.subtitle}</p>
-              )}
-            </div>
-            <div
-              className={cn(
-                "rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-1 shadow-lg ring-2 ring-purple-200"
-              )}
-            >
-              <CambaMascot size="md" mood={toast.mood} />
+            <div className="flex max-w-md flex-col items-center gap-4 animate-bounce-in text-center">
+              <div
+                className={cn(
+                  "rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-2 shadow-xl ring-4 ring-white/80"
+                )}
+              >
+                <CambaMascot size="xl" mood={toast.mood} />
+              </div>
+              <div className="relative w-full rounded-3xl border-2 border-purple-200 bg-white px-5 py-4 shadow-2xl">
+                <p className="text-lg font-extrabold leading-snug text-purple-900 md:text-xl">
+                  {toast.message}
+                </p>
+                {toast.subtitle && (
+                  <p className="mt-2 text-sm font-semibold text-purple-700/90 md:text-base">
+                    {toast.subtitle}
+                  </p>
+                )}
+                <span className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-l-2 border-t-2 border-purple-200 bg-white" />
+              </div>
             </div>
           </div>
         </>

@@ -18,14 +18,17 @@ async function main() {
 
   const papers = await db.examPaper.findMany({
     where: { paperKind: "PLACEMENT", published: true },
-    select: { title: true, timeLimit: true, _count: { select: { questions: true } } },
+    select: { title: true, timeLimit: true, placementSlug: true },
     orderBy: { title: "asc" },
   });
 
   console.log("\nHoàn tất:");
   for (const paper of papers) {
+    const bankCount = paper.placementSlug
+      ? await db.question.count({ where: { placementSlug: paper.placementSlug } })
+      : 0;
     console.log(
-      `  • ${paper.title} — ${paper._count.questions} câu · ${(paper.timeLimit ?? 0) / 60} phút`
+      `  • ${paper.title} — bank ${bankCount} câu · ${(paper.timeLimit ?? 0) / 60} phút/lượt`
     );
   }
 }

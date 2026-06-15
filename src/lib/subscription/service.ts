@@ -5,6 +5,7 @@ import {
   type AiGradingSkill,
   type PlanId,
 } from "@/lib/subscription/plans";
+import { getPlacementDailySnapshot } from "@/lib/subscription/placement-limit";
 
 function startOfToday(): Date {
   const d = new Date();
@@ -73,9 +74,10 @@ export async function getOrCreateDailyUsage(userId: string) {
 }
 
 export async function getDailyUsageSnapshot(userId: string) {
-  const [usage, planId] = await Promise.all([
+  const [usage, planId, placement] = await Promise.all([
     getOrCreateDailyUsage(userId),
     getUserPlanId(userId),
+    getPlacementDailySnapshot(userId),
   ]);
   const plan = getPlan(planId);
   const limits = plan.limits;
@@ -86,6 +88,9 @@ export async function getDailyUsageSnapshot(userId: string) {
     planName: plan.name,
     practiceCount: usage.practiceCount,
     practiceLimit: limits.dailyPracticeQuestions,
+    placementCount: placement.used,
+    placementLimit: placement.limit,
+    placementRemaining: placement.remaining,
     aiGradingCount,
     aiGradingLimit: limits.dailyAiGrading,
     writingAiGradingCount: usage.writingAiGradingCount,

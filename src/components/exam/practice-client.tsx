@@ -15,6 +15,8 @@ import {
 import { startAttemptAction, submitAttemptAction } from "@/lib/actions/exam";
 import { QuestionType } from "@prisma/client";
 import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
+import { getSectionForIndex } from "@/lib/exam/paper-sections";
+import { formatDuration } from "@/lib/constants";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import {
   mascotGradingWaitMessage,
@@ -259,6 +261,37 @@ export function PracticeClient({
     router.push(`/results/${attemptId}`);
   }, [attemptId, answers, startedAt, questions, router, paperKind, play, showMascot, hideMascot]);
 
+  const current = questions[currentIndex];
+  const currentSection = sections?.find(
+    (s) => currentIndex >= s.startIndex && currentIndex < s.endIndex
+  );
+  const answeredCount = questions.filter((q) => isAnswered(answers[q.id])).length;
+  const progressPct = Math.round((answeredCount / questions.length) * 100);
+  const strictSequential = isMockTest && paperKind !== "PLACEMENT";
+  const useSectionTimer =
+    (isMockTest && paperKind === "MOCK_FULL" && !!sections?.length) ||
+    (paperKind === "PLACEMENT" && !!sections && sections.length > 1);
+  const firstUnansweredIndex = questions.findIndex((q) => !isAnswered(answers[q.id]));
+
+  const handleSectionTimeUp = useCallback(() => {
+    if (!sections?.length) {
+      void handleSubmit();
+      return;
+    }
+    const secIdx = sections.findIndex(
+      (s) => currentIndex >= s.startIndex && currentIndex < s.endIndex
+    );
+    if (secIdx >= 0 && secIdx < sections.length - 1) {
+      const next = sections[secIdx + 1];
+      toast.info(`Hết giờ ${sections[secIdx].label}. Chuyển sang ${next.label}.`);
+      stopAllListeningPlayback();
+      play("whoosh");
+      setCurrentIndex(next.startIndex);
+      return;
+    }
+    void handleSubmit();
+  }, [sections, currentIndex, handleSubmit, play]);
+
   const goNext = () => {
     stopAllListeningPlayback();
     play("whoosh");
@@ -267,18 +300,19 @@ export function PracticeClient({
 
   const goPrev = () => {
     stopAllListeningPlayback();
+    if (useSectionTimer && sections && currentSection) {
+      const prevIndex = currentIndex - 1;
+      if (prevIndex >= 0) {
+        const prevSec = getSectionForIndex(sections, prevIndex);
+        if (prevSec && prevSec.startIndex !== currentSection.startIndex) {
+          toast.error("Không thể quay lại phần thi trước.");
+          return;
+        }
+      }
+    }
     play("click");
     setCurrentIndex((i) => Math.max(i - 1, 0));
   };
-
-  const current = questions[currentIndex];
-  const currentSection = sections?.find(
-    (s) => currentIndex >= s.startIndex && currentIndex < s.endIndex
-  );
-  const answeredCount = questions.filter((q) => isAnswered(answers[q.id])).length;
-  const progressPct = Math.round((answeredCount / questions.length) * 100);
-  const strictSequential = isMockTest && paperKind !== "PLACEMENT";
-  const firstUnansweredIndex = questions.findIndex((q) => !isAnswered(answers[q.id]));
 
   const jumpToQuestion = (index: number) => {
     stopAllListeningPlayback();
@@ -303,7 +337,19 @@ export function PracticeClient({
           để làm hoặc sửa câu đã bỏ qua.
         </div>
       )}
-      {isMockTest && paperKind !== "PLACEMENT" && (
+      {paperKind === "PLACEMENT" && useSectionTimer && (
+        <div className="mb-4 rounded-2xl border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-violet-50 px-4 py-3 text-sm font-semibold text-indigo-900">
+          📋 <strong>Placement nhiều phần:</strong> Mỗi phần có thời gian riêng (theo format thi
+          thật). Hết giờ sẽ chuyển phần tiếp theo.
+        </div>
+      )}
+      {isMockTest && paperKind === "MOCK_FULL" && (
+        <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 text-sm font-semibold text-amber-900">
+          🏆 <strong>Full mock Cambridge:</strong> Mỗi phần thi có thời gian riêng. Hết giờ phần
+          này sẽ chuyển sang phần tiếp theo — không quay lại phần đã qua.
+        </div>
+      )}
+      {isMockTest && paperKind !== "PLACEMENT" && paperKind !== "MOCK_FULL" && (
         <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 text-sm font-semibold text-amber-900">
           ⏰ <strong>Chế độ thi thử:</strong> Làm tuần tự từng câu nhé!
         </div>
@@ -317,6 +363,11 @@ export function PracticeClient({
               {SECTION_EMOJI[currentSection.skill] ?? "📌"} Phần: {currentSection.label}
             </p>
           )}
+          {useSectionTimer && currentSection?.timeLimit && (
+            <p className="mt-1 text-xs font-bold text-amber-800">
+              ⏱ Phần này: {formatDuration(currentSection.timeLimit)}
+            </p>
+          )}
           <p className="text-sm font-semibold text-muted-foreground">
             Câu {currentIndex + 1}/{questions.length} · Đã trả lời {answeredCount} câu
           </p>
@@ -327,7 +378,12 @@ export function PracticeClient({
             />
           </div>
         </div>
-        <ExamTimer timeLimit={timeLimit} onTimeUp={handleSubmit} startedAt={startedAt} />
+        <ExamTimer
+          key={useSectionTimer ? `sec-${currentSection?.startIndex ?? 0}` : "global"}
+          timeLimit={useSectionTimer ? currentSection?.timeLimit : timeLimit}
+          onTimeUp={useSectionTimer ? handleSectionTimeUp : handleSubmit}
+          startedAt={useSectionTimer ? undefined : startedAt}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-4">
@@ -389,7 +445,7 @@ export function PracticeClient({
                 index={currentIndex}
                 value={answers[current.id]}
                 onChange={(v) => setAnswer(current.id, v, current)}
-                isListening={currentSection?.skill === "LISTENING"}
+                isListening={(current?.skill ?? currentSection?.skill) === "LISTENING"}
                 onSpeakingTranscript={async (text) => {
                   if (!attemptId) return;
                   try {

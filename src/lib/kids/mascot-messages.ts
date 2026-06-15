@@ -1,4 +1,5 @@
 import type { MascotMood } from "@/components/kids/camba-mascot";
+import type { PlacementTrack } from "@/lib/placement/evaluate";
 
 export type MascotToastPayload = {
   message: string;
@@ -83,11 +84,24 @@ export function mascotScoreMessage(percent: number, userName?: string): MascotTo
 
 export function mascotPlacementResultMessage(
   recommendedLevel: string,
-  userName?: string
+  userName?: string,
+  options?: { track?: PlacementTrack; cefrSubLevelLabel?: string; ieltsBand?: string }
 ): MascotToastPayload {
   const name = userName ?? "Bạn";
+  const levelLabel =
+    options?.track === "IELTS" && options.ieltsBand
+      ? `IELTS band ${options.ieltsBand}`
+      : options?.track === "ADULT" && options.cefrSubLevelLabel
+        ? `${recommendedLevel} (${options.cefrSubLevelLabel})`
+        : recommendedLevel;
+  const suffix =
+    options?.track === "ADULT"
+      ? "Xem gợi ý lộ trình CEFR bên dưới nhé 🎯"
+      : options?.track === "IELTS"
+        ? "Xem gợi ý luyện IELTS bên dưới nhé 🎯"
+        : "Bắt đầu luyện từ đó nhé 🎯";
   return {
-    message: `${name} phù hợp level ${recommendedLevel}! Bắt đầu luyện từ đó nhé 🎯`,
+    message: `${name} — mức ${levelLabel}! ${suffix}`,
     mood: "cheer",
   };
 }

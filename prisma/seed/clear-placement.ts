@@ -19,7 +19,6 @@ export async function deletePlacementPapers(
 
   const toDelete = all.filter((paper) => {
     const title = paper.title;
-    // Không bao giờ xóa đề placement hiện hành (title bắt đầu bằng Camba Placement —)
     if (title.startsWith(PLACEMENT_TITLE_PREFIX)) return false;
     if (opts.titleExcludes?.some((ex) => title.includes(ex))) return false;
     if (!opts.titleIncludes?.length) return true;
@@ -73,34 +72,32 @@ export async function pruneLegacyPlacementPapers(db: PrismaClient) {
 export async function clearAllPlacementTests(db: PrismaClient) {
   const papers = await db.examPaper.findMany({
     where: { paperKind: PaperKind.PLACEMENT },
-    include: { questions: { select: { questionId: true } } },
+    select: { id: true },
   });
 
   if (papers.length === 0) {
-    console.log("Không có đề placement nào trong DB.");
-    return { papers: 0, questions: 0 };
+    const bankOnly = await db.question.deleteMany({
+      where: { placementSlug: { not: null } },
+    });
+    if (bankOnly.count > 0) {
+      console.log(`Đã xóa ${bankOnly.count} câu placement bank (không còn đề).`);
+    } else {
+      console.log("Không có đề placement nào trong DB.");
+    }
+    return { papers: 0, questions: bankOnly.count };
   }
 
-  const questionIds = [
-    ...new Set(papers.flatMap((p) => p.questions.map((pq) => pq.questionId))),
-  ];
-
-  const deleted = await db.examPaper.deleteMany({
+  const deletedPapers = await db.examPaper.deleteMany({
     where: { paperKind: PaperKind.PLACEMENT },
   });
 
-  let removedQuestions = 0;
-  for (const questionId of questionIds) {
-    const stillUsed = await db.paperQuestion.count({ where: { questionId } });
-    if (stillUsed === 0) {
-      await db.question.delete({ where: { id: questionId } });
-      removedQuestions++;
-    }
-  }
+  const deletedBank = await db.question.deleteMany({
+    where: { placementSlug: { not: null } },
+  });
 
   console.log(
-    `Đã xóa ${deleted.count} đề placement và ${removedQuestions} câu hỏi (kèm mọi attempt liên quan).`
+    `Đã xóa ${deletedPapers.count} đề placement, ${deletedBank.count} câu bank (kèm mọi attempt liên quan).`
   );
 
-  return { papers: deleted.count, questions: removedQuestions };
+  return { papers: deletedPapers.count, questions: deletedBank.count };
 }

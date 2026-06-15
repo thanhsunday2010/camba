@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { PlacementReport } from "@/lib/placement/evaluate";
+import { computePlacementShields } from "@/lib/placement/evaluate";
 import { formatSkill } from "@/lib/constants";
 import { Award, BookOpen, Target } from "lucide-react";
+import { PlacementShields } from "@/components/placement/placement-shields";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotPlacementResultMessage } from "@/lib/kids/mascot-messages";
 import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
@@ -19,6 +21,8 @@ const SKILL_LABELS: Record<string, string> = {
   READING: "Reading",
   LISTENING: "Listening",
   USE_OF_ENGLISH: "Use of English",
+  WRITING: "Writing",
+  SPEAKING: "Speaking",
 };
 
 interface PlacementResultsClientProps {
@@ -43,6 +47,10 @@ export function PlacementResultsClient({
   gamification,
 }: PlacementResultsClientProps) {
   const report = attempt.placementReport;
+  const shields =
+    report && (report.track === "YLE" || report.track === "SECONDARY")
+      ? computePlacementShields(report.skills)
+      : undefined;
   const { showMascot } = useMascotToast();
   const mascotShownRef = useRef(false);
   const pct =
@@ -60,8 +68,17 @@ export function PlacementResultsClient({
         setTimeout(() => {
           showMascot(
             mascotPlacementResultMessage(
-              report.cambridgeLevel,
-              attempt.displayName ?? attempt.guestFullName ?? undefined
+              report.track === "ADULT"
+                ? report.cefrLevel
+                : report.track === "IELTS"
+                  ? (report.ieltsBand ?? report.cefrLevel)
+                  : report.cambridgeLevel,
+              attempt.displayName ?? attempt.guestFullName ?? undefined,
+              {
+                track: report.track,
+                cefrSubLevelLabel: report.cefrSubLevelLabel,
+                ieltsBand: report.ieltsBand,
+              }
             )
           );
         }, 4500);
@@ -72,8 +89,17 @@ export function PlacementResultsClient({
     if (!report) return;
     showMascot(
       mascotPlacementResultMessage(
-        report.cambridgeLevel,
-        attempt.displayName ?? attempt.guestFullName ?? undefined
+        report.track === "ADULT"
+          ? report.cefrLevel
+          : report.track === "IELTS"
+            ? (report.ieltsBand ?? report.cefrLevel)
+            : report.cambridgeLevel,
+        attempt.displayName ?? attempt.guestFullName ?? undefined,
+        {
+          track: report.track,
+          cefrSubLevelLabel: report.cefrSubLevelLabel,
+          ieltsBand: report.ieltsBand,
+        }
       )
     );
   }, [report, showMascot, gamification, attempt.displayName, attempt.guestFullName]);
@@ -117,17 +143,55 @@ export function PlacementResultsClient({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          {report.track === "ADULT" ? (
             <div className="rounded-xl border-2 bg-white p-4">
               <p className="text-sm font-semibold text-muted-foreground">CEFR</p>
               <p className="text-2xl font-extrabold text-purple-700">{report.cefrLevel}</p>
+              {report.cefrSubLevelLabel && (
+                <p className="mt-1 text-sm font-bold text-purple-600">
+                  Vị trí trong level: {report.cefrSubLevelLabel}
+                </p>
+              )}
             </div>
-            <div className="rounded-xl border-2 bg-white p-4">
-              <p className="text-sm font-semibold text-muted-foreground">Cambridge English</p>
-              <p className="text-2xl font-extrabold text-purple-700">{report.cambridgeLevel}</p>
-              <p className="text-sm font-medium text-muted-foreground">{report.cambridgeExam}</p>
+          ) : report.track === "IELTS" ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-xl border-2 bg-white p-4">
+                <p className="text-sm font-semibold text-muted-foreground">IELTS (ước lượng)</p>
+                <p className="text-2xl font-extrabold text-purple-700">
+                  Band {report.ieltsBand ?? "—"}
+                </p>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">
+                  Dựa trên 4 kỹ năng (Listening, Reading, Writing, Speaking)
+                </p>
+              </div>
+              <div className="rounded-xl border-2 bg-white p-4">
+                <p className="text-sm font-semibold text-muted-foreground">CEFR tương đương</p>
+                <p className="text-2xl font-extrabold text-purple-700">{report.cefrLevel}</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border-2 bg-white p-4">
+                  <p className="text-sm font-semibold text-muted-foreground">CEFR</p>
+                  <p className="text-2xl font-extrabold text-purple-700">{report.cefrLevel}</p>
+                </div>
+                <div className="rounded-xl border-2 bg-white p-4">
+                  <p className="text-sm font-semibold text-muted-foreground">Cambridge English</p>
+                  <p className="text-2xl font-extrabold text-purple-700">{report.cambridgeLevel}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{report.cambridgeExam}</p>
+                </div>
+              </div>
+              {shields && (
+                <PlacementShields
+                  count={shields.total}
+                  max={shields.max}
+                  bySkill={shields.bySkill}
+                  track={report.track === "YLE" ? "YLE" : "SECONDARY"}
+                />
+              )}
+            </>
+          )}
           <p className="text-sm font-medium leading-relaxed">{report.summary}</p>
           {pct !== null && (
             <p className="text-sm font-bold">

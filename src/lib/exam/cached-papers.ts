@@ -43,6 +43,7 @@ export async function getPublishedPlacementPapers() {
           title: true,
           description: true,
           timeLimit: true,
+          placementSlug: true,
         },
         orderBy: { title: "asc" },
       }),

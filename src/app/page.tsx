@@ -28,13 +28,10 @@ export default function HomePage() {
           <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="text-center lg:text-left">
               <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl lg:leading-tight">
-                Camba chào bạn!
-                <br />
-                <span className="text-yellow-200">Cùng Camba học giỏi nhé!</span>
+                Giỏi Tiếng Anh cùng Camba!
               </h1>
               <p className="mt-6 max-w-xl text-lg font-semibold text-white/90 md:text-xl lg:mx-0 lg:mt-8">
-                Luyện Starters, Movers, Flyers, KET, PET, FCE với màu sắc, âm thanh và AI chấm
-                bài thông minh — dành riêng cho bạn!
+                App học Tiếng Anh miễn phí có AI chấm sửa.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-4 lg:justify-start">
                 <HomeHeroCtas />
@@ -52,7 +49,7 @@ export default function HomePage() {
             </div>
             <div className="flex justify-center lg:justify-end">
               <MascotHero
-                message="Mình là Camba 🐰 — thỏ thông minh cùng bạn chinh phục tiếng Anh Cambridge!"
+                message="Mình là Camba - Thỏ thông minh sẽ đồng hành cùng Bạn nhé!"
                 mood="wave"
               />
             </div>

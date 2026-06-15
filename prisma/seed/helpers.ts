@@ -8,11 +8,16 @@ import {
 } from "@prisma/client";
 import type { PaperSection } from "../../src/lib/exam/paper-sections";
 import {
+  cambridgeMockDescription,
+  cambridgeMockTotalSeconds,
+  getCambridgeMockFormat,
+  validateMockContentPools,
+} from "../../src/lib/exam/cambridge-mock-formats";
+import {
   getPlacementTests,
-  PLACEMENT_SECTION_COUNTS,
-  PLACEMENT_TIME_SECONDS,
-  PLACEMENT_TOTAL_QUESTIONS,
 } from "./placement-content";
+import { PLACEMENT_SLUG_BY_TITLE } from "../../src/lib/placement/placement-config";
+import { poolCountForTest, seedPlacementQuestionBank } from "./placement-bank";
 
 export type McqSeed = {
   title: string;
@@ -60,11 +65,17 @@ export type SpeakingSeed = {
   speakingTime?: number;
 };
 
+export type QuestionBankMeta = {
+  placementSlug: string;
+  placementPool: string;
+};
+
 export async function createMcqs(
   db: PrismaClient,
   level: ExamLevel,
   skill: Skill,
-  items: McqSeed[]
+  items: McqSeed[],
+  bank?: QuestionBankMeta
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -87,6 +98,8 @@ export async function createMcqs(
         correctAnswer: item.answer,
         points: 1,
         orderIndex: i,
+        placementSlug: bank?.placementSlug,
+        placementPool: bank?.placementPool,
       },
     });
     ids.push(q.id);
@@ -97,7 +110,8 @@ export async function createMcqs(
 export async function createGaps(
   db: PrismaClient,
   level: ExamLevel,
-  items: GapSeed[]
+  items: GapSeed[],
+  bank?: QuestionBankMeta
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -115,6 +129,8 @@ export async function createGaps(
         correctAnswer: item.answer,
         points: 1,
         orderIndex: i,
+        placementSlug: bank?.placementSlug,
+        placementPool: bank?.placementPool,
       },
     });
     ids.push(q.id);
@@ -125,7 +141,8 @@ export async function createGaps(
 export async function createWritings(
   db: PrismaClient,
   level: ExamLevel,
-  items: WritingSeed[]
+  items: WritingSeed[],
+  bank?: QuestionBankMeta
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -143,6 +160,8 @@ export async function createWritings(
         },
         points: 10,
         orderIndex: i,
+        placementSlug: bank?.placementSlug,
+        placementPool: bank?.placementPool,
       },
     });
     ids.push(q.id);
@@ -154,7 +173,8 @@ export async function createListenings(
   db: PrismaClient,
   level: ExamLevel,
   items: ListeningSeed[],
-  startIndex = 0
+  startIndex = 0,
+  bank?: QuestionBankMeta
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -180,6 +200,8 @@ export async function createListenings(
         correctAnswer: item.answer,
         points: 1,
         orderIndex: startIndex + i,
+        placementSlug: bank?.placementSlug,
+        placementPool: bank?.placementPool,
       },
     });
     ids.push(q.id);
@@ -190,7 +212,8 @@ export async function createListenings(
 export async function createSpeakings(
   db: PrismaClient,
   level: ExamLevel,
-  items: SpeakingSeed[]
+  items: SpeakingSeed[],
+  bank?: QuestionBankMeta
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -208,6 +231,8 @@ export async function createSpeakings(
         },
         points: 10,
         orderIndex: i,
+        placementSlug: bank?.placementSlug,
+        placementPool: bank?.placementPool,
       },
     });
     ids.push(q.id);
@@ -221,6 +246,7 @@ type PaperOpts = {
   isMockTest?: boolean;
   paperKind?: PaperKind;
   sections?: PaperSection[];
+  placementSlug?: string;
 };
 
 export async function createPaper(
@@ -240,16 +266,21 @@ export async function createPaper(
       timeLimit: opts.timeLimit,
       isMockTest: opts.isMockTest ?? false,
       paperKind: opts.paperKind ?? PaperKind.PRACTICE,
+      placementSlug: opts.placementSlug,
       sections: opts.sections
         ? (opts.sections as unknown as Prisma.InputJsonValue)
         : undefined,
       published: true,
-      questions: {
-        create: questionIds.map((questionId, orderIndex) => ({
-          questionId,
-          orderIndex,
-        })),
-      },
+      ...(questionIds.length > 0
+        ? {
+            questions: {
+              create: questionIds.map((questionId, orderIndex) => ({
+                questionId,
+                orderIndex,
+              })),
+            },
+          }
+        : {}),
     },
   });
 }
@@ -390,138 +421,157 @@ export async function seedBulkLevel(
     });
   }
 
-  await createFullMockForLevel(db, level, data, isYle);
+  await createFullMockForLevel(db, level, data);
 }
 
-async function createFullMockForLevel(
+type MockContentPools = {
+  reading: McqSeed[];
+  listening: ListeningSeed[];
+  writing: WritingSeed[];
+  speaking: SpeakingSeed[];
+  uoe: GapSeed[];
+};
+
+async function createSkillQuestions(
   db: PrismaClient,
   level: ExamLevel,
-  data: {
-    reading: McqSeed[];
-    listening: ListeningSeed[];
-    writing: WritingSeed[];
-    uoe: GapSeed[];
-  },
-  isYle: boolean
-) {
-  const readingPart = data.reading.slice(-15);
-  const listenPart = data.listening.slice(-10);
-  const uoePart = isYle ? [] : data.uoe.slice(-10);
-  const writingPart = data.writing.slice(-1);
+  skill: Skill,
+  items: McqSeed[] | ListeningSeed[] | WritingSeed[] | SpeakingSeed[] | GapSeed[],
+  listenOffset: number
+): Promise<string[]> {
+  switch (skill) {
+    case Skill.READING:
+      return createMcqs(db, level, skill, items as McqSeed[]);
+    case Skill.LISTENING:
+      return createListenings(db, level, items as ListeningSeed[], listenOffset);
+    case Skill.WRITING:
+      return createWritings(db, level, items as WritingSeed[]);
+    case Skill.SPEAKING:
+      return createSpeakings(db, level, items as SpeakingSeed[]);
+    case Skill.USE_OF_ENGLISH:
+      return createGaps(db, level, items as GapSeed[]);
+    default:
+      return [];
+  }
+}
 
-  const readingIds = await createMcqs(db, level, Skill.READING, readingPart);
-  const listenIds = await createListenings(db, level, listenPart, 200);
-  const uoeIds = uoePart.length ? await createGaps(db, level, uoePart) : [];
-  const writingIds = await createWritings(db, level, writingPart);
+async function createFullMockForLevel(db: PrismaClient, level: ExamLevel, data: MockContentPools) {
+  const format = getCambridgeMockFormat(level);
+  validateMockContentPools(level, {
+    [Skill.READING]: data.reading.length,
+    [Skill.LISTENING]: data.listening.length,
+    [Skill.WRITING]: data.writing.length,
+    [Skill.SPEAKING]: data.speaking.length,
+    [Skill.USE_OF_ENGLISH]: data.uoe.length,
+  });
 
-  const allIds = [...readingIds, ...listenIds, ...uoeIds, ...writingIds];
+  const poolIndex: Partial<Record<Skill, number>> = {};
+  const allIds: string[] = [];
   const sections: PaperSection[] = [];
-  let idx = 0;
+  let listenOffset = 300;
 
-  sections.push({
-    skill: Skill.READING,
-    label: "Reading",
-    startIndex: idx,
-    endIndex: idx + readingIds.length,
-    timeLimit: isYle ? 1200 : 1800,
-  });
-  idx += readingIds.length;
+  for (const spec of format.sections) {
+    const sectionStart = allIds.length;
 
-  sections.push({
-    skill: Skill.LISTENING,
-    label: "Listening",
-    startIndex: idx,
-    endIndex: idx + listenIds.length,
-    timeLimit: 900,
-  });
-  idx += listenIds.length;
+    for (const slice of spec.slices) {
+      const start = poolIndex[slice.skill] ?? 0;
+      const pool = data[skillPoolKey(slice.skill)];
+      const items = pool.slice(start, start + slice.count);
+      if (items.length < slice.count) {
+        throw new Error(
+          `${level} full mock: thiếu câu ${slice.skill} (cần ${slice.count}, có ${items.length})`
+        );
+      }
+      poolIndex[slice.skill] = start + slice.count;
 
-  if (uoeIds.length) {
+      const ids = await createSkillQuestions(
+        db,
+        level,
+        slice.skill,
+        items,
+        listenOffset
+      );
+      if (slice.skill === Skill.LISTENING) {
+        listenOffset += ids.length;
+      }
+      allIds.push(...ids);
+    }
+
     sections.push({
-      skill: Skill.USE_OF_ENGLISH,
-      label: "Use of English",
-      startIndex: idx,
-      endIndex: idx + uoeIds.length,
-      timeLimit: 900,
+      skill: spec.slices[0].skill,
+      label: spec.label,
+      startIndex: sectionStart,
+      endIndex: allIds.length,
+      timeLimit: spec.timeLimitSeconds,
     });
-    idx += uoeIds.length;
   }
 
-  sections.push({
-    skill: Skill.WRITING,
-    label: "Writing",
-    startIndex: idx,
-    endIndex: idx + writingIds.length,
-    timeLimit: 1200,
+  const totalTime = cambridgeMockTotalSeconds(format);
+
+  await createPaper(db, level, Skill.READING, format.paperTitle, allIds, {
+    description: cambridgeMockDescription(format),
+    timeLimit: totalTime,
+    isMockTest: true,
+    paperKind: PaperKind.MOCK_FULL,
+    sections,
   });
+}
 
-  const totalTime = sections.reduce((s, sec) => s + (sec.timeLimit ?? 600), 0);
-
-  await createPaper(
-    db,
-    level,
-    Skill.READING,
-    `${level} Full Mock Test (All Skills)`,
-    allIds,
-    {
-      description: `Thi thử tổng hợp ${level}: Reading + Listening${uoeIds.length ? " + Use of English" : ""} + Writing`,
-      timeLimit: totalTime,
-      isMockTest: true,
-      paperKind: PaperKind.MOCK_FULL,
-      sections,
-    }
-  );
+function skillPoolKey(skill: Skill): keyof MockContentPools {
+  switch (skill) {
+    case Skill.READING:
+      return "reading";
+    case Skill.LISTENING:
+      return "listening";
+    case Skill.WRITING:
+      return "writing";
+    case Skill.SPEAKING:
+      return "speaking";
+    case Skill.USE_OF_ENGLISH:
+      return "uoe";
+    default:
+      throw new Error(`Unsupported skill pool: ${skill}`);
+  }
 }
 
 export async function seedPlacementTests(db: PrismaClient) {
-  const sectionSeconds = Math.round(PLACEMENT_TIME_SECONDS / 3);
+  await seedPlacementQuestionBank(db);
 
   for (const test of getPlacementTests()) {
-    const trackSlug = test.track.toLowerCase();
-    const readingIds = await createMcqs(db, test.level, Skill.READING, test.reading);
-    const listenItems = test.listening.map((item, i) => ({
-      ...item,
-      audioSlug: item.audioSlug ?? `placement-${trackSlug}-${String(i + 1).padStart(3, "0")}`,
-    }));
-    const listenIds = await createListenings(db, test.level, listenItems, 500);
-    const grammarIds = test.grammarMcq?.length
-      ? await createMcqs(db, test.level, Skill.USE_OF_ENGLISH, test.grammarMcq)
-      : await createGaps(db, test.level, test.grammar);
+    const slug = PLACEMENT_SLUG_BY_TITLE[test.title];
+    if (!slug) {
+      throw new Error(`Missing placement slug for "${test.title}"`);
+    }
 
-    const allIds = [...readingIds, ...listenIds, ...grammarIds];
-    const sections: PaperSection[] = [
-      {
-        skill: Skill.READING,
-        label: "Reading",
-        startIndex: 0,
-        endIndex: PLACEMENT_SECTION_COUNTS.reading,
-        timeLimit: sectionSeconds,
-      },
-      {
-        skill: Skill.LISTENING,
-        label: "Listening",
-        startIndex: PLACEMENT_SECTION_COUNTS.reading,
-        endIndex: PLACEMENT_SECTION_COUNTS.reading + PLACEMENT_SECTION_COUNTS.listening,
-        timeLimit: sectionSeconds,
-      },
-      {
-        skill: Skill.USE_OF_ENGLISH,
-        label: "Grammar",
-        startIndex:
-          PLACEMENT_SECTION_COUNTS.reading + PLACEMENT_SECTION_COUNTS.listening,
-        endIndex: PLACEMENT_TOTAL_QUESTIONS,
-        timeLimit: sectionSeconds,
-      },
-    ];
+    const sections: PaperSection[] = [];
+    let idx = 0;
 
-    await createPaper(db, test.level, Skill.READING, test.title, allIds, {
+    for (const spec of test.sectionOrder) {
+      const count = poolCountForTest(test, spec.pool);
+      if (count === 0) continue;
+      const sectionStart = idx;
+      idx += count;
+      const meta = test.sections.find((s) => s.pool === spec.pool);
+      sections.push({
+        skill: meta?.skill ?? Skill.READING,
+        label: spec.label,
+        startIndex: sectionStart,
+        endIndex: idx,
+        timeLimit: spec.timeLimitSeconds,
+      });
+    }
+
+    await createPaper(db, test.level, Skill.READING, test.title, [], {
       description: test.description,
-      timeLimit: PLACEMENT_TIME_SECONDS,
+      timeLimit: test.totalTimeSeconds,
       isMockTest: true,
       paperKind: PaperKind.PLACEMENT,
+      placementSlug: slug,
       sections,
     });
 
-    console.log(`  ✓ ${test.title} (${allIds.length} câu · ${PLACEMENT_TIME_SECONDS / 60} phút)`);
+    console.log(
+      `  ✓ ${test.title} (template · ${idx} câu/lượt · ${test.totalTimeSeconds / 60} phút)`
+    );
   }
 }

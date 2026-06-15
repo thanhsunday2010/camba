@@ -1,5 +1,6 @@
-import { ExamLevel } from "@prisma/client";
-import type { GapSeed, ListeningSeed, McqSeed } from "./helpers";
+import { ExamLevel, Skill } from "@prisma/client";
+import type { GapSeed, ListeningSeed, McqSeed, SpeakingSeed, WritingSeed } from "./helpers";
+import { getIeltsPlacementTests } from "./placement-ielts-content";
 
 /** Tiền tố title đề placement hiện hành — dùng để không xóa nhầm khi prune legacy */
 export const PLACEMENT_TITLE_PREFIX = "Camba Placement —";
@@ -7,9 +8,10 @@ export const PLACEMENT_TITLE_PREFIX = "Camba Placement —";
 export const PLACEMENT_PAPER_TITLES = {
   YLE: `${PLACEMENT_TITLE_PREFIX} YLE (Starters / Movers / Flyers)`,
   SECONDARY: `${PLACEMENT_TITLE_PREFIX} Secondary (KET / PET / FCE)`,
-  ADULT: `${PLACEMENT_TITLE_PREFIX} Adult (Professional English)`,
+  ADULT: `${PLACEMENT_TITLE_PREFIX} Adult (Giao tiếp hàng ngày & Công sở)`,
 } as const;
 
+/** Cambridge placement cố định 50 câu · 30 phút */
 export const PLACEMENT_TOTAL_QUESTIONS = 50;
 export const PLACEMENT_TIME_SECONDS = 30 * 60;
 export const PLACEMENT_SECTION_COUNTS = {
@@ -17,17 +19,45 @@ export const PLACEMENT_SECTION_COUNTS = {
   listening: 17,
   grammar: 16,
 } as const;
+export const PLACEMENT_CAMBRIDGE_SECTION_SECONDS = PLACEMENT_TIME_SECONDS / 3;
+
+export type PlacementTrack = "YLE" | "SECONDARY" | "ADULT" | "IELTS";
+
+export type PlacementSectionPool =
+  | "reading"
+  | "listening"
+  | "grammar"
+  | "grammarMcq"
+  | "writing"
+  | "speaking";
+
+export type PlacementSectionDef = {
+  skill: Skill;
+  label: string;
+  timeLimitSeconds: number;
+  pool?: PlacementSectionPool;
+};
+
+export type PlacementSectionOrder = {
+  pool: PlacementSectionPool;
+  label: string;
+  timeLimitSeconds: number;
+};
 
 export interface PlacementTestContent {
-  track: "YLE" | "SECONDARY" | "ADULT";
+  track: PlacementTrack;
   title: string;
   description: string;
   level: ExamLevel;
   reading: McqSeed[];
   listening: ListeningSeed[];
   grammar: GapSeed[];
-  /** MCQ grammar (Use of English) — dùng thay gap-fill khi có */
   grammarMcq?: McqSeed[];
+  writing?: WritingSeed[];
+  speaking?: SpeakingSeed[];
+  sections: PlacementSectionDef[];
+  totalTimeSeconds: number;
+  sectionOrder: PlacementSectionOrder[];
 }
 
 function mcq(
@@ -697,10 +727,10 @@ function buildAdultReading(): McqSeed[] {
     ),
     mcq(
       "ADU R14",
-      "What tension do critics and supporters disagree about regarding city parks?",
-      ["whether parks should close at night", "whether maintenance costs are justified by health benefits", "whether tourists visit too often", "whether parks are too small"],
-      "whether maintenance costs are justified by health benefits",
-      "Urban green spaces may improve wellbeing, but critics argue maintenance budgets are significant. Supporters claim long-term health savings can offset the expense."
+      "What should customers do if they want a refund?",
+      ["bring the receipt within 14 days", "pay a 50% fee", "call the manager only", "exchange online only"],
+      "bring the receipt within 14 days",
+      "Store policy: You may return unused items within 14 days with the original receipt for a full refund. Without a receipt, we can offer store credit only."
     ),
     mcq(
       "ADU R15",
@@ -838,10 +868,10 @@ function buildAdultListening(): ListeningSeed[] {
     ),
     listen(
       "ADU L16",
-      "Reporter: Local volunteers planted two hundred trees to protect wildlife along the river.",
-      "What was the volunteers' main goal?",
-      ["to sell timber", "to protect wildlife", "to build houses", "to make paper"],
-      "to protect wildlife"
+      "Receptionist: Your table for two is ready. Please follow me to window seat number eight.",
+      "Where is the customer's table?",
+      ["near the kitchen", "at window seat 8", "outside", "at the bar"],
+      "at window seat 8"
     ),
     listen(
       "ADU L17",
@@ -926,56 +956,99 @@ function buildAdultGrammarMcq(): McqSeed[] {
     // —— Hard (5) ——
     mcq(
       "ADU G12",
-      "Hardly ___ the presentation begun when the fire alarm sounded.",
-      ["had", "has", "did", "was"],
+      "By the time we arrived, the meeting ___ already started.",
+      ["has", "had", "was", "is"],
       "had"
     ),
     mcq(
       "ADU G13",
-      "Not until she read the email ___ she realise the mistake.",
-      ["did", "does", "she", "was"],
-      "did"
+      "I'm not used to ___ up so early for work.",
+      ["get", "getting", "got", "gets"],
+      "getting"
     ),
     mcq(
       "ADU G14",
-      "Had they ___ about the delay, they would have rescheduled the meeting.",
-      ["know", "knew", "known", "knowing"],
-      "known"
+      "She asked me if I ___ the email yesterday.",
+      ["send", "sent", "had sent", "sending"],
+      "had sent"
     ),
     mcq(
       "ADU G15",
-      "The director insisted that every employee ___ the safety briefing.",
-      ["attends", "attend", "attended", "attending"],
-      "attend"
+      "You'd better ___ the client before five o'clock.",
+      ["call", "calling", "to call", "called"],
+      "call"
     ),
     mcq(
       "ADU G16",
-      "Scarcely ___ I logged in when the system crashed.",
-      ["had", "have", "did", "was"],
-      "had"
+      "Despite ___ tired, he finished the report on time.",
+      ["be", "was", "being", "been"],
+      "being"
     ),
   ];
 }
 
+function cambridgeSectionOrder(useGrammarMcq = false): PlacementSectionOrder[] {
+  const t = PLACEMENT_CAMBRIDGE_SECTION_SECONDS;
+  return [
+    { pool: "reading", label: "Reading", timeLimitSeconds: t },
+    { pool: "listening", label: "Listening", timeLimitSeconds: t },
+    {
+      pool: useGrammarMcq ? "grammarMcq" : "grammar",
+      label: "Grammar",
+      timeLimitSeconds: t,
+    },
+  ];
+}
+
+function cambridgeSections(useGrammarMcq: boolean): PlacementSectionDef[] {
+  return [
+    {
+      skill: Skill.READING,
+      label: "Reading",
+      timeLimitSeconds: PLACEMENT_CAMBRIDGE_SECTION_SECONDS,
+      pool: "reading",
+    },
+    {
+      skill: Skill.LISTENING,
+      label: "Listening",
+      timeLimitSeconds: PLACEMENT_CAMBRIDGE_SECTION_SECONDS,
+      pool: "listening",
+    },
+    {
+      skill: Skill.USE_OF_ENGLISH,
+      label: useGrammarMcq ? "Grammar" : "Grammar",
+      timeLimitSeconds: PLACEMENT_CAMBRIDGE_SECTION_SECONDS,
+      pool: useGrammarMcq ? "grammarMcq" : "grammar",
+    },
+  ];
+}
+
 function validateTest(content: PlacementTestContent) {
-  const { reading, listening, grammar, grammarMcq } = content;
-  const grammarCount = grammarMcq?.length ?? grammar.length;
-  const total = reading.length + listening.length + grammarCount;
-  if (total !== PLACEMENT_TOTAL_QUESTIONS) {
-    throw new Error(`${content.title}: expected ${PLACEMENT_TOTAL_QUESTIONS} questions, got ${total}`);
+  const grammarCount = content.grammarMcq?.length ?? content.grammar.length;
+  const writingCount = content.writing?.length ?? 0;
+  const speakingCount = content.speaking?.length ?? 0;
+  const total =
+    content.reading.length + content.listening.length + grammarCount + writingCount + speakingCount;
+  let expected = 0;
+  for (const sec of content.sectionOrder) {
+    if (sec.pool === "reading") expected += content.reading.length;
+    else if (sec.pool === "listening") expected += content.listening.length;
+    else if (sec.pool === "grammarMcq") expected += content.grammarMcq?.length ?? 0;
+    else if (sec.pool === "grammar") expected += content.grammar.length;
+    else if (sec.pool === "writing") expected += content.writing?.length ?? 0;
+    else if (sec.pool === "speaking") expected += content.speaking?.length ?? 0;
   }
-  if (reading.length !== PLACEMENT_SECTION_COUNTS.reading) {
-    throw new Error(`${content.title}: reading count ${reading.length}`);
+  if (total !== expected) {
+    throw new Error(`${content.title}: tổng câu ${total} ≠ sections ${expected}`);
   }
-  if (listening.length !== PLACEMENT_SECTION_COUNTS.listening) {
-    throw new Error(`${content.title}: listening count ${listening.length}`);
-  }
-  if (grammarCount !== PLACEMENT_SECTION_COUNTS.grammar) {
-    throw new Error(`${content.title}: grammar count ${grammarCount}`);
+  const sectionTime = content.sectionOrder.reduce((s, x) => s + x.timeLimitSeconds, 0);
+  if (sectionTime !== content.totalTimeSeconds) {
+    throw new Error(`${content.title}: tổng thời gian sections ≠ totalTimeSeconds`);
   }
 }
 
 export function getPlacementTests(): PlacementTestContent[] {
+  const cambridgeOrder = cambridgeSectionOrder(false);
   const tests: PlacementTestContent[] = [
     {
       track: "YLE",
@@ -986,6 +1059,9 @@ export function getPlacementTests(): PlacementTestContent[] {
       reading: buildYleReading(),
       listening: buildYleListening(),
       grammar: buildYleGrammar(),
+      sections: cambridgeSections(false),
+      totalTimeSeconds: PLACEMENT_TIME_SECONDS,
+      sectionOrder: cambridgeOrder,
     },
     {
       track: "SECONDARY",
@@ -996,18 +1072,25 @@ export function getPlacementTests(): PlacementTestContent[] {
       reading: buildSecondaryReading(),
       listening: buildSecondaryListening(),
       grammar: buildSecondaryGrammar(),
+      sections: cambridgeSections(false),
+      totalTimeSeconds: PLACEMENT_TIME_SECONDS,
+      sectionOrder: cambridgeOrder,
     },
     {
       track: "ADULT",
       title: PLACEMENT_PAPER_TITLES.ADULT,
       description:
-        "50 câu · 30 phút · Reading, Listening & Grammar — dành cho người đi làm & luyện thi cao cấp",
-      level: ExamLevel.FCE,
+        "50 câu · 30 phút · Reading, Listening & Grammar — giao tiếp hàng ngày & công sở, kết quả theo CEFR",
+      level: ExamLevel.PET,
       reading: buildAdultReading(),
       listening: buildAdultListening(),
       grammar: [],
       grammarMcq: buildAdultGrammarMcq(),
+      sections: cambridgeSections(true),
+      totalTimeSeconds: PLACEMENT_TIME_SECONDS,
+      sectionOrder: cambridgeSectionOrder(true),
     },
+    ...getIeltsPlacementTests(),
   ];
 
   for (const test of tests) {
