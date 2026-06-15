@@ -32,12 +32,11 @@
     @apply border-border;
   }
   html {
-    font-size: 100%;
+    font-size: 100%; /* desktop: 16px chuẩn */
   }
   @media (max-width: 767px) {
     html {
-      /* Giữ chữ lớn trên mobile (~20px cho text-base); desktop dùng 16px chuẩn */
-      font-size: 125%;
+      font-size: 137.5%; /* ~22px body trên mobile */
     }
   }
   body {

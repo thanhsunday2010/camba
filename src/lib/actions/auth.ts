@@ -32,6 +32,9 @@ const registerSchema = z
 
 function dbErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("database string is invalid") || message.includes("illegal characters")) {
+    return "DATABASE_URL trên Vercel không hợp lệ — copy lại từ Supabase (pooler :6543), mã hoá ký tự đặc biệt trong mật khẩu (@→%40, #→%23), không bọc dấu ngoặc kép.";
+  }
   if (
     message.includes("Can't reach database server") ||
     message.includes("P1001") ||

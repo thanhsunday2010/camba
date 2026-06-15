@@ -31,7 +31,10 @@ export async function GET() {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     let hint: string | undefined;
-    if (message.includes("tenant/user") && message.includes("not found")) {
+    if (message.includes("database string is invalid") || message.includes("illegal characters")) {
+      hint =
+        "DATABASE_URL trên Vercel sai định dạng: copy lại URI pooler :6543 từ Supabase, mã hoá mật khẩu (@→%40), không dùng dấu ngoặc kép.";
+    } else if (message.includes("tenant/user") && message.includes("not found")) {
       hint =
         "DATABASE_URL pooler sai region hoặc project ref. Vào Supabase → Connect → Transaction pooler → copy URI (đừng tự ghép aws-0-ap-southeast-1).";
     } else if (message.includes("Can't reach database") || message.includes("P1001")) {

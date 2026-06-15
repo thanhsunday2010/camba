@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,16 +12,16 @@ import { Label } from "@/components/ui/label";
 import { OAuthSignInButtons } from "@/components/auth/oauth-sign-in-buttons";
 import type { OAuthProviderId } from "@/lib/auth/providers";
 import { isPhoneInput, isValidPhone } from "@/lib/auth/phone";
+import { redirectAfterAuth, sanitizeAuthCallbackUrl } from "@/lib/auth/safe-callback-url";
 
 interface LoginFormProps {
   oauthProviders: OAuthProviderId[];
 }
 
 export function LoginForm({ oauthProviders }: LoginFormProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const callbackUrl = sanitizeAuthCallbackUrl(searchParams.get("callbackUrl"));
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,12 +49,17 @@ export function LoginForm({ oauthProviders }: LoginFormProps) {
     });
     setLoading(false);
 
-    if (result?.error) {
-      toast.error("Email/SĐT hoặc mật khẩu không đúng");
-    } else {
+    if (result?.error || result?.ok === false) {
+      toast.error(
+        result?.error === "Configuration"
+          ? "Lỗi cấu hình server (database/auth). Liên hệ quản trị viên."
+          : "Email/SĐT hoặc mật khẩu không đúng"
+      );
+    } else if (result?.ok) {
       toast.success("Đăng nhập thành công!");
-      router.push(callbackUrl);
-      router.refresh();
+      redirectAfterAuth(callbackUrl);
+    } else {
+      toast.error("Không đăng nhập được — thử lại hoặc kiểm tra kết nối server.");
     }
   }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXAM_LEVELS } from "@/lib/constants";
 import { registerAction } from "@/lib/actions/auth";
+import { redirectAfterAuth } from "@/lib/auth/safe-callback-url";
 import { OAuthSignInButtons } from "@/components/auth/oauth-sign-in-buttons";
 import type { OAuthProviderId } from "@/lib/auth/providers";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,6 @@ interface RegisterFormProps {
 type RegisterMode = "email" | "phone";
 
 export function RegisterForm({ oauthProviders, hasReferralInvite = false }: RegisterFormProps) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetExam, setTargetExam] = useState("KET");
   const [mode, setMode] = useState<RegisterMode>("phone");
@@ -67,8 +66,7 @@ export function RegisterForm({ oauthProviders, hasReferralInvite = false }: Regi
       } else {
         toast.success("Đăng ký thành công!");
       }
-      router.push("/dashboard");
-      router.refresh();
+      redirectAfterAuth("/dashboard");
     }
   }
 

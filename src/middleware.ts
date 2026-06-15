@@ -41,7 +41,9 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isProtected && !isLoggedIn) {
-    return withReferralCookie(NextResponse.redirect(new URL("/login", req.url)));
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return withReferralCookie(NextResponse.redirect(loginUrl));
   }
 
   if (isAdmin && (!isLoggedIn || role !== "ADMIN")) {

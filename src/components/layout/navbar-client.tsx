@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { Session } from "next-auth";
 import { useEffect, useState } from "react";
@@ -139,9 +140,14 @@ export function NavbarClient({
   initialUser?: Session["user"];
   referralCode?: string | null;
 }) {
+  const pathname = usePathname();
   const { data: session } = useSession();
   const user = session?.user ?? initialUser;
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
