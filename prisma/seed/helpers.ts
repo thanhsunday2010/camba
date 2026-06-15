@@ -11,13 +11,21 @@ import {
   cambridgeMockDescription,
   cambridgeMockTotalSeconds,
   getCambridgeMockFormat,
-  validateMockContentPools,
 } from "../../src/lib/exam/cambridge-mock-formats";
 import {
   getPlacementTests,
 } from "./placement-content";
 import { PLACEMENT_SLUG_BY_TITLE } from "../../src/lib/placement/placement-config";
 import { poolCountForTest, seedPlacementQuestionBank } from "./placement-bank";
+import {
+  computeRequiredPoolSizes,
+  getPracticePaperCounts,
+  MOCK_FULL_PAPERS_PER_LEVEL,
+  MOCK_SKILL_PAPERS_PER_SKILL,
+  PRACTICE_QUESTIONS_PER_PAPER,
+  SKILL_MOCK_QUESTION_COUNTS,
+  skillMockTimeLimit,
+} from "./seed-targets";
 
 export type McqSeed = {
   title: string;
@@ -285,145 +293,6 @@ export async function createPaper(
   });
 }
 
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    out.push(arr.slice(i, i + size));
-  }
-  return out;
-}
-
-export async function seedBulkLevel(
-  db: PrismaClient,
-  level: ExamLevel,
-  data: {
-    reading: McqSeed[];
-    listening: ListeningSeed[];
-    writing: WritingSeed[];
-    speaking: SpeakingSeed[];
-    uoe: GapSeed[];
-  }
-) {
-  const isYle =
-    level === ExamLevel.STARTERS ||
-    level === ExamLevel.MOVERS ||
-    level === ExamLevel.FLYERS;
-
-  const readingChunks = chunk(data.reading, 10);
-  for (let i = 0; i < readingChunks.length; i++) {
-    const ids = await createMcqs(db, level, Skill.READING, readingChunks[i]);
-    await createPaper(db, level, Skill.READING, `${level} Reading Practice ${i + 1}`, ids, {
-      description: `Luyện đọc hiểu ${level} — ${readingChunks[i].length} câu`,
-      timeLimit: isYle ? 900 : 1200,
-    });
-  }
-
-  const readingMockIds = await createMcqs(
-    db,
-    level,
-    Skill.READING,
-    data.reading.slice(0, Math.min(20, data.reading.length))
-  );
-  await createPaper(db, level, Skill.READING, `${level} Reading Mock Test`, readingMockIds, {
-    description: `Thi thử Reading ${level}`,
-    timeLimit: level === "FCE" ? 3600 : level === "PET" ? 2700 : 1800,
-    isMockTest: true,
-    paperKind: PaperKind.MOCK_SKILL,
-  });
-
-  const listenChunks = chunk(data.listening, 12);
-  for (let i = 0; i < listenChunks.length; i++) {
-    const ids = await createListenings(db, level, listenChunks[i], i * 12);
-    await createPaper(db, level, Skill.LISTENING, `${level} Listening Practice ${i + 1}`, ids, {
-      description: "Nghe audio và chọn đáp án đúng",
-      timeLimit: 600,
-    });
-  }
-
-  const listenMockIds = await createListenings(
-    db,
-    level,
-    data.listening.slice(0, Math.min(15, data.listening.length)),
-    100
-  );
-  await createPaper(db, level, Skill.LISTENING, `${level} Listening Mock Test`, listenMockIds, {
-    description: "Thi thử Listening có audio",
-    timeLimit: 900,
-    isMockTest: true,
-    paperKind: PaperKind.MOCK_SKILL,
-  });
-
-  if (data.uoe.length > 0) {
-    const uoeChunks = chunk(data.uoe, 10);
-    for (let i = 0; i < uoeChunks.length; i++) {
-      const ids = await createGaps(db, level, uoeChunks[i]);
-      await createPaper(
-        db,
-        level,
-        Skill.USE_OF_ENGLISH,
-        `${level} Use of English Practice ${i + 1}`,
-        ids,
-        { description: "Ngữ pháp & từ vựng", timeLimit: 900 }
-      );
-    }
-    const uoeMockIds = await createGaps(db, level, data.uoe.slice(0, Math.min(15, data.uoe.length)));
-    await createPaper(
-      db,
-      level,
-      Skill.USE_OF_ENGLISH,
-      `${level} Use of English Mock Test`,
-      uoeMockIds,
-      {
-        description: "Thi thử Use of English",
-        timeLimit: 1200,
-        isMockTest: true,
-        paperKind: PaperKind.MOCK_SKILL,
-      }
-    );
-  }
-
-  for (let i = 0; i < data.writing.length; i++) {
-    const ids = await createWritings(db, level, [data.writing[i]]);
-    await createPaper(db, level, Skill.WRITING, `${level} Writing Practice ${i + 1}`, ids, {
-      description: "AI chấm theo rubric Cambridge",
-      timeLimit: 900,
-    });
-  }
-
-  const writingMockIds = await createWritings(
-    db,
-    level,
-    data.writing.slice(0, Math.min(2, data.writing.length))
-  );
-  for (let i = 0; i < writingMockIds.length; i++) {
-    await createPaper(
-      db,
-      level,
-      Skill.WRITING,
-      `${level} Writing Mock Test ${i + 1}`,
-      [writingMockIds[i]],
-      {
-        description: "Thi thử Writing có AI chấm",
-        timeLimit: 1200,
-        isMockTest: true,
-        paperKind: PaperKind.MOCK_SKILL,
-      }
-    );
-  }
-
-  for (let i = 0; i < data.speaking.length; i++) {
-    const ids = await createSpeakings(db, level, [data.speaking[i]]);
-    await createPaper(db, level, Skill.SPEAKING, `${level} Speaking ${i + 1}`, ids, {
-      description: "Web Speech + AI chấm Speaking",
-      timeLimit: 300,
-      isMockTest: i === data.speaking.length - 1,
-      paperKind: i === data.speaking.length - 1 ? PaperKind.MOCK_SKILL : PaperKind.PRACTICE,
-    });
-  }
-
-  await createFullMockForLevel(db, level, data);
-}
-
 type MockContentPools = {
   reading: McqSeed[];
   listening: ListeningSeed[];
@@ -432,105 +301,395 @@ type MockContentPools = {
   uoe: GapSeed[];
 };
 
-async function createSkillQuestions(
-  db: PrismaClient,
-  level: ExamLevel,
-  skill: Skill,
-  items: McqSeed[] | ListeningSeed[] | WritingSeed[] | SpeakingSeed[] | GapSeed[],
-  listenOffset: number
-): Promise<string[]> {
-  switch (skill) {
-    case Skill.READING:
-      return createMcqs(db, level, skill, items as McqSeed[]);
-    case Skill.LISTENING:
-      return createListenings(db, level, items as ListeningSeed[], listenOffset);
-    case Skill.WRITING:
-      return createWritings(db, level, items as WritingSeed[]);
-    case Skill.SPEAKING:
-      return createSpeakings(db, level, items as SpeakingSeed[]);
-    case Skill.USE_OF_ENGLISH:
-      return createGaps(db, level, items as GapSeed[]);
-    default:
-      return [];
+type PoolCursor = {
+  reading: number;
+  listening: number;
+  writing: number;
+  speaking: number;
+  uoe: number;
+};
+
+function takeFromPool<T>(pool: T[], cursor: number, count: number, label: string): T[] {
+  const items = pool.slice(cursor, cursor + count);
+  if (items.length < count) {
+    throw new Error(`${label}: cần ${count} câu, còn ${items.length} (cursor ${cursor})`);
+  }
+  return items;
+}
+
+function validateExpandedPools(level: ExamLevel, data: MockContentPools) {
+  const required = computeRequiredPoolSizes(level);
+  const keys = ["reading", "listening", "writing", "speaking", "uoe"] as const;
+  for (const key of keys) {
+    if (data[key].length < required[key]) {
+      throw new Error(
+        `${level}: ngân hàng ${key} cần ${required[key]} câu, chỉ có ${data[key].length}`
+      );
+    }
   }
 }
 
-async function createFullMockForLevel(db: PrismaClient, level: ExamLevel, data: MockContentPools) {
-  const format = getCambridgeMockFormat(level);
-  validateMockContentPools(level, {
-    [Skill.READING]: data.reading.length,
-    [Skill.LISTENING]: data.listening.length,
-    [Skill.WRITING]: data.writing.length,
-    [Skill.SPEAKING]: data.speaking.length,
-    [Skill.USE_OF_ENGLISH]: data.uoe.length,
-  });
+export async function seedBulkLevel(
+  db: PrismaClient,
+  level: ExamLevel,
+  data: MockContentPools
+) {
+  validateExpandedPools(level, data);
 
-  const poolIndex: Partial<Record<Skill, number>> = {};
-  const allIds: string[] = [];
-  const sections: PaperSection[] = [];
-  let listenOffset = 300;
+  const isYle =
+    level === ExamLevel.STARTERS ||
+    level === ExamLevel.MOVERS ||
+    level === ExamLevel.FLYERS;
 
-  for (const spec of format.sections) {
-    const sectionStart = allIds.length;
+  const practice = getPracticePaperCounts(level);
+  const mockSizes = SKILL_MOCK_QUESTION_COUNTS[level];
+  const cursors: PoolCursor = {
+    reading: 0,
+    listening: 0,
+    writing: 0,
+    speaking: 0,
+    uoe: 0,
+  };
+  let listenAudioOffset = 0;
 
-    for (const slice of spec.slices) {
-      const start = poolIndex[slice.skill] ?? 0;
-      const pool = data[skillPoolKey(slice.skill)];
-      const items = pool.slice(start, start + slice.count);
-      if (items.length < slice.count) {
-        throw new Error(
-          `${level} full mock: thiếu câu ${slice.skill} (cần ${slice.count}, có ${items.length})`
-        );
-      }
-      poolIndex[slice.skill] = start + slice.count;
-
-      const ids = await createSkillQuestions(
-        db,
-        level,
-        slice.skill,
-        items,
-        listenOffset
-      );
-      if (slice.skill === Skill.LISTENING) {
-        listenOffset += ids.length;
-      }
-      allIds.push(...ids);
-    }
-
-    sections.push({
-      skill: spec.slices[0].skill,
-      label: spec.label,
-      startIndex: sectionStart,
-      endIndex: allIds.length,
-      timeLimit: spec.timeLimitSeconds,
+  for (let i = 0; i < practice.reading; i++) {
+    const items = takeFromPool(
+      data.reading,
+      cursors.reading,
+      PRACTICE_QUESTIONS_PER_PAPER.reading,
+      `${level} reading practice ${i + 1}`
+    );
+    cursors.reading += items.length;
+    const ids = await createMcqs(db, level, Skill.READING, items);
+    await createPaper(db, level, Skill.READING, `${level} Reading Practice ${i + 1}`, ids, {
+      description: `Luyện đọc hiểu ${level} — ${items.length} câu`,
+      timeLimit: isYle ? 900 : 1200,
     });
   }
 
-  const totalTime = cambridgeMockTotalSeconds(format);
+  for (let m = 0; m < MOCK_SKILL_PAPERS_PER_SKILL; m++) {
+    const size = mockSizes[Skill.READING] ?? 0;
+    if (size === 0) continue;
+    const items = takeFromPool(
+      data.reading,
+      cursors.reading,
+      size,
+      `${level} reading mock ${m + 1}`
+    );
+    cursors.reading += items.length;
+    const ids = await createMcqs(db, level, Skill.READING, items);
+    await createPaper(
+      db,
+      level,
+      Skill.READING,
+      `${level} Reading Mock Test ${m + 1}`,
+      ids,
+      {
+        description: `Thi thử Reading ${level} — đề ${m + 1}`,
+        timeLimit: skillMockTimeLimit(level, Skill.READING),
+        isMockTest: true,
+        paperKind: PaperKind.MOCK_SKILL,
+      }
+    );
+  }
 
-  await createPaper(db, level, Skill.READING, format.paperTitle, allIds, {
-    description: cambridgeMockDescription(format),
-    timeLimit: totalTime,
-    isMockTest: true,
-    paperKind: PaperKind.MOCK_FULL,
-    sections,
-  });
+  for (let i = 0; i < practice.listening; i++) {
+    const items = takeFromPool(
+      data.listening,
+      cursors.listening,
+      PRACTICE_QUESTIONS_PER_PAPER.listening,
+      `${level} listening practice ${i + 1}`
+    );
+    cursors.listening += items.length;
+    const ids = await createListenings(db, level, items, listenAudioOffset);
+    listenAudioOffset += ids.length;
+    await createPaper(
+      db,
+      level,
+      Skill.LISTENING,
+      `${level} Listening Practice ${i + 1}`,
+      ids,
+      {
+        description: "Nghe audio và chọn đáp án đúng",
+        timeLimit: 600,
+      }
+    );
+  }
+
+  for (let m = 0; m < MOCK_SKILL_PAPERS_PER_SKILL; m++) {
+    const size = mockSizes[Skill.LISTENING] ?? 0;
+    if (size === 0) continue;
+    const items = takeFromPool(
+      data.listening,
+      cursors.listening,
+      size,
+      `${level} listening mock ${m + 1}`
+    );
+    cursors.listening += items.length;
+    const ids = await createListenings(db, level, items, listenAudioOffset);
+    listenAudioOffset += ids.length;
+    await createPaper(
+      db,
+      level,
+      Skill.LISTENING,
+      `${level} Listening Mock Test ${m + 1}`,
+      ids,
+      {
+        description: `Thi thử Listening ${level} — đề ${m + 1}`,
+        timeLimit: skillMockTimeLimit(level, Skill.LISTENING),
+        isMockTest: true,
+        paperKind: PaperKind.MOCK_SKILL,
+      }
+    );
+  }
+
+  if (practice.uoe > 0) {
+    for (let i = 0; i < practice.uoe; i++) {
+      const items = takeFromPool(
+        data.uoe,
+        cursors.uoe,
+        PRACTICE_QUESTIONS_PER_PAPER.uoe,
+        `${level} grammar practice ${i + 1}`
+      );
+      cursors.uoe += items.length;
+      const ids = await createGaps(db, level, items);
+      await createPaper(
+        db,
+        level,
+        Skill.USE_OF_ENGLISH,
+        `${level} Grammar & UoE Practice ${i + 1}`,
+        ids,
+        { description: "Ngữ pháp & Use of English", timeLimit: 900 }
+      );
+    }
+
+    for (let m = 0; m < MOCK_SKILL_PAPERS_PER_SKILL; m++) {
+      const size = mockSizes[Skill.USE_OF_ENGLISH] ?? 0;
+      if (size === 0) continue;
+      const items = takeFromPool(
+        data.uoe,
+        cursors.uoe,
+        size,
+        `${level} grammar mock ${m + 1}`
+      );
+      cursors.uoe += items.length;
+      const ids = await createGaps(db, level, items);
+      await createPaper(
+        db,
+        level,
+        Skill.USE_OF_ENGLISH,
+        `${level} Grammar & UoE Mock Test ${m + 1}`,
+        ids,
+        {
+          description: `Thi thử Grammar & UoE ${level} — đề ${m + 1}`,
+          timeLimit: skillMockTimeLimit(level, Skill.USE_OF_ENGLISH),
+          isMockTest: true,
+          paperKind: PaperKind.MOCK_SKILL,
+        }
+      );
+    }
+  }
+
+  for (let i = 0; i < practice.writing; i++) {
+    const items = takeFromPool(
+      data.writing,
+      cursors.writing,
+      PRACTICE_QUESTIONS_PER_PAPER.writing,
+      `${level} writing practice ${i + 1}`
+    );
+    cursors.writing += items.length;
+    const ids = await createWritings(db, level, items);
+    await createPaper(
+      db,
+      level,
+      Skill.WRITING,
+      `${level} Writing Practice ${i + 1}`,
+      ids,
+      {
+        description: "AI chấm theo rubric Cambridge",
+        timeLimit: 900,
+      }
+    );
+  }
+
+  for (let m = 0; m < MOCK_SKILL_PAPERS_PER_SKILL; m++) {
+    const size = mockSizes[Skill.WRITING] ?? 0;
+    if (size === 0) continue;
+    const items = takeFromPool(
+      data.writing,
+      cursors.writing,
+      size,
+      `${level} writing mock ${m + 1}`
+    );
+    cursors.writing += items.length;
+    const ids = await createWritings(db, level, items);
+    await createPaper(
+      db,
+      level,
+      Skill.WRITING,
+      `${level} Writing Mock Test ${m + 1}`,
+      ids,
+      {
+        description: `Thi thử Writing ${level} — đề ${m + 1}`,
+        timeLimit: skillMockTimeLimit(level, Skill.WRITING),
+        isMockTest: true,
+        paperKind: PaperKind.MOCK_SKILL,
+      }
+    );
+  }
+
+  for (let i = 0; i < practice.speaking; i++) {
+    const items = takeFromPool(
+      data.speaking,
+      cursors.speaking,
+      PRACTICE_QUESTIONS_PER_PAPER.speaking,
+      `${level} speaking practice ${i + 1}`
+    );
+    cursors.speaking += items.length;
+    const ids = await createSpeakings(db, level, items);
+    await createPaper(
+      db,
+      level,
+      Skill.SPEAKING,
+      `${level} Speaking Practice ${i + 1}`,
+      ids,
+      {
+        description: "Web Speech + AI chấm Speaking",
+        timeLimit: 300,
+      }
+    );
+  }
+
+  for (let m = 0; m < MOCK_SKILL_PAPERS_PER_SKILL; m++) {
+    const size = mockSizes[Skill.SPEAKING] ?? 0;
+    if (size === 0) continue;
+    const items = takeFromPool(
+      data.speaking,
+      cursors.speaking,
+      size,
+      `${level} speaking mock ${m + 1}`
+    );
+    cursors.speaking += items.length;
+    const ids = await createSpeakings(db, level, items);
+    await createPaper(
+      db,
+      level,
+      Skill.SPEAKING,
+      `${level} Speaking Mock Test ${m + 1}`,
+      ids,
+      {
+        description: `Thi thử Speaking ${level} — đề ${m + 1}`,
+        timeLimit: skillMockTimeLimit(level, Skill.SPEAKING),
+        isMockTest: true,
+        paperKind: PaperKind.MOCK_SKILL,
+      }
+    );
+  }
+
+  await createFullMocksForLevel(db, level, data, cursors, listenAudioOffset);
 }
 
-function skillPoolKey(skill: Skill): keyof MockContentPools {
-  switch (skill) {
-    case Skill.READING:
-      return "reading";
-    case Skill.LISTENING:
-      return "listening";
-    case Skill.WRITING:
-      return "writing";
-    case Skill.SPEAKING:
-      return "speaking";
-    case Skill.USE_OF_ENGLISH:
-      return "uoe";
-    default:
-      throw new Error(`Unsupported skill pool: ${skill}`);
+async function createFullMocksForLevel(
+  db: PrismaClient,
+  level: ExamLevel,
+  data: MockContentPools,
+  cursors: PoolCursor,
+  listenAudioOffset: number
+) {
+  const format = getCambridgeMockFormat(level);
+  let listenOffset = listenAudioOffset;
+
+  for (let m = 0; m < MOCK_FULL_PAPERS_PER_LEVEL; m++) {
+    const allIds: string[] = [];
+    const sections: PaperSection[] = [];
+
+    for (const spec of format.sections) {
+      const sectionStart = allIds.length;
+
+      for (const slice of spec.slices) {
+        const label = `${level} full mock ${m + 1} ${slice.skill}`;
+        let ids: string[];
+
+        switch (slice.skill) {
+          case Skill.READING: {
+            const items = takeFromPool(
+              data.reading,
+              cursors.reading,
+              slice.count,
+              label
+            );
+            cursors.reading += items.length;
+            ids = await createMcqs(db, level, slice.skill, items);
+            break;
+          }
+          case Skill.LISTENING: {
+            const items = takeFromPool(
+              data.listening,
+              cursors.listening,
+              slice.count,
+              label
+            );
+            cursors.listening += items.length;
+            ids = await createListenings(db, level, items, listenOffset);
+            listenOffset += ids.length;
+            break;
+          }
+          case Skill.WRITING: {
+            const items = takeFromPool(
+              data.writing,
+              cursors.writing,
+              slice.count,
+              label
+            );
+            cursors.writing += items.length;
+            ids = await createWritings(db, level, items);
+            break;
+          }
+          case Skill.SPEAKING: {
+            const items = takeFromPool(
+              data.speaking,
+              cursors.speaking,
+              slice.count,
+              label
+            );
+            cursors.speaking += items.length;
+            ids = await createSpeakings(db, level, items);
+            break;
+          }
+          case Skill.USE_OF_ENGLISH: {
+            const items = takeFromPool(data.uoe, cursors.uoe, slice.count, label);
+            cursors.uoe += items.length;
+            ids = await createGaps(db, level, items);
+            break;
+          }
+          default:
+            ids = [];
+        }
+
+        allIds.push(...ids);
+      }
+
+      sections.push({
+        skill: spec.slices[0].skill,
+        label: spec.label,
+        startIndex: sectionStart,
+        endIndex: allIds.length,
+        timeLimit: spec.timeLimitSeconds,
+      });
+    }
+
+    const title =
+      m === 0
+        ? format.paperTitle
+        : `${level} Full Mock Test ${m + 1} — Cambridge Format`;
+
+    await createPaper(db, level, Skill.READING, title, allIds, {
+      description: cambridgeMockDescription(format),
+      timeLimit: cambridgeMockTotalSeconds(format),
+      isMockTest: true,
+      paperKind: PaperKind.MOCK_FULL,
+      sections,
+    });
   }
 }
 

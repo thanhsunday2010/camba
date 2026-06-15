@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, Clock, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { shortPaperListTitle } from "@/lib/exam/paper-display";
 import { cn } from "@/lib/utils";
 
 export type PaperListItem = {
@@ -80,7 +81,7 @@ export function SkillPaperList({
               <Link
                 href={`/practice/${paper.id}`}
                 className={cn(
-                  "flex items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-purple-50/90",
+                  "flex items-start gap-2.5 px-3 py-2.5 transition-colors hover:bg-purple-50/90",
                   !done && "bg-sky-50/40"
                 )}
               >
@@ -94,8 +95,11 @@ export function SkillPaperList({
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold leading-tight text-purple-900">
-                    {paper.title}
+                  <p
+                    className="text-sm font-bold leading-snug text-purple-900 break-words"
+                    title={paper.title}
+                  >
+                    {shortPaperListTitle(paper.title)}
                   </p>
                   {(paper.timeLimit || paper.isMockTest) && (
                     <p className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted-foreground">
@@ -113,12 +117,12 @@ export function SkillPaperList({
                 {done ? (
                   <Badge
                     variant="outline"
-                    className="shrink-0 border-emerald-200 px-1.5 py-0 text-[10px] font-bold text-emerald-700"
+                    className="mt-0.5 shrink-0 border-emerald-200 px-1.5 py-0 text-[10px] font-bold text-emerald-700"
                   >
                     Đã làm
                   </Badge>
                 ) : (
-                  <Badge className="shrink-0 bg-sky-500 px-1.5 py-0 text-[10px] font-bold hover:bg-sky-500">
+                  <Badge className="mt-0.5 shrink-0 bg-sky-500 px-1.5 py-0 text-[10px] font-bold hover:bg-sky-500">
                     New
                   </Badge>
                 )}

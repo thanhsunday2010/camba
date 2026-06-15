@@ -69,18 +69,23 @@ export function questionCounts(level: ExamLevel) {
   return { reading: 50, listening: 25, writing: 10, speaking: 10, uoe: 30 };
 }
 
-export function generateReading(level: ExamLevel, count: number): McqSeed[] {
+export function generateReading(
+  level: ExamLevel,
+  count: number,
+  startOffset = 0
+): McqSeed[] {
   const items: McqSeed[] = [];
   for (let i = 0; i < count; i++) {
-    const name = pick(NAMES, i);
-    const place = pick(PLACES, i + 3);
-    const age = 6 + (i % 12);
+    const idx = startOffset + i;
+    const name = pick(NAMES, idx);
+    const place = pick(PLACES, idx + 3);
+    const age = 6 + (idx % 12);
 
     if (isYleLevel(level)) {
       const passage = `${name} is ${age}. ${name} likes the ${place}. Every day ${name} goes there with friends.`;
       items.push(
         mcq(
-          `Reading ${i + 1}`,
+          `Reading ${idx + 1}`,
           `How old is ${name}?`,
           [`${age - 1}`, `${age}`, `${age + 1}`, `${age + 2}`],
           `${age}`,
@@ -88,51 +93,56 @@ export function generateReading(level: ExamLevel, count: number): McqSeed[] {
         )
       );
     } else if (level === "KET") {
-      const passage = `${name} is ${age} years old and lives near the ${place}. Last weekend ${name} visited the ${pick(PLACES, i + 5)} with family. They had lunch at a small ${pick(PLACES, i + 7)} and bought souvenirs. ${name} enjoyed the trip because the weather was sunny.`;
+      const passage = `${name} is ${age} years old and lives near the ${place}. Last weekend ${name} visited the ${pick(PLACES, idx + 5)} with family. They had lunch at a small ${pick(PLACES, idx + 7)} and bought souvenirs. ${name} enjoyed the trip because the weather was sunny.`;
       const qs = [
-        mcq(`KET R${i + 1}a`, `Where does ${name} live?`, [`In a ${place}`, `Near a ${place}`, `At the ${place}`, `Behind the ${place}`], `Near a ${place}`, passage),
-        mcq(`KET R${i + 1}b`, `Why did ${name} enjoy the trip?`, ["It was cheap", "The weather was sunny", "It was short", "They stayed home"], "The weather was sunny", passage),
-        mcq(`KET R${i + 1}c`, `Who did ${name} travel with?`, ["Friends", "Family", "Teachers", "Neighbours"], "Family", passage),
+        mcq(`KET R${idx + 1}a`, `Where does ${name} live?`, [`In a ${place}`, `Near a ${place}`, `At the ${place}`, `Behind the ${place}`], `Near a ${place}`, passage),
+        mcq(`KET R${idx + 1}b`, `Why did ${name} enjoy the trip?`, ["It was cheap", "The weather was sunny", "It was short", "They stayed home"], "The weather was sunny", passage),
+        mcq(`KET R${idx + 1}c`, `Who did ${name} travel with?`, ["Friends", "Family", "Teachers", "Neighbours"], "Family", passage),
       ];
-      items.push(qs[i % qs.length]);
+      items.push(qs[idx % qs.length]);
     } else if (level === "PET") {
       const passage = `Many teenagers, including ${name}, spend time at the ${place} after school. While some parents worry about screen time, ${name} argues that online communities help students practise English and share study tips. However, ${name} also recognises that too much time online can affect sleep and concentration.`;
       const qs = [
-        mcq(`PET R${i + 1}a`, `What is ${name}'s opinion about online communities?`, ["They are always harmful", "They can help language practice", "They replace teachers", "They are banned at school"], "They can help language practice", passage),
-        mcq(`PET R${i + 1}b`, `What problem does ${name} mention?`, ["High costs", "Poor internet", "Sleep and concentration", "No friends"], "Sleep and concentration", passage),
-        mcq(`PET R${i + 1}c`, `When does ${name} go to the ${place}?`, ["Before school", "After school", "At midnight", "On holidays only"], "After school", passage),
+        mcq(`PET R${idx + 1}a`, `What is ${name}'s opinion about online communities?`, ["They are always harmful", "They can help language practice", "They replace teachers", "They are banned at school"], "They can help language practice", passage),
+        mcq(`PET R${idx + 1}b`, `What problem does ${name} mention?`, ["High costs", "Poor internet", "Sleep and concentration", "No friends"], "Sleep and concentration", passage),
+        mcq(`PET R${idx + 1}c`, `When does ${name} go to the ${place}?`, ["Before school", "After school", "At midnight", "On holidays only"], "After school", passage),
       ];
-      items.push(qs[i % qs.length]);
+      items.push(qs[idx % qs.length]);
     } else {
       const passage = `Researchers studying urban ${place}s have found that access to green areas correlates with improved mental health among residents like ${name}, a ${age}-year-old volunteer. Critics claim maintenance budgets are excessive, yet longitudinal data suggest reduced healthcare spending may offset initial investment. Policymakers in several cities are now prioritising sustainable design.`;
       const qs = [
-        mcq(`FCE R${i + 1}a`, `What benefit is mentioned?`, ["Cheaper transport", "Improved mental health", "More shopping", "Higher taxes"], "Improved mental health", passage),
-        mcq(`FCE R${i + 1}b`, `What do critics argue?`, ["Parks are unnecessary", "Maintenance budgets are excessive", "Volunteers are unpaid", "Data is unreliable"], "Maintenance budgets are excessive", passage),
-        mcq(`FCE R${i + 1}c`, `What are policymakers prioritising?`, ["Road expansion", "Sustainable design", "Private gardens", "Car parks"], "Sustainable design", passage),
+        mcq(`FCE R${idx + 1}a`, `What benefit is mentioned?`, ["Cheaper transport", "Improved mental health", "More shopping", "Higher taxes"], "Improved mental health", passage),
+        mcq(`FCE R${idx + 1}b`, `What do critics argue?`, ["Parks are unnecessary", "Maintenance budgets are excessive", "Volunteers are unpaid", "Data is unreliable"], "Maintenance budgets are excessive", passage),
+        mcq(`FCE R${idx + 1}c`, `What are policymakers prioritising?`, ["Road expansion", "Sustainable design", "Private gardens", "Car parks"], "Sustainable design", passage),
       ];
-      items.push(qs[i % qs.length]);
+      items.push(qs[idx % qs.length]);
     }
   }
   return items;
 }
 
-export function generateListening(level: ExamLevel, count: number): ListeningSeed[] {
+export function generateListening(
+  level: ExamLevel,
+  count: number,
+  startOffset = 0
+): ListeningSeed[] {
   const items: ListeningSeed[] = [];
   for (let i = 0; i < count; i++) {
-    const name = pick(NAMES, i + 1);
-    const time = pick(TIMES, i);
-    const place = pick(PLACES, i + 2);
-    const food = pick(FOODS, i);
-    const animal = pick(ANIMALS, i);
+    const idx = startOffset + i;
+    const name = pick(NAMES, idx + 1);
+    const time = pick(TIMES, idx);
+    const place = pick(PLACES, idx + 2);
+    const food = pick(FOODS, idx);
+    const animal = pick(ANIMALS, idx);
 
     if (isYleLevel(level)) {
-      const transcript = `Hello. My name is ${name}. I am ${6 + (i % 8)}. I have a ${pick(COLORS, i)} ${animal}.`;
+      const transcript = `Hello. My name is ${name}. I am ${6 + (idx % 8)}. I have a ${pick(COLORS, idx)} ${animal}.`;
       items.push(
         listen(
-          `Listening ${i + 1}`,
+          `Listening ${idx + 1}`,
           transcript,
           `What animal does ${name} have?`,
-          [pick(ANIMALS, i + 1), animal, pick(ANIMALS, i + 2), pick(ANIMALS, i + 3)],
+          [pick(ANIMALS, idx + 1), animal, pick(ANIMALS, idx + 2), pick(ANIMALS, idx + 3)],
           animal
         )
       );
@@ -140,10 +150,10 @@ export function generateListening(level: ExamLevel, count: number): ListeningSee
       const transcript = `Speaker: Good morning. The meeting at the ${place} starts at ${time}. Please bring your notebook and ID card.`;
       items.push(
         listen(
-          `KET L${i + 1}`,
+          `KET L${idx + 1}`,
           transcript,
           "What time does the meeting start?",
-          [pick(TIMES, i + 2), time, pick(TIMES, i + 4), pick(TIMES, i + 6)],
+          [pick(TIMES, idx + 2), time, pick(TIMES, idx + 4), pick(TIMES, idx + 6)],
           time
         )
       );
@@ -151,10 +161,10 @@ export function generateListening(level: ExamLevel, count: number): ListeningSee
       const transcript = `Interviewer: ${name}, why did you choose to volunteer at the ${place}? ${name}: I wanted to improve my communication skills and help the community. We serve ${food} on Saturdays.`;
       items.push(
         listen(
-          `PET L${i + 1}`,
+          `PET L${idx + 1}`,
           transcript,
           "What food is mentioned?",
-          [pick(FOODS, i + 1), food, pick(FOODS, i + 3), pick(FOODS, i + 5)],
+          [pick(FOODS, idx + 1), food, pick(FOODS, idx + 3), pick(FOODS, idx + 5)],
           food
         )
       );
@@ -162,10 +172,10 @@ export function generateListening(level: ExamLevel, count: number): ListeningSee
       const transcript = `Lecturer: Today's seminar on sustainable transport will examine how cities like ours can reduce emissions. ${name} will present case studies from Europe at ${time} in Room 4.`;
       items.push(
         listen(
-          `FCE L${i + 1}`,
+          `FCE L${idx + 1}`,
           transcript,
           "When will the case studies be presented?",
-          [pick(TIMES, i + 1), time, pick(TIMES, i + 3), pick(TIMES, i + 5)],
+          [pick(TIMES, idx + 1), time, pick(TIMES, idx + 3), pick(TIMES, idx + 5)],
           time
         )
       );
@@ -174,7 +184,11 @@ export function generateListening(level: ExamLevel, count: number): ListeningSee
   return items;
 }
 
-export function generateUoe(level: ExamLevel, count: number): GapSeed[] {
+export function generateUoe(
+  level: ExamLevel,
+  count: number,
+  startOffset = 0
+): GapSeed[] {
   if (isYleLevel(level)) return [];
   const templates: GapSeed[] = [];
   const verbs = [
@@ -186,21 +200,22 @@ export function generateUoe(level: ExamLevel, count: number): GapSeed[] {
   ];
 
   for (let i = 0; i < count; i++) {
-    const name = pick(NAMES, i);
-    if (level === "KET" || i % 3 === 0) {
-      const [base, form] = pick(verbs, i);
+    const idx = startOffset + i;
+    const name = pick(NAMES, idx);
+    if (level === "KET" || idx % 3 === 0) {
+      const [base, form] = pick(verbs, idx);
       templates.push(
         gap(
-          `UoE ${i + 1}`,
+          `Grammar ${idx + 1}`,
           `${name} ___ (${base}) to school every day.`,
           form
         )
       );
-    } else if (level === "PET" || i % 3 === 1) {
-      const [adj, prep] = pick(preps, i);
+    } else if (level === "PET" || idx % 3 === 1) {
+      const [adj, prep] = pick(preps, idx);
       templates.push(
         gap(
-          `UoE ${i + 1}`,
+          `Grammar ${idx + 1}`,
           `${name} is ${adj} ___ learning English.`,
           prep
         )
@@ -208,7 +223,7 @@ export function generateUoe(level: ExamLevel, count: number): GapSeed[] {
     } else {
       templates.push(
         gap(
-          `UoE ${i + 1}`,
+          `Grammar ${idx + 1}`,
           `If ${name} ___ (study) harder, the results would improve.`,
           "studied"
         )
@@ -218,15 +233,20 @@ export function generateUoe(level: ExamLevel, count: number): GapSeed[] {
   return templates;
 }
 
-export function generateWriting(level: ExamLevel, count: number): WritingSeed[] {
+export function generateWriting(
+  level: ExamLevel,
+  count: number,
+  startOffset = 0
+): WritingSeed[] {
   const items: WritingSeed[] = [];
   for (let i = 0; i < count; i++) {
-    const name = pick(NAMES, i);
+    const idx = startOffset + i;
+    const name = pick(NAMES, idx);
     if (isYleLevel(level)) {
       items.push(
         write(
-          `Writing ${i + 1}`,
-          `Write about your ${pick(ANIMALS, i)}. Say what it looks like and what it likes to do.`,
+          `Writing ${idx + 1}`,
+          `Write about your ${pick(ANIMALS, idx)}. Say what it looks like and what it likes to do.`,
           30,
           "Write 3–5 sentences in English."
         )
@@ -234,7 +254,7 @@ export function generateWriting(level: ExamLevel, count: number): WritingSeed[] 
     } else if (level === "KET") {
       items.push(
         write(
-          `KET W${i + 1}`,
+          `KET W${idx + 1}`,
           `Your English friend ${name} wants to know about your favourite place. Write an email. Tell ${name} where it is, what you do there, and why you like it.`,
           50,
           "Write 25–35 words."
@@ -243,7 +263,7 @@ export function generateWriting(level: ExamLevel, count: number): WritingSeed[] 
     } else if (level === "PET") {
       items.push(
         write(
-          `PET W${i + 1}`,
+          `PET W${idx + 1}`,
           `In your English class you have been talking about technology. Write an article about whether students should use phones at school.`,
           100,
           "Write about 100 words."
@@ -252,7 +272,7 @@ export function generateWriting(level: ExamLevel, count: number): WritingSeed[] 
     } else {
       items.push(
         write(
-          `FCE W${i + 1}`,
+          `FCE W${idx + 1}`,
           `Your teacher has asked you to write an essay discussing the advantages and disadvantages of living in a big city.`,
           190,
           "Write your essay in 140–190 words."
@@ -263,18 +283,23 @@ export function generateWriting(level: ExamLevel, count: number): WritingSeed[] 
   return items;
 }
 
-export function generateSpeaking(level: ExamLevel, count: number): SpeakingSeed[] {
+export function generateSpeaking(
+  level: ExamLevel,
+  count: number,
+  startOffset = 0
+): SpeakingSeed[] {
   const items: SpeakingSeed[] = [];
   for (let i = 0; i < count; i++) {
-    const topic = pick(PLACES, i);
+    const idx = startOffset + i;
+    const topic = pick(PLACES, idx);
     if (isYleLevel(level)) {
-      items.push(speak(`Speaking ${i + 1}`, `Tell me about your ${pick(FOODS, i)}. Do you like it?`, 10, 30));
+      items.push(speak(`Speaking ${idx + 1}`, `Tell me about your ${pick(FOODS, idx)}. Do you like it?`, 10, 30));
     } else if (level === "KET") {
-      items.push(speak(`KET S${i + 1}`, `Describe your favourite ${topic}. Say where it is and how often you go there.`, 15, 60));
+      items.push(speak(`KET S${idx + 1}`, `Describe your favourite ${topic}. Say where it is and how often you go there.`, 15, 60));
     } else if (level === "PET") {
-      items.push(speak(`PET S${i + 1}`, `Talk about a time you helped someone. What happened and how did you feel?`, 15, 90));
+      items.push(speak(`PET S${idx + 1}`, `Talk about a time you helped someone. What happened and how did you feel?`, 15, 90));
     } else {
-      items.push(speak(`FCE S${i + 1}`, `Discuss how social media has changed the way people communicate.`, 60, 120));
+      items.push(speak(`FCE S${idx + 1}`, `Discuss how social media has changed the way people communicate.`, 60, 120));
     }
   }
   return items;
