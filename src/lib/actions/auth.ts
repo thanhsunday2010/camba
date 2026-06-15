@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { auth } from "@/auth";
@@ -164,7 +165,8 @@ export async function loginAction(formData: FormData) {
 
 export async function logoutAction() {
   const { signOut } = await import("@/auth");
-  await signOut({ redirectTo: "/" });
+  await signOut({ redirect: false });
+  redirect("/");
 }
 
 const levelSchema = z.enum(["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"]);
