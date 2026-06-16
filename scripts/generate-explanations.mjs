@@ -1,6 +1,10 @@
 /**
  * Batch-generate explanationVi for objective questions (Reading, Listening, UoE).
- * Usage: npm run content:generate-explanations [-- --limit=50] [-- --skill=LISTENING] [-- --force]
+ * Usage:
+ *   npm run content:generate-explanations [-- --limit=50]
+ *   npm run content:generate-explanations [-- --skill=LISTENING]
+ *   npm run content:generate-explanations [-- --total=1000 --skills=READING,LISTENING --balance=level]
+ *   [-- --force]
  *
  * Requires GOOGLE_AI_API_KEY and DATABASE_URL in .env
  */
@@ -11,13 +15,29 @@ import { GoogleGenAI } from "@google/genai";
 const db = new PrismaClient();
 const CONCURRENCY = 2;
 const MODEL = process.env.GEMINI_MODEL_EXPLAIN?.replace(/^models\//, "") ?? "gemini-2.5-flash";
+const ALL_LEVELS = ["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"];
 
 const args = process.argv.slice(2);
 const force = args.includes("--force");
 const limitArg = args.find((a) => a.startsWith("--limit="));
 const limit = limitArg ? Number(limitArg.split("=")[1]) : undefined;
+const totalArg = args.find((a) => a.startsWith("--total="));
+const totalTarget = totalArg ? Number(totalArg.split("=")[1]) : undefined;
 const skillArg = args.find((a) => a.startsWith("--skill="));
+const skillsArg = args.find((a) => a.startsWith("--skills="));
+const levelArg = args.find((a) => a.startsWith("--level="));
+const balanceArg = args.find((a) => a.startsWith("--balance="));
+const balanceMode = balanceArg?.split("=")[1] ?? (totalTarget ? "level" : undefined);
+
 const skillFilter = skillArg ? skillArg.split("=")[1]?.toUpperCase() : undefined;
+const skillsList = skillsArg
+  ? skillsArg
+      .split("=")[1]
+      ?.split(",")
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean)
+  : undefined;
+const levelFilter = levelArg ? levelArg.split("=")[1]?.toUpperCase() : undefined;
 
 function getApiKey() {
   return (
@@ -199,6 +219,45 @@ async function runPool(jobs, ai) {
   return { updated, skipped, failed, totalInputTokens, totalOutputTokens };
 }
 
+function needsExplanation(question) {
+  const c = question.content;
+  return force || !c || typeof c !== "object" || !c.explanationVi;
+}
+
+function distributeQuota(total, bucketCount) {
+  const base = Math.floor(total / bucketCount);
+  const remainder = total % bucketCount;
+  return Array.from({ length: bucketCount }, (_, i) => base + (i < remainder ? 1 : 0));
+}
+
+/** Chọn câu chia đều theo level × skill (round-robin quota mỗi bucket). */
+function pickBalanced(questions, total, levels, skills) {
+  const buckets = [];
+  for (const level of levels) {
+    for (const skill of skills) {
+      const items = questions.filter((q) => q.level === level && q.skill === skill && needsExplanation(q));
+      buckets.push({ level, skill, items });
+    }
+  }
+
+  const nonEmpty = buckets.filter((b) => b.items.length > 0);
+  if (nonEmpty.length === 0) return [];
+
+  const quotas = distributeQuota(total, nonEmpty.length);
+  const picked = [];
+
+  for (let i = 0; i < nonEmpty.length; i++) {
+    const { level, skill, items } = nonEmpty[i];
+    const take = Math.min(quotas[i], items.length);
+    if (take > 0) {
+      picked.push(...items.slice(0, take));
+      console.log(`  · ${level} ${skill}: ${take}/${items.length} câu thiếu lời giải`);
+    }
+  }
+
+  return picked;
+}
+
 async function main() {
   const apiKey = getApiKey();
   if (!apiKey) {
@@ -206,34 +265,61 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Model: ${MODEL} | force=${force} | limit=${limit ?? "all"} | skill=${skillFilter ?? "all"}`);
-
   const validSkills = [Skill.READING, Skill.LISTENING, Skill.USE_OF_ENGLISH];
   let skills = validSkills;
+  if (skillFilter && skillsList) {
+    console.error("Chỉ dùng một trong --skill hoặc --skills");
+    process.exit(1);
+  }
   if (skillFilter) {
     if (!validSkills.includes(skillFilter)) {
       console.error(`Skill không hợp lệ: ${skillFilter} (READING, LISTENING, USE_OF_ENGLISH)`);
       process.exit(1);
     }
     skills = [skillFilter];
+  } else if (skillsList?.length) {
+    for (const s of skillsList) {
+      if (!validSkills.includes(s)) {
+        console.error(`Skill không hợp lệ: ${s} (READING, LISTENING, USE_OF_ENGLISH)`);
+        process.exit(1);
+      }
+    }
+    skills = skillsList;
   }
+
+  const levels = levelFilter ? [levelFilter] : ALL_LEVELS;
+  if (levelFilter && !ALL_LEVELS.includes(levelFilter)) {
+    console.error(`Level không hợp lệ: ${levelFilter}`);
+    process.exit(1);
+  }
+
+  if (limit && totalTarget) {
+    console.error("Chỉ dùng một trong --limit hoặc --total");
+    process.exit(1);
+  }
+
+  console.log(
+    `Model: ${MODEL} | force=${force} | limit=${limit ?? totalTarget ?? "all"} | skills=${skills.join(",")} | levels=${levels.join(",")}${balanceMode ? ` | balance=${balanceMode}` : ""}`
+  );
 
   const questions = await db.question.findMany({
     where: {
       type: { in: [QuestionType.MCQ, QuestionType.GAP_FILL] },
       skill: { in: skills },
+      level: { in: levels },
     },
     orderBy: [{ level: "asc" }, { skill: "asc" }, { createdAt: "asc" }],
   });
 
-  let needsWork = force
-    ? questions
-    : questions.filter((q) => {
-        const c = q.content;
-        return !c || typeof c !== "object" || !c.explanationVi;
-      });
-
-  if (limit) needsWork = needsWork.slice(0, limit);
+  let needsWork;
+  if (balanceMode === "level" && totalTarget) {
+    console.log(`Phân bổ ${totalTarget} câu đều theo level × skill:`);
+    needsWork = pickBalanced(questions, totalTarget, levels, skills);
+  } else {
+    needsWork = force ? questions : questions.filter((q) => needsExplanation(q));
+    const cap = limit ?? totalTarget;
+    if (cap) needsWork = needsWork.slice(0, cap);
+  }
 
   console.log(`Tổng ngân hàng ${questions.length} câu · batch này: ${needsWork.length}`);
 
