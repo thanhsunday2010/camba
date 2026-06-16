@@ -19,22 +19,31 @@ export function WritingFeedbackView({ feedback, studentAnswer }: WritingFeedback
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-4">
         <div className="text-center">
           <p className="text-3xl font-bold text-cambridge-700">{feedback.overallScore}%</p>
           <p className="text-sm text-muted-foreground">Điểm tổng</p>
         </div>
-        <Badge variant="secondary" className="text-base px-4 py-1">
+        <Badge variant="secondary" className="px-4 py-1 text-base">
           Band: {feedback.cambridgeBand}
         </Badge>
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Nhận xét</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm leading-relaxed">{feedback.summary_vi}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
           <CardTitle className="text-lg">Tiêu chí Cambridge</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {Object.entries(feedback.criteria).map(([key, score]) => (
             <div key={key}>
               <div className="mb-1 flex justify-between text-sm">
@@ -47,68 +56,46 @@ export function WritingFeedbackView({ feedback, studentAnswer }: WritingFeedback
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Nhận xét</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm leading-relaxed">{feedback.summary_vi}</p>
-        </CardContent>
-      </Card>
-
       {feedback.errors.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Lỗi cần sửa ({feedback.errors.length})</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Lỗi chính ({feedback.errors.length})</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2">
             {feedback.errors.map((err, i) => (
               <div key={i} className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="danger">{err.type}</Badge>
-                </div>
-                <p className="mt-2">
+                <Badge variant="danger">{err.type}</Badge>
+                <p className="mt-1">
                   <span className="line-through text-red-600">{err.original}</span>
                   {" → "}
                   <span className="font-medium text-green-700">{err.correction}</span>
                 </p>
-                <p className="mt-1 text-muted-foreground">{err.explanation_vi}</p>
+                <p className="text-muted-foreground">{err.explanation_vi}</p>
               </div>
             ))}
           </CardContent>
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Bài viết của bạn</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{studentAnswer}</p>
-        </CardContent>
-      </Card>
+      {feedback.tips_vi.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Gợi ý luyện tập</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc space-y-1 pl-5 text-sm">
+              {feedback.tips_vi.map((tip, i) => (
+                <li key={i}>{tip}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Phiên bản cải thiện</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{feedback.improvedVersion}</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Gợi ý luyện tập</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="list-disc space-y-2 pl-5 text-sm">
-            {feedback.tips_vi.map((tip, i) => (
-              <li key={i}>{tip}</li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <details className="rounded-lg border bg-muted/30 px-4 py-3">
+        <summary className="cursor-pointer text-sm font-semibold">Bài viết của bạn</summary>
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{studentAnswer}</p>
+      </details>
     </div>
   );
 }

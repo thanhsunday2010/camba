@@ -26,6 +26,22 @@ function normalizeAnswer(value: unknown): string {
     .replace(/\s+/g, " ");
 }
 
+export function hasStoredExplanation(content: unknown): boolean {
+  const { explanationVi, distractorNotes } = getQuestionExplanationContent(content);
+  return !!(explanationVi || (distractorNotes && Object.keys(distractorNotes).length > 0));
+}
+
+export function formatCorrectAnswerDisplay(type: string, correctAnswer: unknown): string {
+  if (correctAnswer == null) return "—";
+  if (Array.isArray(correctAnswer)) {
+    return correctAnswer.map((v, i) => `${i + 1}. ${String(v)}`).join(" · ");
+  }
+  if (type === "GAP_FILL" && typeof correctAnswer === "string") {
+    return correctAnswer;
+  }
+  return String(correctAnswer);
+}
+
 /** Lời giải hiển thị — ưu tiên ghi chú theo đáp án sai (MCQ), rồi explanationVi chung */
 export function formatExplanationForStudent(
   content: unknown,

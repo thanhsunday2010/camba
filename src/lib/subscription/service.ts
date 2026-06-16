@@ -5,6 +5,10 @@ import {
   type AiGradingSkill,
   type PlanId,
 } from "@/lib/subscription/plans";
+import {
+  formatAiGradingQuotaExceededMessage,
+  formatPracticeQuotaExceededMessage,
+} from "@/lib/subscription/quota-messages";
 import { getPlacementWeeklySnapshot } from "@/lib/subscription/placement-limit";
 
 function startOfToday(): Date {
@@ -15,6 +19,7 @@ function startOfToday(): Date {
 
 type DailyUsageRow = {
   practiceCount: number;
+  mockSkillCount: number;
   writingAiGradingCount: number;
   speakingAiGradingCount: number;
   readingAiGradingCount: number;
@@ -93,6 +98,9 @@ export async function getDailyUsageSnapshot(userId: string) {
     placementRemaining: placement.remaining,
     aiGradingCount,
     aiGradingLimit: limits.dailyAiGrading,
+    mockSkillCount: usage.mockSkillCount,
+    mockTestLimit: limits.dailyMockTests,
+    allowFullMock: limits.allowFullMock,
     writingAiGradingCount: usage.writingAiGradingCount,
     speakingAiGradingCount: usage.speakingAiGradingCount,
     readingAiGradingCount: usage.readingAiGradingCount,
@@ -114,10 +122,9 @@ export async function canUsePractice(userId: string, additional = 1): Promise<bo
 export async function recordPracticeUsage(userId: string, count = 1) {
   const allowed = await canUsePractice(userId, count);
   if (!allowed) {
-    const limits = await getUserPlanLimits(userId);
     return {
       ok: false as const,
-      error: `Đã hết ${limits.dailyPracticeQuestions} câu luyện tập hôm nay. Nâng cấp gói để tiếp tục.`,
+      error: formatPracticeQuotaExceededMessage(),
     };
   }
 
@@ -130,6 +137,40 @@ export async function recordPracticeUsage(userId: string, count = 1) {
 
   return { ok: true as const };
 }
+
+export async function canUseMockTest(userId: string): Promise<boolean> {
+  const [usage, limits] = await Promise.all([
+    getOrCreateDailyUsage(userId),
+    getUserPlanLimits(userId),
+  ]);
+  return usage.mockSkillCount < limits.dailyMockTests;
+}
+
+/** @deprecated use canUseMockTest */
+export const canUseSkillMock = canUseMockTest;
+
+export async function recordMockTestUsage(userId: string) {
+  const allowed = await canUseMockTest(userId);
+  if (!allowed) {
+    const { formatMockTestQuotaExceededMessage } = await import("@/lib/subscription/quota-messages");
+    return {
+      ok: false as const,
+      error: formatMockTestQuotaExceededMessage(),
+    };
+  }
+
+  const date = startOfToday();
+  await db.dailyUsage.upsert({
+    where: { userId_date: { userId, date } },
+    create: { userId, date, mockSkillCount: 1 },
+    update: { mockSkillCount: { increment: 1 } },
+  });
+
+  return { ok: true as const };
+}
+
+/** @deprecated use recordMockTestUsage */
+export const recordSkillMockUsage = recordMockTestUsage;
 
 export async function canUseAiGrading(userId: string, _skill: AiGradingSkill): Promise<boolean> {
   const [usage, limits] = await Promise.all([
@@ -150,10 +191,9 @@ export async function getAiGradingRemaining(userId: string, _skill: AiGradingSki
 export async function recordAiGradingUsage(userId: string, skill: AiGradingSkill) {
   const allowed = await canUseAiGrading(userId, skill);
   if (!allowed) {
-    const limits = await getUserPlanLimits(userId);
     return {
       ok: false as const,
-      error: `Đã hết ${limits.dailyAiGrading} lượt AI hôm nay (dùng chung). Nâng cấp gói để tiếp tục.`,
+      error: formatAiGradingQuotaExceededMessage(),
     };
   }
 

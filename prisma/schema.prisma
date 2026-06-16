@@ -432,6 +432,7 @@ model DailyUsage {
   readingAiGradingCount Int      @default(0)
   listeningAiGradingCount Int    @default(0)
   useOfEnglishAiGradingCount Int @default(0)
+  mockSkillCount          Int      @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

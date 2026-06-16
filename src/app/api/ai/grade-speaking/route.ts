@@ -4,7 +4,8 @@ import { db } from "@/lib/db";
 import { gradeSpeaking, transcribeAudio } from "@/lib/ai/grading";
 import { AttemptStatus } from "@prisma/client";
 import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
-import { checkSpeakingAIRateLimit, getSpeakingAIRateLimitInfo } from "@/lib/ai/rate-limit";
+import { checkSpeakingAIRateLimit } from "@/lib/ai/rate-limit";
+import { formatAiGradingQuotaExceededMessage } from "@/lib/subscription/quota-messages";
 import { getGeminiApiKey, getSpeechToTextMode } from "@/lib/ai/config";
 import { z } from "zod";
 
@@ -22,11 +23,7 @@ export async function POST(req: NextRequest) {
 
   const allowed = await checkSpeakingAIRateLimit(session.user.id);
   if (!allowed) {
-    const info = await getSpeakingAIRateLimitInfo(session.user.id);
-    return NextResponse.json(
-      { error: `Đã hết ${info.limit} lượt AI hôm nay (dùng chung). Nâng cấp gói tại trang Bảng giá.` },
-      { status: 429 }
-    );
+    return NextResponse.json({ error: formatAiGradingQuotaExceededMessage() }, { status: 429 });
   }
 
   if (!getGeminiApiKey()) {

@@ -50,18 +50,18 @@ function sleep(ms) {
 }
 
 async function generateExplanation(ai, type, content, correctAnswer) {
-  const system = `You are a Cambridge English tutor writing explanations for Vietnamese K12 students.
+  const system = `You are a Cambridge English tutor. Write VERY SHORT explanations in Vietnamese.
 
 Return ONLY valid JSON:
 {
   "explanationVi": string,
-  "distractorNotes": { "exact wrong option text": "one short Vietnamese sentence why it is wrong" }
+  "distractorNotes": { "exact wrong option text": "short note" }
 }
 
 Rules:
-- explanationVi: 1-3 short Vietnamese sentences; cite passage/transcript when provided; explain why the correct answer is right
-- distractorNotes: only for MCQ with options; keys MUST match option text exactly; skip correct option; max 4 entries
-- No greeting, no markdown outside JSON`;
+- explanationVi: exactly 1 sentence, max 20 words — why the correct answer is right
+- distractorNotes: MCQ only; keys MUST match option text exactly; skip correct option; max 3 entries; each note max 10 words
+- No greeting, no markdown, no repetition of the question`;
 
   const user = `Question type: ${type}\n\n${buildContext(type, content, correctAnswer)}`;
 
@@ -72,9 +72,13 @@ Rules:
       systemInstruction: system,
       responseMimeType: "application/json",
       temperature: 0.2,
-      maxOutputTokens: 768,
+      maxOutputTokens: 256,
     },
   });
+
+  const usage = response.usageMetadata ?? response.usage;
+  const inputTokens = usage?.promptTokenCount ?? usage?.prompt_tokens ?? 0;
+  const outputTokens = usage?.candidatesTokenCount ?? usage?.completion_tokens ?? 0;
 
   const text = response.text?.trim();
   if (!text) throw new Error("Empty Gemini response");
@@ -90,7 +94,24 @@ Rules:
       parsed.distractorNotes && typeof parsed.distractorNotes === "object"
         ? parsed.distractorNotes
         : undefined,
+    inputTokens,
+    outputTokens,
   };
+}
+
+/** Gemini 2.5 Flash paid tier (USD/1M tokens) — ước tính, free tier = $0 */
+const PRICE_INPUT_PER_M = 0.15;
+const PRICE_OUTPUT_PER_M = 0.6;
+
+function formatUsd(amount) {
+  return `$${amount.toFixed(4)}`;
+}
+
+function estimateCost(inputTokens, outputTokens) {
+  return (
+    (inputTokens / 1_000_000) * PRICE_INPUT_PER_M +
+    (outputTokens / 1_000_000) * PRICE_OUTPUT_PER_M
+  );
 }
 
 async function runPool(jobs, ai) {
@@ -98,6 +119,8 @@ async function runPool(jobs, ai) {
   let skipped = 0;
   let failed = 0;
   let done = 0;
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
   const queue = [...jobs];
 
   async function worker() {
@@ -140,6 +163,9 @@ async function runPool(jobs, ai) {
 
         if (!result) throw new Error("Quota exceeded after retries");
 
+        totalInputTokens += result.inputTokens ?? 0;
+        totalOutputTokens += result.outputTokens ?? 0;
+
         await db.question.update({
           where: { id: question.id },
           data: {
@@ -168,7 +194,7 @@ async function runPool(jobs, ai) {
   }
 
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
-  return { updated, skipped, failed };
+  return { updated, skipped, failed, totalInputTokens, totalOutputTokens };
 }
 
 async function main() {
@@ -186,17 +212,18 @@ async function main() {
       skill: { in: [Skill.READING, Skill.LISTENING, Skill.USE_OF_ENGLISH] },
     },
     orderBy: [{ level: "asc" }, { skill: "asc" }, { createdAt: "asc" }],
-    ...(limit ? { take: limit } : {}),
   });
 
-  const needsWork = force
+  let needsWork = force
     ? questions
     : questions.filter((q) => {
         const c = q.content;
         return !c || typeof c !== "object" || !c.explanationVi;
       });
 
-  console.log(`Tổng ${questions.length} câu · cần generate: ${needsWork.length}`);
+  if (limit) needsWork = needsWork.slice(0, limit);
+
+  console.log(`Tổng ngân hàng ${questions.length} câu · batch này: ${needsWork.length}`);
 
   if (needsWork.length === 0) {
     console.log("Không có câu nào cần generate. Dùng --force để ghi đè.");
@@ -210,8 +237,17 @@ async function main() {
     total: needsWork.length,
   }));
 
-  const { updated, skipped, failed } = await runPool(jobs, ai);
+  const { updated, skipped, failed, totalInputTokens, totalOutputTokens } = await runPool(jobs, ai);
+  const costUsd = estimateCost(totalInputTokens, totalOutputTokens);
+  const costVnd = costUsd * 25_000;
+
   console.log(`\nXong: ${updated} cập nhật · ${skipped} bỏ qua · ${failed} lỗi`);
+  console.log(
+    `Token: ${totalInputTokens.toLocaleString()} input + ${totalOutputTokens.toLocaleString()} output`
+  );
+  console.log(
+    `Ước tính chi phí (nếu trả phí): ${formatUsd(costUsd)} (~${Math.round(costVnd).toLocaleString("vi-VN")}₫) · Free tier thường $0`
+  );
 }
 
 main()

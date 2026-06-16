@@ -55,7 +55,9 @@ export function mascotHalfProgressMessage(): MascotToastPayload {
   };
 }
 
-export function mascotScoreMessage(percent: number, userName?: string): MascotToastPayload {
+export function mascotScoreMessage(percent: number, userName?: string): MascotToastPayload | null {
+  if (percent < 40) return null;
+
   const name = userName ?? "bạn";
   if (percent >= 90) {
     return {
@@ -81,10 +83,7 @@ export function mascotScoreMessage(percent: number, userName?: string): MascotTo
       mood: "wave",
     };
   }
-  return {
-    message: `Thỏ biết ${name} cố gắng rồi! Luyện thêm chút nữa nhé 🌱`,
-    mood: "think",
-  };
+  return null;
 }
 
 export function mascotPlacementResultMessage(

@@ -11,10 +11,18 @@ import { markAssignmentsComplete } from "@/lib/exam/assignments";
 import {
   assignDynamicExamQuestionsForAttempt,
   isDynamicPoolPaper,
+  isDynamicPracticePaper,
   loadAttemptPracticeQuestions,
+  PRACTICE_POOL_SIZE,
   shouldIncludeCorrectAnswerForPoolPaper,
   usesAttemptQuestionSet,
 } from "@/lib/exam/practice-pool";
+import {
+  formatFullMockUpgradeMessage,
+  formatPracticeQuotaExceededMessage,
+  formatMockTestQuotaExceededMessage,
+} from "@/lib/subscription/quota-messages";
+import { hasFullMockAccess } from "@/lib/subscription/plans";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
 import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
 import { QuestionType, ExamLevel, Skill, PaperKind, Prisma } from "@prisma/client";
@@ -281,18 +289,6 @@ export async function startAttemptAction(paperId: string) {
   const isPool = isDynamicPoolPaper(paper);
   const includeAnswers = shouldIncludeCorrectAnswerForPoolPaper(paper);
 
-  if (paper.paperKind === PaperKind.PRACTICE && session.user.id) {
-    const { canUsePractice } = await import("@/lib/subscription/service");
-    const allowed = await canUsePractice(session.user.id);
-    if (!allowed) {
-      const { getUserPlanLimits } = await import("@/lib/subscription/service");
-      const limits = await getUserPlanLimits(session.user.id);
-      return {
-        error: `Đã hết ${limits.dailyPracticeQuestions} câu luyện tập hôm nay. Nâng cấp gói tại /pricing`,
-      };
-    }
-  }
-
   const existing = await db.attempt.findFirst({
     where: {
       userId: session.user.id,
@@ -302,6 +298,36 @@ export async function startAttemptAction(paperId: string) {
     include: { answers: true },
     orderBy: { startedAt: "desc" },
   });
+
+  if (paper.paperKind === PaperKind.PRACTICE && session.user.id && !existing) {
+    const { canUsePractice } = await import("@/lib/subscription/service");
+    const additional = isDynamicPracticePaper(paper) ? PRACTICE_POOL_SIZE : 1;
+    const allowed = await canUsePractice(session.user.id, additional);
+    if (!allowed) {
+      return { error: formatPracticeQuotaExceededMessage() };
+    }
+  }
+
+  if (paper.paperKind === PaperKind.MOCK_FULL && session.user.id && !existing) {
+    const { getUserPlanId } = await import("@/lib/subscription/service");
+    const planId = await getUserPlanId(session.user.id);
+    if (!hasFullMockAccess(planId)) {
+      return { error: formatFullMockUpgradeMessage() };
+    }
+    const { canUseMockTest } = await import("@/lib/subscription/service");
+    const allowed = await canUseMockTest(session.user.id);
+    if (!allowed) {
+      return { error: formatMockTestQuotaExceededMessage() };
+    }
+  }
+
+  if (paper.paperKind === PaperKind.MOCK_SKILL && session.user.id && !existing) {
+    const { canUseMockTest } = await import("@/lib/subscription/service");
+    const allowed = await canUseMockTest(session.user.id);
+    if (!allowed) {
+      return { error: formatMockTestQuotaExceededMessage() };
+    }
+  }
 
   if (existing) {
     const savedAnswers: Record<string, unknown> = {};
@@ -329,6 +355,18 @@ export async function startAttemptAction(paperId: string) {
       status: "IN_PROGRESS",
     },
   });
+
+  if (
+    (paper.paperKind === PaperKind.MOCK_SKILL || paper.paperKind === PaperKind.MOCK_FULL) &&
+    session.user.id
+  ) {
+    const { recordMockTestUsage } = await import("@/lib/subscription/service");
+    const recorded = await recordMockTestUsage(session.user.id);
+    if (!recorded.ok) {
+      await db.attempt.delete({ where: { id: attempt.id } });
+      return { error: recorded.error };
+    }
+  }
 
   await updateUserStreak(session.user.id);
 

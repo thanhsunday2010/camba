@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ExamLevel, PaperKind } from "@prisma/client";
+import { ExamLevel, PaperKind, Skill } from "@prisma/client";
 import { auth } from "@/auth";
 import { formatExamLevel, SKILLS } from "@/lib/constants";
 import { getPublishedPapersByLevel } from "@/lib/exam/cached-papers";
 import { getCompletedPaperIdsForUser } from "@/lib/exam/user-paper-progress";
+import { getMockSkillQuestionCount } from "@/lib/exam/mock-config";
+import { PRACTICE_POOL_SIZE } from "@/lib/exam/practice-pool";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
-import { SkillPaperList } from "@/components/exam/skill-paper-list";
-import { SkillPracticeGroup } from "@/components/exam/skill-practice-group";
+import { getDailyUsageSnapshot } from "@/lib/subscription/service";
+import { FullMockGrid, SkillPracticeGrid } from "@/components/exam/skill-practice-grid";
 
 const SKILL_EMOJI: Record<string, string> = {
   READING: "📖",
@@ -18,6 +20,19 @@ const SKILL_EMOJI: Record<string, string> = {
 };
 
 const YLE_LEVELS = new Set(["STARTERS", "MOVERS", "FLYERS"]);
+
+function practiceInfoText(skill: Skill): string {
+  if (skill === Skill.WRITING || skill === Skill.SPEAKING) {
+    return `${PRACTICE_POOL_SIZE} câu ngẫu nhiên/lần · AI chấm (Free: 1 lượt/ngày dùng chung)`;
+  }
+  return `${PRACTICE_POOL_SIZE} câu ngẫu nhiên/lần · lời giải có sẵn ngay`;
+}
+
+function mockInfoText(level: ExamLevel, skill: Skill, timeLimit?: number | null): string {
+  const count = getMockSkillQuestionCount(level, skill);
+  const minutes = timeLimit && timeLimit > 0 ? Math.floor(timeLimit / 60) : null;
+  return `Mock: ${count} câu ngẫu nhiên${minutes ? ` · ~${minutes} phút` : ""} · không lặp đề`;
+}
 
 export const revalidate = 60;
 
@@ -37,9 +52,10 @@ export default async function ExamsLevelPage({
   const theme = LEVEL_THEMES[level] ?? LEVEL_THEMES.KET;
   const isYle = YLE_LEVELS.has(level);
 
-  const [papers, completedPaperIds] = await Promise.all([
+  const [papers, completedPaperIds, usage] = await Promise.all([
     getPublishedPapersByLevel(examLevel),
     getCompletedPaperIdsForUser(session.user.id, examLevel),
+    getDailyUsageSnapshot(session.user.id),
   ]);
 
   const fullMocks = papers.filter((p) => p.paperKind === PaperKind.MOCK_FULL);
@@ -49,21 +65,52 @@ export default async function ExamsLevelPage({
 
   const practiceOnly = skillPapers.filter((p) => p.paperKind === PaperKind.PRACTICE);
   const skillMocks = skillPapers.filter((p) => p.paperKind === PaperKind.MOCK_SKILL);
-  const totalNew = skillPapers.filter((p) => !completedPaperIds.has(p.id)).length;
 
   const skillsForPage = SKILLS.filter(
     (skill) => skill.value !== "USE_OF_ENGLISH" || !isYle
   );
 
-  const grouped = skillsForPage.map((skill) => ({
-    skill,
-    practice: practiceOnly.filter((p) => p.skill === skill.value),
-    mocks: skillMocks.filter((p) => p.skill === skill.value),
-  }));
+  const mockTestLimit = usage.mockTestLimit;
+  const mockTestUsedUp = usage.mockSkillCount >= mockTestLimit;
+  const fullMockLocked = !usage.allowFullMock || mockTestUsedUp;
+
+  const gridSkills = skillsForPage.map((skill) => {
+    const skillValue = skill.value as Skill;
+    const practice = practiceOnly.find((p) => p.skill === skillValue);
+    const mock = skillMocks.find((p) => p.skill === skillValue);
+
+    return {
+      skillLabel: skill.label,
+      skillEmoji: SKILL_EMOJI[skill.value],
+      practiceInfo: practiceInfoText(skillValue),
+      mockInfo: mock ? mockInfoText(examLevel, skillValue, mock.timeLimit) : undefined,
+      practice: practice
+        ? {
+            id: practice.id,
+            title: practice.title,
+            description: practice.description,
+            timeLimit: practice.timeLimit,
+            isMockTest: false,
+          }
+        : undefined,
+      mock: mock
+        ? {
+            id: mock.id,
+            title: mock.title,
+            description: mock.description,
+            timeLimit: mock.timeLimit,
+            isMockTest: true,
+          }
+        : undefined,
+      practiceDone: practice ? completedPaperIds.has(practice.id) : false,
+      mockDone: mock ? completedPaperIds.has(mock.id) : false,
+      mockLocked: mock ? mockTestUsedUp : false,
+    };
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className={`mb-8 rounded-3xl border-2 ${theme.border} ${theme.bg} p-6 shadow-md`}>
+      <div className={`mb-6 rounded-3xl border-2 ${theme.border} ${theme.bg} p-6 shadow-md`}>
         <Link
           href="/exams"
           className="mb-3 inline-flex text-sm font-bold text-purple-600 hover:underline"
@@ -75,25 +122,50 @@ export default async function ExamsLevelPage({
           <div>
             <h1 className="text-3xl font-extrabold kid-gradient-text">{formatExamLevel(level)}</h1>
             <p className="font-semibold text-muted-foreground">
-              {practiceOnly.length} đề luyện tập · {skillMocks.length} mock kỹ năng
-              {fullMocks.length > 0 && ` · ${fullMocks.length} full mock 🏆`}
-              {totalNew > 0 && (
-                <>
-                  {" "}
-                  · <span className="text-sky-600">{totalNew} bài mới</span>
-                </>
-              )}
+              Chọn kỹ năng để luyện tập hoặc thi mock
             </p>
           </div>
         </div>
       </div>
 
+      <div className="mb-6 grid gap-3 rounded-2xl border-2 border-violet-100 bg-violet-50/60 p-4 text-sm sm:grid-cols-3">
+        <div>
+          <p className="font-extrabold text-violet-900">Luyện tập hôm nay</p>
+          <p className="font-semibold text-muted-foreground">
+            {usage.practiceCount}/{usage.practiceLimit} câu
+          </p>
+        </div>
+        <div>
+          <p className="font-extrabold text-violet-900">Mock test</p>
+          <p className="font-semibold text-muted-foreground">
+            {usage.mockSkillCount}/{mockTestLimit} lượt hôm nay
+          </p>
+        </div>
+        <div>
+          <p className="font-extrabold text-violet-900">AI Writing & Speaking</p>
+          <p className="font-semibold text-muted-foreground">
+            {usage.aiGradingCount}/{usage.aiGradingLimit} lượt (dùng chung)
+          </p>
+        </div>
+        {usage.planId === "FREE" && (
+          <p className="sm:col-span-3 text-xs font-medium text-violet-800">
+            Free: 30 câu/ngày · 1 mock test/ngày · không full mock. Pro: 5 mock/ngày · VIP: 10 mock/ngày. Hết lượt?{" "}
+            <Link href="/pricing" className="font-bold underline">
+              nâng cấp Pro chỉ 30.000₫/tháng
+            </Link>
+          </p>
+        )}
+      </div>
+
       {fullMocks.length > 0 && (
         <section className="mb-10">
-          <h2 className="mb-3 text-lg font-extrabold text-amber-700">
-            🏆 Full Mock — Thi thử tất cả kỹ năng · đề ngẫu nhiên
+          <h2 className="mb-1 text-lg font-extrabold text-amber-700">
+            🏆 Full Mock — Thi thử tất cả kỹ năng
           </h2>
-          <SkillPaperList
+          <p className="mb-4 text-sm font-medium text-muted-foreground">
+            Đề ngẫu nhiên từ ngân hàng · format Cambridge · không lặp đề
+          </p>
+          <FullMockGrid
             papers={fullMocks.map((p) => ({
               id: p.id,
               title: p.title,
@@ -102,42 +174,27 @@ export default async function ExamsLevelPage({
               isMockTest: true,
             }))}
             completedPaperIds={completedPaperIds}
-            className="border-amber-200"
+            locked={fullMockLocked}
+            lockedHint={
+              fullMockLocked && !usage.allowFullMock
+                ? "Full mock cần gói Pro — nâng cấp tại Bảng giá"
+                : "Đã hết lượt mock test hôm nay — quay lại ngày mai"
+            }
+            lockedHref={fullMockLocked && !usage.allowFullMock ? "/pricing" : undefined}
           />
         </section>
       )}
 
-      <div className="space-y-3">
-        {grouped.map(({ skill, practice, mocks }, index) => {
-          const allSkill = [...practice, ...mocks];
-          const skillNew = allSkill.filter((p) => !completedPaperIds.has(p.id)).length;
-
-          return (
-            <SkillPracticeGroup
-              key={skill.value}
-              skillLabel={skill.label}
-              skillEmoji={SKILL_EMOJI[skill.value]}
-              practice={practice.map((p) => ({
-                id: p.id,
-                title: p.title,
-                description: p.description,
-                timeLimit: p.timeLimit,
-                isMockTest: false,
-              }))}
-              mocks={mocks.map((p) => ({
-                id: p.id,
-                title: p.title,
-                description: p.description,
-                timeLimit: p.timeLimit,
-                isMockTest: true,
-              }))}
-              completedPaperIds={completedPaperIds}
-              newCount={skillNew}
-              defaultOpen={index === 0 && skillNew > 0}
-            />
-          );
-        })}
-      </div>
+      <section>
+        <h2 className="mb-1 text-lg font-extrabold text-purple-900">Luyện tập theo kỹ năng</h2>
+        <p className="mb-4 text-sm font-medium text-muted-foreground">
+          Mỗi kỹ năng một đề pool — câu hỏi được chọn ngẫu nhiên mỗi lần vào bài
+        </p>
+        <SkillPracticeGrid
+          skills={gridSkills}
+          mockLockedHint="Đã hết lượt mock test hôm nay — quay lại ngày mai"
+        />
+      </section>
     </div>
   );
 }

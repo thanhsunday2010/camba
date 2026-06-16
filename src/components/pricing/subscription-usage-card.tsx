@@ -57,6 +57,16 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
 
         <div>
           <div className="mb-1 flex justify-between text-sm">
+            <span>Mock test hôm nay</span>
+            <span>
+              {usage.mockSkillCount}/{usage.mockTestLimit} lượt
+            </span>
+          </div>
+          <Progress value={usagePct(usage.mockSkillCount, usage.mockTestLimit)} />
+        </div>
+
+        <div>
+          <div className="mb-1 flex justify-between text-sm">
             <span>Lượt AI hôm nay</span>
             <span>
               {usage.aiGradingCount}/{usage.aiGradingLimit} lượt
@@ -80,7 +90,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
           <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
             <p className="font-semibold">Camba Pro — từ 30.000₫/tháng</p>
             <p className="text-muted-foreground">
-              100 câu/ngày · 25 lượt AI/ngày (dùng chung) · 150 từ Writing/Speaking
+              30 câu/ngày · 1 mock kỹ năng/ngày · 1 lượt AI/ngày
             </p>
           </div>
         )}

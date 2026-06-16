@@ -17,7 +17,11 @@ import {
 import { GamificationCelebrationCard } from "@/components/gamification/gamification-celebration-card";
 import type { GamificationSnapshot } from "@/lib/gamification/types";
 import { QuestionExplanationPanel } from "@/components/exam/question-explanation-panel";
-import { formatExplanationForStudent } from "@/lib/exam/question-explanation";
+import {
+  formatCorrectAnswerDisplay,
+  formatExplanationForStudent,
+  hasStoredExplanation,
+} from "@/lib/exam/question-explanation";
 
 interface ResultAnswer {
   id: string;
@@ -85,14 +89,16 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
       }, 3200);
       if (pct !== null) {
         setTimeout(() => {
-          showMascot(mascotScoreMessage(pct));
+          const msg = mascotScoreMessage(pct);
+          if (msg) showMascot(msg);
         }, gamification.levelUp || gamification.unlockedAchievements.length ? 9000 : 6500);
       }
       return () => clearTimeout(t);
     }
 
     if (pct !== null) {
-      showMascot(mascotScoreMessage(pct));
+      const msg = mascotScoreMessage(pct);
+      if (msg) showMascot(msg);
       return;
     }
 
@@ -210,7 +216,10 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
                       <div className="space-y-2">
                         <p className="text-sm">
                           <strong>Đáp án đúng:</strong>{" "}
-                          {JSON.stringify(answer.question.correctAnswer)}
+                          {formatCorrectAnswerDisplay(
+                            answer.question.type,
+                            answer.question.correctAnswer
+                          )}
                         </p>
                         {storedExplanation ? (
                           <QuestionExplanationPanel
@@ -220,9 +229,11 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
                           />
                         ) : (
                           answer.question.type !== "FREE_TEXT" &&
-                          answer.question.type !== "SPEAKING_PROMPT" && (
+                          answer.question.type !== "SPEAKING_PROMPT" &&
+                          !hasStoredExplanation(answer.question.content) && (
                             <p className="text-sm text-muted-foreground">
-                              Lời giải chi tiết sẽ được bổ sung sớm.
+                              Chưa có lời giải chi tiết cho câu này trong ngân hàng đề (đáp án
+                              đúng đã hiển thị ở trên).
                             </p>
                           )
                         )}

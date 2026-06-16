@@ -16,9 +16,9 @@ export const writingFeedbackSchema = z.object({
     organisation: z.number().min(0).max(5),
     language: z.number().min(0).max(5),
   }),
-  errors: z.array(writingErrorSchema),
-  improvedVersion: z.string(),
-  tips_vi: z.array(z.string()).min(1).max(5),
+  errors: z.array(writingErrorSchema).max(3),
+  improvedVersion: z.string().optional().default(""),
+  tips_vi: z.array(z.string()).min(1).max(2),
   summary_vi: z.string(),
 });
 
@@ -34,8 +34,8 @@ export const speakingFeedbackSchema = z.object({
     vocabulary: z.number().min(0).max(5),
     taskAchievement: z.number().min(0).max(5),
   }),
-  errors: z.array(writingErrorSchema),
-  tips_vi: z.array(z.string()).min(1).max(5),
+  errors: z.array(writingErrorSchema).max(3),
+  tips_vi: z.array(z.string()).min(1).max(2),
   summary_vi: z.string(),
 });
 

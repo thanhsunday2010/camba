@@ -14,9 +14,6 @@ import {
 } from "@/lib/audio/listening-audio-client";
 import { startAttemptAction, submitAttemptAction } from "@/lib/actions/exam";
 import { QuestionType } from "@prisma/client";
-import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
-import { formatExplanationForStudent } from "@/lib/exam/question-explanation";
-import { QuestionExplanationPanel } from "@/components/exam/question-explanation-panel";
 import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections";
 import { formatDuration } from "@/lib/constants";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
@@ -25,7 +22,6 @@ import {
   mascotHalfProgressMessage,
   mascotPlacementSubmitWaitMessage,
   mascotSpeakingDoneMessage,
-  mascotStreakMessage,
   mascotTestCompleteMessage,
 } from "@/lib/kids/mascot-messages";
 import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
@@ -39,7 +35,6 @@ interface PaperQuestion {
   points: number;
   skill?: string;
   title?: string | null;
-  correctAnswer?: unknown;
 }
 
 interface PracticeClientProps {
@@ -52,7 +47,6 @@ interface PracticeClientProps {
   questions: PaperQuestion[];
   initialAttemptId?: string;
   isGuestAttempt?: boolean;
-  instantFeedback?: boolean;
   /** Đề pool động — câu hỏi load sau startAttempt */
   dynamicPool?: boolean;
   maxWritingWords?: number;
@@ -85,7 +79,6 @@ export function PracticeClient({
   questions,
   initialAttemptId,
   isGuestAttempt = false,
-  instantFeedback = false,
   dynamicPool = false,
   maxWritingWords,
   maxSpeakingWords,
@@ -99,13 +92,8 @@ export function PracticeClient({
   const [submitting, setSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [startedAt] = useState(new Date());
-  const correctStreakRef = useRef(0);
   const halfProgressShownRef = useRef(false);
-  const lastStreakMilestoneRef = useRef(0);
   const countedPracticeQuestionsRef = useRef<Set<string>>(new Set());
-  const [objectiveFeedback, setObjectiveFeedback] = useState<
-    Record<string, { isCorrect: boolean }>
-  >({});
   const [sessionQuestions, setSessionQuestions] = useState<PaperQuestion[]>(questions);
   const [loadingPool, setLoadingPool] = useState(dynamicPool && !initialAttemptId);
 
@@ -148,36 +136,9 @@ export function PracticeClient({
   }, [currentIndex]);
 
   const setAnswer = useCallback(
-    (questionId: string, value: unknown, question?: PaperQuestion) => {
+    (questionId: string, value: unknown, _question?: PaperQuestion) => {
       setAnswers((prev) => {
         const next = { ...prev, [questionId]: value };
-
-        if (instantFeedback && question?.correctAnswer != null) {
-          if (question.type === "MCQ" || question.type === "GAP_FILL") {
-            const result = gradeObjectiveAnswer(
-              question.type,
-              question.correctAnswer,
-              value
-            );
-            if (isAnswered(value)) {
-              setObjectiveFeedback((fb) => ({
-                ...fb,
-                [questionId]: { isCorrect: result.isCorrect },
-              }));
-            }
-            if (result.isCorrect) {
-              correctStreakRef.current += 1;
-              const streak = correctStreakRef.current;
-              if (streak >= 5 && streak % 5 === 0 && streak !== lastStreakMilestoneRef.current) {
-                lastStreakMilestoneRef.current = streak;
-                showMascot(mascotStreakMessage(streak));
-              }
-            } else {
-              correctStreakRef.current = 0;
-              lastStreakMilestoneRef.current = 0;
-            }
-          }
-        }
 
         const answered = sessionQuestions.filter((q) => isAnswered(next[q.id])).length;
         const pct = Math.round((answered / sessionQuestions.length) * 100);
@@ -190,7 +151,7 @@ export function PracticeClient({
       });
       play("pop");
 
-      if (paperKind === "PRACTICE" && instantFeedback && questionId) {
+      if (paperKind === "PRACTICE" && questionId) {
         const answeredNow = isAnswered(value);
         if (answeredNow && !countedPracticeQuestionsRef.current.has(questionId)) {
           countedPracticeQuestionsRef.current.add(questionId);
@@ -211,7 +172,7 @@ export function PracticeClient({
         });
       }
     },
-    [play, paperKind, attemptId, instantFeedback, sessionQuestions, showMascot]
+    [play, paperKind, attemptId, sessionQuestions, showMascot]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -544,26 +505,6 @@ export function PracticeClient({
                 maxWritingWords={maxWritingWords}
                 maxSpeakingWords={maxSpeakingWords}
               />
-              {instantFeedback && objectiveFeedback[current.id]?.isCorrect === false && (
-                <>
-                  {formatExplanationForStudent(
-                    current.content,
-                    answers[current.id],
-                    current.correctAnswer
-                  ) ? (
-                    <QuestionExplanationPanel
-                      className="mt-4"
-                      content={current.content}
-                      studentAnswer={answers[current.id]}
-                      correctAnswer={current.correctAnswer}
-                    />
-                  ) : (
-                    <p className="mt-4 text-sm text-muted-foreground">
-                      Chưa có lời giải cho câu này — xem đáp án sau khi nộp bài.
-                    </p>
-                  )}
-                </>
-              )}
             </div>
             )
           )}

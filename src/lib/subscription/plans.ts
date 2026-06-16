@@ -15,6 +15,10 @@ export interface PlanLimits {
   weeklyPlacementAttempts: number;
   /** Lượt AI Writing & Speaking / ngày (dùng chung pool) */
   dailyAiGrading: number;
+  /** Mock test (kỹ năng + full) / ngày */
+  dailyMockTests: number;
+  /** Full mock (tất cả kỹ năng) */
+  allowFullMock: boolean;
   writingWordLimit: number;
   speakingWordLimit: number;
 }
@@ -47,17 +51,20 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     name: "Camba Free",
     tagline: "Bắt đầu học miễn phí",
     limits: {
-      dailyPracticeQuestions: 100,
+      dailyPracticeQuestions: 30,
       weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
-      dailyAiGrading: 5,
+      dailyAiGrading: 1,
+      dailyMockTests: 1,
+      allowFullMock: false,
       writingWordLimit: 200,
       speakingWordLimit: 100,
     },
     pricing: { monthly: 0, yearly: 0 },
     features: [
-      "100 câu luyện tập mỗi ngày",
+      "30 câu luyện tập mỗi ngày",
+      "1 mock kỹ năng/ngày",
       "2 lượt placement/tuần (mọi loại đề)",
-      "5 lượt AI/ngày (chấm Writing & Speaking)",
+      "1 lượt AI/ngày (chấm Writing & Speaking, dùng chung)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing tối đa 200 từ/lần · Speaking 100 từ/lần",
       "Miễn phí mãi mãi",
@@ -71,7 +78,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     limits: {
       dailyPracticeQuestions: 100,
       weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
-      dailyAiGrading: 25,
+      dailyAiGrading: 10,
+      dailyMockTests: 5,
+      allowFullMock: true,
       writingWordLimit: 150,
       speakingWordLimit: 150,
     },
@@ -79,8 +88,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     highlighted: true,
     features: [
       "100 câu luyện tập mỗi ngày",
+      "5 mock test/ngày (kỹ năng & full mock)",
       "2 lượt placement/tuần (mọi loại đề)",
-      "25 lượt AI/ngày (chấm Writing & Speaking)",
+      "10 lượt AI/ngày (chấm Writing & Speaking)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing & Speaking tối đa 150 từ/lần",
     ],
@@ -93,15 +103,18 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     limits: {
       dailyPracticeQuestions: 200,
       weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
-      dailyAiGrading: 50,
+      dailyAiGrading: 20,
+      dailyMockTests: 10,
+      allowFullMock: true,
       writingWordLimit: 300,
       speakingWordLimit: 300,
     },
     pricing: { monthly: 50_000, yearly: 500_000 },
     features: [
       "200 câu luyện tập mỗi ngày",
+      "10 mock test/ngày (kỹ năng & full mock)",
       "2 lượt placement/tuần (mọi loại đề)",
-      "50 lượt AI/ngày (chấm Writing & Speaking)",
+      "20 lượt AI/ngày (chấm Writing & Speaking)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing & Speaking tối đa 300 từ/lần",
       "Hỗ trợ ưu tiên & cập nhật sớm",
@@ -162,6 +175,17 @@ export function parseBillingCycle(value: string | null | undefined): BillingCycl
 export function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
+
+export function hasFullMockAccess(planId: PlanId): boolean {
+  return PLANS[planId].limits.allowFullMock;
+}
+
+export function getMockTestDailyLimit(planId: PlanId): number {
+  return PLANS[planId].limits.dailyMockTests;
+}
+
+/** @deprecated use getMockTestDailyLimit */
+export const getSkillMockDailyLimit = getMockTestDailyLimit;
 
 export function hasSpeakingAccess(planId: PlanId): boolean {
   return PLANS[planId].limits.dailyAiGrading > 0;

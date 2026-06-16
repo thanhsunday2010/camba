@@ -5,7 +5,8 @@ import { AttemptStatus } from "@prisma/client";
 import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
 import { gradeWriting } from "@/lib/ai/grading";
 import { getGeminiApiKey } from "@/lib/ai/config";
-import { checkWritingAIRateLimit, getWritingAIRateLimitInfo } from "@/lib/ai/rate-limit";
+import { checkWritingAIRateLimit } from "@/lib/ai/rate-limit";
+import { formatAiGradingQuotaExceededMessage } from "@/lib/subscription/quota-messages";
 import { z } from "zod";
 
 const writingSchema = z.object({
@@ -22,11 +23,7 @@ export async function POST(req: NextRequest) {
 
   const allowed = await checkWritingAIRateLimit(session.user.id);
   if (!allowed) {
-    const info = await getWritingAIRateLimitInfo(session.user.id);
-    return NextResponse.json(
-      { error: `Đã hết ${info.limit} lượt AI hôm nay (dùng chung). Nâng cấp gói tại trang Bảng giá.` },
-      { status: 429 }
-    );
+    return NextResponse.json({ error: formatAiGradingQuotaExceededMessage() }, { status: 429 });
   }
 
   const body = await req.json();
