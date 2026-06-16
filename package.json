@@ -24,6 +24,7 @@
     "content:audit-pools": "tsx scripts/audit-pool-counts.ts",
     "content:supplement-bank": "tsx scripts/supplement-question-bank.ts",
     "content:prune-replenish-bank": "tsx scripts/prune-and-replenish-bank.ts",
+    "content:stats-pools": "tsx scripts/stats-pool-counts.ts",
     "content:prune-broken-questions": "tsx scripts/prune-broken-questions.ts",
     "content:migrate-practice-pools": "node scripts/migrate-practice-pools.mjs",
     "content:migrate-mock-pools": "tsx scripts/migrate-mock-pools.ts",

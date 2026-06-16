@@ -2,12 +2,15 @@ import { ExamLevel } from "@prisma/client";
 import type { SeedDifficulty } from "../../../src/lib/exam/question-diversity";
 import type { GapSeed, ListeningSeed, McqSeed, SpeakingSeed, WritingSeed } from "../helpers";
 import { buildVarContext, difficultyForIndex, type VarContext } from "./seed-vars";
-
-type McqBuilder = (v: VarContext, tag: string) => McqSeed;
-type GapBuilder = (v: VarContext, tag: string) => GapSeed;
-type ListenBuilder = (v: VarContext, tag: string) => ListeningSeed;
-type WriteBuilder = (v: VarContext, tag: string) => WritingSeed;
-type SpeakBuilder = (v: VarContext, tag: string) => SpeakingSeed;
+import {
+  EXTRA_FCE_LISTENING,
+  EXTRA_SECONDARY_READING,
+  EXTRA_YLE_READING,
+  buildExtraListening,
+  buildExtraReading,
+  extraUoeForLevel,
+} from "./template-factory";
+import type { GapBuilder, ListenBuilder, McqBuilder, SpeakBuilder, WriteBuilder } from "./diverse-templates-types";
 
 function title(tag: string, v: VarContext): string {
   return `${tag}-${v.idx + 1}`;
@@ -335,12 +338,12 @@ const FCE_READING: McqBuilder[] = [
 ];
 
 const READING_BY_LEVEL: Partial<Record<ExamLevel, McqBuilder[]>> = {
-  STARTERS: YLE_READING,
-  MOVERS: MOVERS_READING,
-  FLYERS: FLYERS_READING,
-  KET: KET_READING,
-  PET: PET_READING,
-  FCE: FCE_READING,
+  STARTERS: [...YLE_READING, ...EXTRA_YLE_READING, ...buildExtraReading(35)],
+  MOVERS: [...MOVERS_READING, ...EXTRA_YLE_READING],
+  FLYERS: [...FLYERS_READING, ...EXTRA_YLE_READING],
+  KET: [...KET_READING, ...EXTRA_SECONDARY_READING],
+  PET: [...PET_READING, ...EXTRA_SECONDARY_READING],
+  FCE: [...FCE_READING, ...EXTRA_SECONDARY_READING],
 };
 
 // ─── Listening ─────────────────────────────────────────────────────────────
@@ -883,12 +886,12 @@ const FCE_LISTENING: ListenBuilder[] = [
 ];
 
 const LISTENING_BY_LEVEL: Partial<Record<ExamLevel, ListenBuilder[]>> = {
-  STARTERS: YLE_LISTENING,
-  MOVERS: YLE_LISTENING,
-  FLYERS: YLE_LISTENING,
-  KET: KET_LISTENING,
-  PET: PET_LISTENING,
-  FCE: FCE_LISTENING,
+  STARTERS: [...YLE_LISTENING, ...buildExtraListening(20)],
+  MOVERS: [...YLE_LISTENING, ...buildExtraListening(20)],
+  FLYERS: [...YLE_LISTENING, ...buildExtraListening(20)],
+  KET: [...KET_LISTENING, ...buildExtraListening(20)],
+  PET: [...PET_LISTENING, ...buildExtraListening(20)],
+  FCE: [...FCE_LISTENING, ...EXTRA_FCE_LISTENING, ...buildExtraListening(25)],
 };
 
 // ─── UoE / Grammar ─────────────────────────────────────────────────────────
@@ -967,12 +970,12 @@ const FCE_UOE: GapBuilder[] = [
 ];
 
 const UOE_BY_LEVEL: Partial<Record<ExamLevel, GapBuilder[]>> = {
-  STARTERS: STARTERS_UOE,
-  MOVERS: MOVERS_UOE,
-  FLYERS: FLYERS_UOE,
-  KET: KET_UOE,
-  PET: PET_UOE,
-  FCE: FCE_UOE,
+  STARTERS: [...STARTERS_UOE, ...extraUoeForLevel("yle")],
+  MOVERS: [...MOVERS_UOE, ...extraUoeForLevel("yle")],
+  FLYERS: [...FLYERS_UOE, ...extraUoeForLevel("yle")],
+  KET: [...KET_UOE, ...extraUoeForLevel("ket")],
+  PET: [...PET_UOE, ...extraUoeForLevel("pet")],
+  FCE: [...FCE_UOE, ...extraUoeForLevel("fce")],
 };
 
 // ─── Writing ───────────────────────────────────────────────────────────────

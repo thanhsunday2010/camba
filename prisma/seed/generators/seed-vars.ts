@@ -31,7 +31,10 @@ const TOPICS = [
   "science", "history", "travel", "environment", "technology", "art", "reading",
   "swimming", "drama", "chess", "gardening", "cycling", "films", "languages",
   "health", "weather", "festivals", "wildlife", "space", "fashion", "debate",
-  "journalism", "architecture", "robotics",
+  "journalism", "architecture", "robotics", "economics", "biology", "physics",
+  "geography", "literature", "poetry", "theatre", "design", "engineering",
+  "medicine", "law", "philosophy", "psychology", "sociology", "astronomy",
+  "archaeology", "entrepreneurship", "marketing", "nutrition", "crafts",
 ];
 
 const TIMES = ["7:30", "8:00", "8:15", "9:30", "10:45", "12:00", "2:30", "4:15", "5:00", "6:30"];

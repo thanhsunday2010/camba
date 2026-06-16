@@ -242,9 +242,10 @@ export async function replenishPoolToTarget(
   > = [];
 
   let offset = before;
-  const maxAttempts = Math.max(need * 25, 2000);
+  const maxAttempts = Math.max(need * 80, 8000);
   for (let attempt = 0; batch.length < need && attempt < maxAttempts; attempt++) {
-    const item = generateOneSeed(level, skill, offset++);
+    const probe = before + attempt + Math.floor(attempt / 40) * 997;
+    const item = generateOneSeed(level, skill, probe);
     if (!item) continue;
     const key = getSeedDiversityKey(qType, item as { title: string } & Record<string, unknown>);
     if (keys.has(key)) continue;
