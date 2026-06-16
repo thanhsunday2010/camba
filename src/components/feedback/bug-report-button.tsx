@@ -60,7 +60,7 @@ export function BugReportButton() {
           href={VTEN_COURSE_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-full border-2 border-sky-300 bg-gradient-to-r from-sky-100 to-blue-100 px-4 py-2 text-sm font-bold text-sky-900 shadow-lg transition-transform hover:scale-105"
+          className="flex items-center gap-2 rounded-full border-2 border-sky-300 bg-gradient-to-r from-sky-100 to-blue-100 px-4 py-2 text-xs font-normal text-sky-900 shadow-lg transition-transform hover:scale-105"
         >
           👩‍🏫 {VTEN_COURSE_LABEL}
         </a>

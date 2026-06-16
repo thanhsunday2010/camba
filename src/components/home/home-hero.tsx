@@ -44,8 +44,8 @@ export function HomeHero() {
               </Button>
               <Button
                 asChild
-                size="lg"
-                className="rounded-full border-2 border-white bg-white/10 font-bold text-white hover:bg-white/20"
+                size="default"
+                className="rounded-full border-2 border-white bg-white/10 font-normal text-white hover:bg-white/20"
               >
                 <a href={VTEN_COURSE_URL} target="_blank" rel="noopener noreferrer">
                   👩‍🏫 {VTEN_COURSE_LABEL}
