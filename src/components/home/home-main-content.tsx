@@ -318,7 +318,7 @@ export function HomeMainContent() {
                   Test trình độ
                 </CardTitle>
                 <CardDescription>
-                  V-ACT · HSA · TSA — bài test giúp chọn trình độ phù hợp
+                  Test trình độ Tiếng Anh và các chương trình khác như SAT, ĐGNL, IQ, ...
                 </CardDescription>
               </CardHeader>
               <CardContent>
