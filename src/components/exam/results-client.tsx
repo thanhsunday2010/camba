@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WritingFeedbackView } from "@/components/ai/writing-feedback";
 import { SpeakingFeedbackView } from "@/components/ai/speaking-feedback";
@@ -18,11 +16,8 @@ import {
 } from "@/lib/gamification/mascot-messages";
 import { GamificationCelebrationCard } from "@/components/gamification/gamification-celebration-card";
 import type { GamificationSnapshot } from "@/lib/gamification/types";
-import { notifyFreeLimitHit } from "@/lib/promo/events";
-import {
-  EXPLAIN_AI_SKILLS,
-  paperSkillToAiGradingSkill,
-} from "@/lib/subscription/plans";
+import { QuestionExplanationPanel } from "@/components/exam/question-explanation-panel";
+import { formatExplanationForStudent } from "@/lib/exam/question-explanation";
 
 interface ResultAnswer {
   id: string;
@@ -69,8 +64,6 @@ interface ResultsClientProps {
 }
 
 export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsClientProps) {
-  const [explaining, setExplaining] = useState<string | null>(null);
-  const [explanations, setExplanations] = useState<Record<string, string>>({});
   const { showMascot } = useMascotToast();
   const mascotShownRef = useRef(false);
 
@@ -107,45 +100,6 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
       showMascot(mascotLessonCompleteMessage(paperKind));
     }
   }, [pct, showMascot, gamification, attempt.status, attempt.paper.paperKind]);
-
-  async function explainAnswer(answer: ResultAnswer) {
-    const content = answer.question.content as {
-      question?: string;
-      passage?: string;
-      transcript?: string;
-    };
-    const contextParts: string[] = [];
-    if (content.passage?.trim()) contextParts.push(`Đoạn đọc: ${content.passage.trim()}`);
-    if (content.transcript?.trim()) contextParts.push(`Transcript: ${content.transcript.trim()}`);
-    if (content.question?.trim()) contextParts.push(`Câu hỏi: ${content.question.trim()}`);
-    const questionContext = contextParts.join("\n") || "Question";
-
-    setExplaining(answer.id);
-    try {
-      const res = await fetch("/api/ai/explain-answer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: questionContext,
-          correctAnswer: JSON.stringify(answer.question.correctAnswer),
-          studentAnswer: JSON.stringify(answer.answer),
-          paperSkill: answer.question.skill ?? attempt.paper.skill,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        const errMsg = data.error ?? "Không thể giải thích câu này";
-        toast.error(errMsg);
-        if (String(errMsg).toLowerCase().includes("hết")) notifyFreeLimitHit();
-        return;
-      }
-      setExplanations((prev) => ({ ...prev, [answer.id]: data.explanation }));
-    } catch {
-      toast.error("Lỗi kết nối khi gọi AI");
-    } finally {
-      setExplaining(null);
-    }
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -185,7 +139,20 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
       <div className="space-y-6">
         {attempt.answers.map((answer, i) => {
           const aiFb = aiFeedbacks.find((f) => f.questionId === answer.question.id);
-          const content = answer.question.content as { question?: string; taskPrompt?: string; prompt?: string };
+          const content = answer.question.content as {
+            question?: string;
+            taskPrompt?: string;
+            prompt?: string;
+          };
+          const storedExplanation =
+            answer.isCorrect === false &&
+            (answer.question.type === "MCQ" || answer.question.type === "GAP_FILL")
+              ? formatExplanationForStudent(
+                  answer.question.content,
+                  answer.answer,
+                  answer.question.correctAnswer
+                )
+              : null;
 
           return (
             <Card key={answer.id}>
@@ -239,29 +206,25 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
                     <div className="rounded-lg bg-slate-50 p-3 text-sm">
                       <strong>Trả lời:</strong> {JSON.stringify(answer.answer)}
                     </div>
-                    {answer.isCorrect === false &&
-                      EXPLAIN_AI_SKILLS.includes(
-                        paperSkillToAiGradingSkill(
-                          answer.question.skill ?? attempt.paper.skill
-                        ) as (typeof EXPLAIN_AI_SKILLS)[number]
-                      ) && (
+                    {answer.isCorrect === false && (
                       <div className="space-y-2">
                         <p className="text-sm">
                           <strong>Đáp án đúng:</strong>{" "}
                           {JSON.stringify(answer.question.correctAnswer)}
                         </p>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => explainAnswer(answer)}
-                          disabled={explaining === answer.id}
-                        >
-                          {explaining === answer.id ? "Đang giải thích..." : "AI Camba giải thích"}
-                        </Button>
-                        {explanations[answer.id] && (
-                          <p className="whitespace-pre-line rounded-lg border bg-blue-50 p-3 text-sm leading-relaxed">
-                            {explanations[answer.id]}
-                          </p>
+                        {storedExplanation ? (
+                          <QuestionExplanationPanel
+                            content={answer.question.content}
+                            studentAnswer={answer.answer}
+                            correctAnswer={answer.question.correctAnswer}
+                          />
+                        ) : (
+                          answer.question.type !== "FREE_TEXT" &&
+                          answer.question.type !== "SPEAKING_PROMPT" && (
+                            <p className="text-sm text-muted-foreground">
+                              Lời giải chi tiết sẽ được bổ sung sớm.
+                            </p>
+                          )
                         )}
                       </div>
                     )}

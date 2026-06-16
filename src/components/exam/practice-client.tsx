@@ -15,6 +15,8 @@ import {
 import { startAttemptAction, submitAttemptAction } from "@/lib/actions/exam";
 import { QuestionType } from "@prisma/client";
 import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
+import { formatExplanationForStudent } from "@/lib/exam/question-explanation";
+import { QuestionExplanationPanel } from "@/components/exam/question-explanation-panel";
 import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections";
 import { formatDuration } from "@/lib/constants";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
@@ -98,6 +100,9 @@ export function PracticeClient({
   const halfProgressShownRef = useRef(false);
   const lastStreakMilestoneRef = useRef(0);
   const countedPracticeQuestionsRef = useRef<Set<string>>(new Set());
+  const [objectiveFeedback, setObjectiveFeedback] = useState<
+    Record<string, { isCorrect: boolean }>
+  >({});
 
   useEffect(() => {
     if (initialAttemptId) {
@@ -140,6 +145,12 @@ export function PracticeClient({
               question.correctAnswer,
               value
             );
+            if (isAnswered(value)) {
+              setObjectiveFeedback((fb) => ({
+                ...fb,
+                [questionId]: { isCorrect: result.isCorrect },
+              }));
+            }
             if (result.isCorrect) {
               correctStreakRef.current += 1;
               const streak = correctStreakRef.current;
@@ -512,6 +523,26 @@ export function PracticeClient({
                 maxWritingWords={maxWritingWords}
                 maxSpeakingWords={maxSpeakingWords}
               />
+              {instantFeedback && objectiveFeedback[current.id]?.isCorrect === false && (
+                <>
+                  {formatExplanationForStudent(
+                    current.content,
+                    answers[current.id],
+                    current.correctAnswer
+                  ) ? (
+                    <QuestionExplanationPanel
+                      className="mt-4"
+                      content={current.content}
+                      studentAnswer={answers[current.id]}
+                      correctAnswer={current.correctAnswer}
+                    />
+                  ) : (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Chưa có lời giải cho câu này — xem đáp án sau khi nộp bài.
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           )}
 

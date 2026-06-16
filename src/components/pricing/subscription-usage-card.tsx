@@ -67,7 +67,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
             <p className="mt-1 text-xs text-muted-foreground">Đã dùng: {breakdown}</p>
           ) : (
             <p className="mt-1 text-xs text-muted-foreground">
-              Chấm sửa & giải thích — dùng chung pool lượt
+              Chấm Writing & Speaking — dùng chung pool lượt
             </p>
           )}
         </div>

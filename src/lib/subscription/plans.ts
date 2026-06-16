@@ -13,7 +13,7 @@ export interface PlanLimits {
   dailyPracticeQuestions: number;
   /** Lượt placement bất kỳ loại nào / tuần (Free, Pro, VIP) */
   weeklyPlacementAttempts: number;
-  /** Lượt AI dùng chung — Writing, Speaking, Reading, Listening, UoE */
+  /** Lượt AI Writing & Speaking / ngày (dùng chung pool) */
   dailyAiGrading: number;
   writingWordLimit: number;
   speakingWordLimit: number;
@@ -57,7 +57,8 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     features: [
       "100 câu luyện tập mỗi ngày",
       "2 lượt placement/tuần (mọi loại đề)",
-      "5 lượt AI/ngày (chấm sửa & giải thích — dùng chung)",
+      "5 lượt AI/ngày (chấm Writing & Speaking)",
+      "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing tối đa 200 từ/lần · Speaking 100 từ/lần",
       "Miễn phí mãi mãi",
     ],
@@ -79,7 +80,8 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     features: [
       "100 câu luyện tập mỗi ngày",
       "2 lượt placement/tuần (mọi loại đề)",
-      "25 lượt AI/ngày (chấm sửa & giải thích — dùng chung)",
+      "25 lượt AI/ngày (chấm Writing & Speaking)",
+      "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing & Speaking tối đa 150 từ/lần",
     ],
   },
@@ -99,7 +101,8 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     features: [
       "200 câu luyện tập mỗi ngày",
       "2 lượt placement/tuần (mọi loại đề)",
-      "50 lượt AI/ngày (chấm sửa & giải thích — dùng chung)",
+      "50 lượt AI/ngày (chấm Writing & Speaking)",
+      "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing & Speaking tối đa 300 từ/lần",
       "Hỗ trợ ưu tiên & cập nhật sớm",
     ],

@@ -18,6 +18,7 @@
     "content:clear-placement": "tsx scripts/clear-placement.ts",
     "content:prune-placement": "tsx scripts/prune-placement.ts",
     "audio:generate": "node scripts/generate-listening-audio.mjs",
+    "content:generate-explanations": "node scripts/generate-explanations.mjs",
     "db:deploy": "node scripts/migrate-deploy.mjs && npm run db:seed",
     "db:baseline": "prisma migrate resolve --applied 20250101000000_init",
     "db:studio": "prisma studio",

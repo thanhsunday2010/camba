@@ -17,7 +17,7 @@ export default function PricingPage() {
         <CambaMascot size="lg" mood="happy" className="mb-4" />
         <h1 className="text-4xl font-extrabold kid-gradient-text">Bảng giá Camba</h1>
         <p className="mt-3 max-w-2xl text-lg font-medium text-muted-foreground">
-          Chọn gói phù hợp — luyện tập Cambridge, lượt AI chấm sửa & giải thích dùng chung mỗi ngày.
+          Chọn gói phù hợp — luyện tập Cambridge, AI chấm Writing & Speaking mỗi ngày.
         </p>
       </div>
 

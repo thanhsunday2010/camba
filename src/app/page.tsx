@@ -118,7 +118,7 @@ export default function HomePage() {
                   Gói Free, Pro & VIP
                 </CardTitle>
                 <CardDescription>
-                  AI chấm sửa & giải thích — lượt dùng chung mỗi ngày
+                  AI chấm Writing & Speaking — lượt dùng chung mỗi ngày
                 </CardDescription>
               </CardHeader>
               <CardContent>

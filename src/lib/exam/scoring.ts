@@ -9,11 +9,15 @@ export interface McqContent {
   imageDescription?: string;
   sceneEmoji?: string;
   questionType?: string;
+  explanationVi?: string;
+  distractorNotes?: Record<string, string>;
 }
 
 export interface GapFillContent {
   passage: string;
   blanks: number;
+  explanationVi?: string;
+  distractorNotes?: Record<string, string>;
 }
 
 export interface FreeTextContent {
