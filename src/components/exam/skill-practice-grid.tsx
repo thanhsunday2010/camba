@@ -65,7 +65,7 @@ function PaperLink({
       <div className="flex items-center justify-between gap-2">
         <span
           className={cn(
-            "text-xs font-extrabold uppercase tracking-wide",
+            "text-sm font-extrabold uppercase tracking-wide",
             isPractice ? "text-purple-700" : "text-amber-800"
           )}
         >
@@ -82,16 +82,16 @@ function PaperLink({
         )}
       </div>
       {paper.description && (
-        <p className="text-xs font-medium leading-snug text-muted-foreground">{paper.description}</p>
+        <p className="text-base font-medium leading-relaxed text-muted-foreground">{paper.description}</p>
       )}
       {minutes && (
-        <p className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
-          <Clock className="h-3 w-3" />
+        <p className="flex items-center gap-1.5 text-base font-semibold text-muted-foreground">
+          <Clock className="h-4 w-4" />
           {minutes}
         </p>
       )}
       {locked && lockedHint && (
-        <p className="text-[10px] font-semibold leading-snug text-amber-900">{lockedHint}</p>
+        <p className="text-xs font-semibold leading-snug text-amber-900">{lockedHint}</p>
       )}
     </>
   );
@@ -138,11 +138,11 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
               </span>
               <div className="min-w-0 flex-1">
                 <h3 className="text-lg font-extrabold text-purple-900">{skill.skillLabel}</h3>
-                <p className="mt-1 text-xs font-semibold leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-base font-semibold leading-relaxed text-muted-foreground">
                   {skill.practiceInfo}
                 </p>
                 {skill.mockInfo && (
-                  <p className="mt-0.5 text-xs font-semibold leading-relaxed text-amber-800/90">
+                  <p className="mt-0.5 text-base font-semibold leading-relaxed text-amber-800/90">
                     {skill.mockInfo}
                   </p>
                 )}
@@ -220,12 +220,12 @@ export function FullMockGrid({
               )}
             </div>
             {paper.description && (
-              <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+              <p className="text-base font-medium leading-relaxed text-muted-foreground">
                 {paper.description}
               </p>
             )}
             {minutes && (
-              <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-amber-800">
+              <p className="mt-2 flex items-center gap-1 text-sm font-semibold text-amber-800">
                 <Clock className="h-3.5 w-3.5" />
                 {minutes} · tất cả kỹ năng
               </p>

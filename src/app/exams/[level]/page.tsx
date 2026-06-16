@@ -148,7 +148,7 @@ export default async function ExamsLevelPage({
           </p>
         </div>
         {usage.planId === "FREE" && (
-          <p className="sm:col-span-3 text-xs font-medium text-violet-800">
+          <p className="sm:col-span-3 text-sm font-medium text-violet-800">
             Free: 30 câu/ngày · 1 mock test/ngày · không full mock. Pro: 5 mock/ngày · VIP: 10 mock/ngày. Hết lượt?{" "}
             <Link href="/pricing" className="font-bold underline">
               nâng cấp Pro chỉ 30.000₫/tháng
@@ -162,7 +162,7 @@ export default async function ExamsLevelPage({
           <h2 className="mb-1 text-lg font-extrabold text-amber-700">
             🏆 Full Mock — Thi thử tất cả kỹ năng
           </h2>
-          <p className="mb-4 text-sm font-medium text-muted-foreground">
+          <p className="mb-4 text-base font-medium text-muted-foreground">
             Đề ngẫu nhiên từ ngân hàng · format Cambridge · không lặp đề
           </p>
           <FullMockGrid
@@ -187,7 +187,7 @@ export default async function ExamsLevelPage({
 
       <section>
         <h2 className="mb-1 text-lg font-extrabold text-purple-900">Luyện tập theo kỹ năng</h2>
-        <p className="mb-4 text-sm font-medium text-muted-foreground">
+        <p className="mb-4 text-base font-medium text-muted-foreground">
           Mỗi kỹ năng một đề pool — câu hỏi được chọn ngẫu nhiên mỗi lần vào bài
         </p>
         <SkillPracticeGrid
