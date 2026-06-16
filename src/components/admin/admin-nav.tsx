@@ -10,6 +10,7 @@ import { hasPermission } from "@/lib/admin/permissions";
 const LINKS = [
   { href: "/admin", label: "Dashboard", exact: true, permission: "dashboard.view" as AdminPermission },
   { href: "/admin/questions", label: "Câu hỏi", permission: "questions.manage" as AdminPermission },
+  { href: "/admin/question-images", label: "Ảnh câu hỏi", permission: "questions.manage" as AdminPermission },
   { href: "/admin/papers", label: "Đề thi", permission: "papers.manage" as AdminPermission },
   { href: "/admin/users", label: "Tài khoản", permission: "users.view" as AdminPermission },
   { href: "/admin/placement", label: "Placement", permission: "placement.view" as AdminPermission },

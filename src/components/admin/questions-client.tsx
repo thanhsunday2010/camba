@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,14 @@ export function AdminQuestionsClient({
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-2 text-3xl font-bold">Quản lý câu hỏi</h1>
+      <div className="mb-4">
+        <Link
+          href="/admin/question-images"
+          className="text-sm font-semibold text-sky-700 hover:underline"
+        >
+          🖼️ Xem câu hỏi cần bổ sung ảnh →
+        </Link>
+      </div>
       <AdminNav currentPath="/admin/questions" permissions={permissions} />
 
       <div className="grid gap-8 lg:grid-cols-2">

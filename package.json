@@ -19,6 +19,7 @@
     "content:prune-placement": "tsx scripts/prune-placement.ts",
     "audio:generate": "node scripts/generate-listening-audio.mjs",
     "content:generate-explanations": "node scripts/generate-explanations.mjs",
+    "content:audit-images": "tsx scripts/audit-question-images.ts",
     "content:migrate-practice-pools": "node scripts/migrate-practice-pools.mjs",
     "content:migrate-mock-pools": "tsx scripts/migrate-mock-pools.ts",
     "db:deploy": "node scripts/migrate-deploy.mjs && npm run db:seed",

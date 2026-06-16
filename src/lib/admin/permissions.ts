@@ -70,6 +70,7 @@ export const PERMISSION_GROUPS = [
 export const ROUTE_PERMISSIONS: Record<string, AdminPermission> = {
   "/admin": "dashboard.view",
   "/admin/questions": "questions.manage",
+  "/admin/question-images": "questions.manage",
   "/admin/papers": "papers.manage",
   "/admin/users": "users.view",
   "/admin/placement": "placement.view",

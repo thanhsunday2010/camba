@@ -9,6 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXAM_LEVELS, SKILLS, QUESTION_TYPES } from "@/lib/constants";
 import { createQuestionAction, updateQuestionAction } from "@/lib/actions/exam";
+import {
+  getMcqContentFields,
+  getQuestionImageHint,
+  questionUsesImage,
+} from "@/lib/exam/question-image-needs";
+import { QuestionImageUpload } from "@/components/admin/question-image-upload";
 
 export type QuestionFormData = {
   id: string;
@@ -82,6 +88,13 @@ export function QuestionForm({
   const [skill, setSkill] = useState(question?.skill ?? "READING");
 
   const formType = question?.type ?? type;
+  const contentFields = isEdit && question ? getMcqContentFields(question.content) : null;
+  const showImageUpload =
+    isEdit &&
+    question &&
+    questionUsesImage(question.type, question.content);
+  const imageHint =
+    isEdit && question ? getQuestionImageHint(question.type, question.content) : null;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -260,6 +273,17 @@ export function QuestionForm({
           />
         </div>
       </div>
+      {showImageUpload && question && (
+        <QuestionImageUpload
+          questionId={question.id}
+          imageUrl={contentFields?.imageUrl}
+          imageDescription={contentFields?.imageDescription}
+          imageHint={imageHint}
+          onUpdated={() => {
+            /* preview cập nhật trong component; JSON content cập nhật qua server action */
+          }}
+        />
+      )}
       <div className="flex gap-2">
         <Button type="submit" disabled={loading} size={compact ? "sm" : "default"}>
           {loading ? "Đang lưu..." : isEdit ? "Lưu câu hỏi" : "Tạo câu hỏi"}
