@@ -13,6 +13,7 @@ import {
   type WritingFeedback,
 } from "./schemas";
 import { callGeminiJson, callGeminiText, transcribeAudioWithGemini } from "./gemini";
+import { isGeminiQuotaError } from "./gemini-errors";
 import { GEMINI_MODELS } from "./config";
 
 export async function gradeWriting(params: {
@@ -79,27 +80,24 @@ export async function explainWrongAnswer(params: {
   studentAnswer: string;
 }): Promise<string> {
   const { system, user } = buildExplainWrongAnswerPrompt(params);
-
-  let lastError: Error | null = null;
-  for (let i = 0; i < 2; i++) {
-    try {
-      const raw = await callGeminiJson(system, user, GEMINI_MODELS.explain, {
-        maxOutputTokens: 512,
-        temperature: 0.2,
-      });
-      const parsed = explainWrongAnswerSchema.parse(raw);
-      return formatExplainWrongAnswer(parsed);
-    } catch (e) {
-      lastError = e instanceof Error ? e : new Error("Parse failed");
-    }
-  }
+  const model = GEMINI_MODELS.explain;
 
   try {
-    const text = await callGeminiText(system, user, GEMINI_MODELS.explain);
-    if (text.trim()) return text.trim();
+    const raw = await callGeminiJson(system, user, model, {
+      maxOutputTokens: 512,
+      temperature: 0.2,
+    });
+    return formatExplainWrongAnswer(explainWrongAnswerSchema.parse(raw));
   } catch (e) {
-    lastError = e instanceof Error ? e : lastError;
-  }
+    if (isGeminiQuotaError(e)) throw e;
 
-  throw lastError ?? new Error("AI explain failed");
+    try {
+      const text = await callGeminiText(system, user, model);
+      if (text.trim()) return text.trim();
+    } catch (textError) {
+      if (isGeminiQuotaError(textError)) throw textError;
+    }
+
+    throw e instanceof Error ? e : new Error("AI explain failed");
+  }
 }
