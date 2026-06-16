@@ -53,7 +53,6 @@ export default async function PracticePage({
       sections={sections}
       questions={questions}
       dynamicPool={dynamicPool}
-      maxWritingWords={planLimits.writingWordLimit}
       maxSpeakingWords={planLimits.speakingWordLimit}
       practicePoolKey={paper.practicePoolKey}
       mockPoolKey={paper.mockPoolKey}

@@ -103,7 +103,8 @@ async function ensureAttemptQuestionsFromPaper(
 export async function swapPracticeQuestionInAttempt(
   db: PrismaClient,
   attemptId: string,
-  questionId: string
+  questionId: string,
+  excludeQuestionIds: string[] = []
 ): Promise<PracticeQuestionRow> {
   const attempt = await db.attempt.findUnique({
     where: { id: attemptId },
@@ -146,9 +147,10 @@ export async function swapPracticeQuestionInAttempt(
   }
 
   const inAttempt = new Set(refreshed.attemptQuestions.map((aq) => aq.questionId));
-  const picked = pickDiverseQuestionIds(pool, inAttempt, 1);
+  const exclude = new Set([...inAttempt, ...excludeQuestionIds]);
+  const picked = pickDiverseQuestionIds(pool, exclude, 1);
   if (picked.length === 0) {
-    throw new Error("Không còn câu khác trong cùng phần — thử lại sau");
+    throw new Error("Không còn câu khác trong cùng phần — bạn đã xem hết ngân hàng");
   }
 
   const newQuestionId = picked[0]!;

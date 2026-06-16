@@ -5,6 +5,7 @@ import {
   type AiGradingSkill,
   type PlanId,
 } from "@/lib/subscription/plans";
+import { WRITING_WORD_LIMIT_POLICY_LABEL } from "@/lib/exam/writing-word-limit";
 import {
   formatAiGradingQuotaExceededMessage,
   formatPracticeQuotaExceededMessage,
@@ -106,7 +107,7 @@ export async function getDailyUsageSnapshot(userId: string) {
     readingAiGradingCount: usage.readingAiGradingCount,
     listeningAiGradingCount: usage.listeningAiGradingCount,
     useOfEnglishAiGradingCount: usage.useOfEnglishAiGradingCount,
-    writingWordLimit: limits.writingWordLimit,
+    writingWordLimitPolicy: WRITING_WORD_LIMIT_POLICY_LABEL,
     speakingWordLimit: limits.speakingWordLimit,
   };
 }

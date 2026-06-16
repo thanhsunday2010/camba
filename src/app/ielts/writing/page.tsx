@@ -8,6 +8,12 @@ import {
   IELTS_WRITING_TASKS,
 } from "@/lib/exam/ielts-writing-config";
 import { getIeltsWritingUsageSnapshot } from "@/lib/subscription/ielts-writing-limit";
+import {
+  countIeltsWritingMockBankQuestions,
+  countIeltsWritingTaskQuestions,
+  getMockBankStats,
+  getPartPracticeBankStats,
+} from "@/lib/exam/bank-stats";
 import { IeltsWritingHubClient } from "@/components/ielts/ielts-writing-hub-client";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 
@@ -60,6 +66,22 @@ export default async function IeltsWritingPage() {
 
   const doneSet = new Set(completedIds.map((a) => a.paperId));
 
+  const partStatsEntries = await Promise.all(
+    IELTS_WRITING_TASKS.map(async (task) => {
+      const poolKey = `IELTS:WRT:T${task}`;
+      const questionCount = await countIeltsWritingTaskQuestions(db, task);
+      const bankStats = await getPartPracticeBankStats(db, questionCount, poolKey);
+      return { task, bankStats };
+    })
+  );
+  const partStatsMap = new Map(partStatsEntries.map((e) => [e.task, e.bankStats]));
+
+  const mockBankStats = await getMockBankStats(
+    db,
+    await countIeltsWritingMockBankQuestions(db),
+    IELTS_WRITING_MOCK_POOL_KEY
+  );
+
   const practiceParts = IELTS_WRITING_TASKS.map((task) => {
     const poolKey = `IELTS:WRT:T${task}`;
     const paper = practicePapers.find((p) => p.practicePoolKey === poolKey);
@@ -70,6 +92,7 @@ export default async function IeltsWritingPage() {
       shortLabel: def.shortLabel,
       description: def.description,
       practiceInfo: "1 câu ngẫu nhiên/lần · AI chấm band ngay (tính lượt AI)",
+      bankStats: partStatsMap.get(task),
       paper: paper
         ? {
             id: paper.id,
@@ -102,6 +125,7 @@ export default async function IeltsWritingPage() {
       <IeltsWritingHubClient
         usage={usage}
         practiceParts={practiceParts}
+        mockBankStats={mockBankStats}
         mockPaper={
           mockPaper
             ? {

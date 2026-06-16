@@ -8,6 +8,7 @@ import { getGeminiApiKey } from "@/lib/ai/config";
 import { checkWritingAIRateLimit } from "@/lib/ai/rate-limit";
 import { formatAiGradingQuotaExceededMessage } from "@/lib/subscription/quota-messages";
 import { getWritingTaskPrompt } from "@/lib/exam/scoring";
+import { getWritingSubmissionWordLimit } from "@/lib/exam/writing-word-limit";
 import type { WritingFeedback } from "@/lib/ai/schemas";
 import { z } from "zod";
 
@@ -103,20 +104,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: formatAiGradingQuotaExceededMessage() }, { status: 429 });
   }
 
-  const { getUserPlanLimits } = await import("@/lib/subscription/service");
   const { countWords } = await import("@/lib/subscription/plans");
-  const limits = await getUserPlanLimits(session.user.id);
   const wordCount = countWords(parsed.data.studentAnswer);
-  if (wordCount > limits.writingWordLimit) {
+
+  const content = question.content as { taskPrompt?: string; wordLimit?: number };
+  const submissionLimit = getWritingSubmissionWordLimit(content.wordLimit);
+  if (submissionLimit != null && wordCount > submissionLimit) {
     return NextResponse.json(
       {
-        error: `Vượt giới hạn ${limits.writingWordLimit} từ/lần của gói hiện tại. Nâng cấp để viết dài hơn.`,
+        error: `Vượt giới hạn ${submissionLimit} từ (đề ${content.wordLimit} từ + 20%).`,
       },
       { status: 400 }
     );
   }
 
-  const content = question.content as { taskPrompt?: string; wordLimit?: number };
   const taskPrompt = getWritingTaskPrompt(content);
   if (!taskPrompt) {
     return NextResponse.json({ error: "Câu hỏi thiếu đề bài writing" }, { status: 422 });

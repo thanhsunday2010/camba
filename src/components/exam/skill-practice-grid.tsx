@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, Clock, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
 
 export type SkillGridPaper = {
   id: string;
@@ -16,6 +17,8 @@ export type SkillGridItem = {
   skillEmoji: string;
   practiceInfo: string;
   mockInfo?: string;
+  practiceBankStats?: BankStats;
+  mockBankStats?: BankStats;
   practice?: SkillGridPaper;
   mock?: SkillGridPaper;
   practiceDone?: boolean;
@@ -40,6 +43,7 @@ function PaperLink({
   label,
   locked,
   lockedHint,
+  bankStats,
 }: {
   paper: SkillGridPaper;
   done: boolean;
@@ -47,6 +51,7 @@ function PaperLink({
   label: string;
   locked?: boolean;
   lockedHint?: string;
+  bankStats?: BankStats;
 }) {
   const minutes = formatMinutes(paper.timeLimit);
   const isPractice = variant === "practice";
@@ -83,6 +88,9 @@ function PaperLink({
       </div>
       {paper.description && (
         <p className="text-base font-medium leading-relaxed text-muted-foreground">{paper.description}</p>
+      )}
+      {bankStats && (
+        <p className="text-xs font-semibold text-violet-700">📚 {formatBankStatsLine(bankStats)}</p>
       )}
       {minutes && (
         <p className="flex items-center gap-1.5 text-base font-semibold text-muted-foreground">
@@ -159,6 +167,7 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
                   done={!!skill.practiceDone}
                   variant="practice"
                   label="Luyện tập"
+                  bankStats={skill.practiceBankStats}
                 />
               )}
               {skill.mock && (
@@ -169,6 +178,7 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
                   label="Mock test"
                   locked={skill.mockLocked}
                   lockedHint={skill.mockLocked ? mockLockedHint : undefined}
+                  bankStats={skill.mockBankStats}
                 />
               )}
             </div>
@@ -185,12 +195,14 @@ export function FullMockGrid({
   locked = false,
   lockedHint,
   lockedHref,
+  bankStats,
 }: {
   papers: SkillGridPaper[];
   completedPaperIds: ReadonlySet<string>;
   locked?: boolean;
   lockedHint?: string;
   lockedHref?: string;
+  bankStats?: BankStats;
 }) {
   if (papers.length === 0) return null;
 
@@ -222,6 +234,11 @@ export function FullMockGrid({
             {paper.description && (
               <p className="text-base font-medium leading-relaxed text-muted-foreground">
                 {paper.description}
+              </p>
+            )}
+            {bankStats && (
+              <p className="text-xs font-semibold text-amber-800">
+                📚 {formatBankStatsLine(bankStats)}
               </p>
             )}
             {minutes && (

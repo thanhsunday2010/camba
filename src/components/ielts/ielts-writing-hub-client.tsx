@@ -22,6 +22,7 @@ type PracticePart = {
   shortLabel: string;
   description: string;
   practiceInfo: string;
+  bankStats?: import("@/lib/exam/bank-stats").BankStats;
   paper?: PaperCard;
   done: boolean;
 };
@@ -30,9 +31,10 @@ type Props = {
   usage: IeltsWritingUsageSnapshot;
   practiceParts: PracticePart[];
   mockPaper: (PaperCard & { done: boolean }) | null;
+  mockBankStats?: import("@/lib/exam/bank-stats").BankStats;
 };
 
-export function IeltsWritingHubClient({ usage, practiceParts, mockPaper }: Props) {
+export function IeltsWritingHubClient({ usage, practiceParts, mockPaper, mockBankStats }: Props) {
   const mockCount = getIeltsWritingMockQuestionCount();
 
   return (
@@ -45,6 +47,7 @@ export function IeltsWritingHubClient({ usage, practiceParts, mockPaper }: Props
       mockPaper={mockPaper}
       mockTitle="Mock — Task 1 + Task 2"
       mockDescription={`${mockCount} câu theo format IELTS Writing: Task 1 rồi Task 2 · câu hỏi ngẫu nhiên · AI chấm band IELTS.`}
+      mockBankStats={mockBankStats}
       migrateHint="Chưa có đề — chạy migrate IELTS Writing"
     />
   );

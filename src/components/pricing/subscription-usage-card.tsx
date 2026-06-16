@@ -83,14 +83,13 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Writing tối đa {usage.writingWordLimit} từ/lần · Speaking tối đa{" "}
-          {usage.speakingWordLimit} từ/lần
+          Writing: {usage.writingWordLimitPolicy} · Speaking tối đa {usage.speakingWordLimit} từ/lần
         </p>
         {plan.id === "FREE" && (
           <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
             <p className="font-semibold">Camba Pro — từ 30.000₫/tháng</p>
             <p className="text-muted-foreground">
-              30 câu/ngày · 1 mock kỹ năng/ngày · 1 lượt AI/ngày
+              30 câu/ngày · 1 mock kỹ năng/ngày · 3 lượt AI/ngày
             </p>
           </div>
         )}

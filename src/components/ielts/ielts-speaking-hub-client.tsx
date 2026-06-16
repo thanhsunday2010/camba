@@ -18,6 +18,7 @@ type PracticePart = {
   shortLabel: string;
   description: string;
   practiceInfo: string;
+  bankStats?: import("@/lib/exam/bank-stats").BankStats;
   paper?: PaperCard;
   done: boolean;
 };
@@ -26,9 +27,10 @@ type Props = {
   usage: IeltsSpeakingUsageSnapshot;
   practiceParts: PracticePart[];
   mockPaper: (PaperCard & { done: boolean }) | null;
+  mockBankStats?: import("@/lib/exam/bank-stats").BankStats;
 };
 
-export function IeltsSpeakingHubClient({ usage, practiceParts, mockPaper }: Props) {
+export function IeltsSpeakingHubClient({ usage, practiceParts, mockPaper, mockBankStats }: Props) {
   const mockCount = getIeltsSpeakingMockQuestionCount();
 
   return (
@@ -40,6 +42,7 @@ export function IeltsSpeakingHubClient({ usage, practiceParts, mockPaper }: Prop
       mockPaper={mockPaper}
       mockTitle="Mock — Part 1 + 2 + 3"
       mockDescription={`${mockCount} câu theo format thi thật: Part 1 (8 câu hỏi ngắn) → Part 2 (1 cue card, 1 phút chuẩn bị) → Part 3 (5 câu thảo luận). Câu hỏi ngẫu nhiên từ ngân hàng.`}
+      mockBankStats={mockBankStats}
       migrateHint="Chưa có đề — chạy migrate IELTS Speaking"
     />
   );

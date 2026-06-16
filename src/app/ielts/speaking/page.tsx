@@ -8,6 +8,12 @@ import {
   IELTS_SPEAKING_PARTS,
 } from "@/lib/exam/ielts-speaking-config";
 import { getIeltsSpeakingUsageSnapshot } from "@/lib/subscription/ielts-speaking-limit";
+import {
+  countIeltsSpeakingMockBankQuestions,
+  countIeltsSpeakingPartQuestions,
+  getMockBankStats,
+  getPartPracticeBankStats,
+} from "@/lib/exam/bank-stats";
 import { IeltsSpeakingHubClient } from "@/components/ielts/ielts-speaking-hub-client";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 
@@ -60,6 +66,22 @@ export default async function IeltsSpeakingPage() {
 
   const doneSet = new Set(completedIds.map((a) => a.paperId));
 
+  const partStatsEntries = await Promise.all(
+    IELTS_SPEAKING_PARTS.map(async (part) => {
+      const poolKey = `IELTS:SPK:P${part}`;
+      const questionCount = await countIeltsSpeakingPartQuestions(db, part);
+      const bankStats = await getPartPracticeBankStats(db, questionCount, poolKey);
+      return { part, bankStats };
+    })
+  );
+  const partStatsMap = new Map(partStatsEntries.map((e) => [e.part, e.bankStats]));
+
+  const mockBankStats = await getMockBankStats(
+    db,
+    await countIeltsSpeakingMockBankQuestions(db),
+    IELTS_SPEAKING_MOCK_POOL_KEY
+  );
+
   const practiceParts = IELTS_SPEAKING_PARTS.map((part) => {
     const poolKey = `IELTS:SPK:P${part}`;
     const paper = practicePapers.find((p) => p.practicePoolKey === poolKey);
@@ -70,6 +92,7 @@ export default async function IeltsSpeakingPage() {
       shortLabel: def.shortLabel,
       description: def.description,
       practiceInfo: "1 câu ngẫu nhiên/lần · AI chấm band ngay (tính lượt AI)",
+      bankStats: partStatsMap.get(part),
       paper: paper
         ? {
             id: paper.id,
@@ -103,6 +126,7 @@ export default async function IeltsSpeakingPage() {
       <IeltsSpeakingHubClient
         usage={usage}
         practiceParts={practiceParts}
+        mockBankStats={mockBankStats}
         mockPaper={
           mockPaper
             ? {

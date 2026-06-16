@@ -23,6 +23,7 @@ type PracticePart = {
   shortLabel: string;
   description: string;
   practiceInfo: string;
+  bankStats?: import("@/lib/exam/bank-stats").BankStats;
   paper?: PaperCard;
   done: boolean;
 };
@@ -31,9 +32,10 @@ type Props = {
   usage: CambridgeSpeakingUsageSnapshot;
   practiceParts: PracticePart[];
   mockPaper: (PaperCard & { done: boolean }) | null;
+  mockBankStats?: import("@/lib/exam/bank-stats").BankStats;
 };
 
-export function CambridgeSpeakingHubClient({ usage, practiceParts, mockPaper }: Props) {
+export function CambridgeSpeakingHubClient({ usage, practiceParts, mockPaper, mockBankStats }: Props) {
   const level = usage.level;
   const mockCount = getCambridgeSpeakingMockQuestionCount(level);
   const parts = getCambridgeSpeakingParts(level);
@@ -49,6 +51,7 @@ export function CambridgeSpeakingHubClient({ usage, practiceParts, mockPaper }: 
       mockPaper={mockPaper}
       mockTitle={`Mock — ${partRange}`}
       mockDescription={`${mockCount} câu theo format Cambridge ${levelLabel}: ${parts.length} phần liên tiếp · câu hỏi ngẫu nhiên · AI chấm band Cambridge.`}
+      mockBankStats={mockBankStats}
       migrateHint="Chưa có đề — chạy migrate Cambridge Speaking"
     />
   );

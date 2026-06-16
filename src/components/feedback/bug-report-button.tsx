@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { Bug, Loader2, X } from "lucide-react";
@@ -13,14 +13,47 @@ import { cn } from "@/lib/utils";
 
 const HIDDEN_PREFIXES = ["/admin", "/login", "/register", "/teacher"];
 
+function FloatCtaShell({
+  children,
+  onDismiss,
+  dismissLabel,
+}: {
+  children: React.ReactNode;
+  onDismiss: () => void;
+  dismissLabel: string;
+}) {
+  return (
+    <div className="relative">
+      {children}
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-800"
+        aria-label={dismissLabel}
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
 export function BugReportButton() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [showVten, setShowVten] = useState(true);
+  const [showBug, setShowBug] = useState(true);
+
+  useEffect(() => {
+    setShowVten(true);
+    setShowBug(true);
+  }, [pathname]);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
   if (hidden) return null;
+
+  if (!showVten && !showBug && !open) return null;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,25 +88,35 @@ export function BugReportButton() {
 
   return (
     <>
+      {(showVten || showBug) && (
       <div className="fixed bottom-4 left-4 z-50 flex flex-col items-start gap-2 md:bottom-6 md:left-6">
-        <a
-          href={VTEN_COURSE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-full border-2 border-sky-300 bg-gradient-to-r from-sky-100 to-blue-100 px-4 py-2 text-xs font-normal text-sky-900 shadow-lg transition-transform hover:scale-105"
-        >
-          👩‍🏫 {VTEN_COURSE_LABEL}
-        </a>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex items-center gap-2 rounded-full border-2 border-amber-300 bg-gradient-to-r from-amber-100 to-orange-100 px-4 py-2 text-xs font-normal text-amber-900 shadow-lg transition-transform hover:scale-105"
-          aria-label="Báo lỗi"
-        >
-          <Bug className="h-4 w-4" />
-          Báo lỗi
-        </button>
+        {showVten && (
+          <FloatCtaShell onDismiss={() => setShowVten(false)} dismissLabel="Đóng gợi ý khóa học">
+            <a
+              href={VTEN_COURSE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-full border-2 border-sky-300 bg-gradient-to-r from-sky-100 to-blue-100 px-4 py-2 text-xs font-normal text-sky-900 shadow-lg transition-transform hover:scale-105"
+            >
+              👩‍🏫 {VTEN_COURSE_LABEL}
+            </a>
+          </FloatCtaShell>
+        )}
+        {showBug && (
+          <FloatCtaShell onDismiss={() => setShowBug(false)} dismissLabel="Đóng nút báo lỗi">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="flex items-center gap-2 rounded-full border-2 border-amber-300 bg-gradient-to-r from-amber-100 to-orange-100 px-4 py-2 text-xs font-normal text-amber-900 shadow-lg transition-transform hover:scale-105"
+              aria-label="Báo lỗi"
+            >
+              <Bug className="h-4 w-4" />
+              Báo lỗi
+            </button>
+          </FloatCtaShell>
+        )}
       </div>
+      )}
 
       {open && (
         <div

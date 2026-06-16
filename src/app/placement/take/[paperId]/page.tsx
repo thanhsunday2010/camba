@@ -90,7 +90,6 @@ export default async function PlacementTakePage({
       questions={questions}
       initialAttemptId={attemptId}
       isGuestAttempt={!attempt.userId}
-      maxWritingWords={planLimits.writingWordLimit}
       maxSpeakingWords={planLimits.speakingWordLimit}
     />
   );

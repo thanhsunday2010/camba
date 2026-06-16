@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
 
 export type SpeakingUsageSnapshot = {
   planName: string;
@@ -31,6 +32,7 @@ type PracticePart = {
   shortLabel: string;
   description: string;
   practiceInfo: string;
+  bankStats?: BankStats;
   paper?: PaperCard;
   done: boolean;
 };
@@ -44,6 +46,7 @@ type Props = {
   mockPaper: (PaperCard & { done: boolean }) | null;
   mockTitle: string;
   mockDescription: string;
+  mockBankStats?: BankStats;
   migrateHint?: string;
 };
 
@@ -61,6 +64,7 @@ export function SpeakingHubClient({
   mockPaper,
   mockTitle,
   mockDescription,
+  mockBankStats,
   migrateHint = "Chưa có đề — chạy migrate Speaking",
 }: Props) {
   const practiceLocked = usage.practiceRemaining <= 0;
@@ -125,6 +129,11 @@ export function SpeakingHubClient({
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm font-medium text-muted-foreground">{part.practiceInfo}</p>
+                {part.bankStats && (
+                  <p className="text-xs font-semibold text-violet-700">
+                    📚 {formatBankStatsLine(part.bankStats)}
+                  </p>
+                )}
                 {part.paper ? (
                   practiceLocked ? (
                     <Button className="w-full rounded-full" disabled>
@@ -153,6 +162,11 @@ export function SpeakingHubClient({
               {mockPaper?.done && <Badge variant="secondary">Đã làm ít nhất 1 lần</Badge>}
             </div>
             <CardDescription className="text-base leading-relaxed">{mockDescription}</CardDescription>
+            {mockBankStats && (
+              <p className="text-xs font-semibold text-amber-800">
+                📚 {formatBankStatsLine(mockBankStats)}
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             {mockPaper ? (

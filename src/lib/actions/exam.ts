@@ -479,7 +479,11 @@ export async function startAttemptAction(paperId: string) {
   return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
 }
 
-export async function swapPracticeQuestionAction(attemptId: string, questionId: string) {
+export async function swapPracticeQuestionAction(
+  attemptId: string,
+  questionId: string,
+  excludeQuestionIds: string[] = []
+) {
   const session = await auth();
   if (!session) return { error: "Chưa đăng nhập" };
 
@@ -496,7 +500,12 @@ export async function swapPracticeQuestionAction(attemptId: string, questionId: 
   }
 
   try {
-    const question = await swapPracticeQuestionInAttempt(db, attemptId, questionId);
+    const question = await swapPracticeQuestionInAttempt(
+      db,
+      attemptId,
+      questionId,
+      excludeQuestionIds
+    );
     return { success: true as const, question };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Không thể đổi câu hỏi";

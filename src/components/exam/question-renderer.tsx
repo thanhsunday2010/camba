@@ -25,6 +25,10 @@ import {
   PracticeObjectiveFeedback,
   type ObjectiveFeedback,
 } from "@/components/exam/practice-objective-feedback";
+import {
+  formatWritingWordLimitHint,
+  getWritingSubmissionWordLimit,
+} from "@/lib/exam/writing-word-limit";
 
 interface QuestionData {
   id: string;
@@ -44,7 +48,6 @@ interface QuestionRendererProps {
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
   isListening?: boolean;
-  maxWritingWords?: number;
   maxSpeakingWords?: number;
   objectiveFeedback?: ObjectiveFeedback | null;
   lockObjectiveAnswer?: boolean;
@@ -59,7 +62,6 @@ export function QuestionRenderer({
   onSpeakingTranscript,
   disabled,
   isListening = false,
-  maxWritingWords,
   maxSpeakingWords,
   objectiveFeedback = null,
   lockObjectiveAnswer = false,
@@ -145,7 +147,6 @@ export function QuestionRenderer({
           value={value as string}
           onChange={onChange}
           disabled={disabled}
-          maxWords={maxWritingWords}
           practiceMinWords={practiceMinWords}
         />
       )}
@@ -280,25 +281,24 @@ function FreeTextQuestion({
   value,
   onChange,
   disabled,
-  maxWords,
   practiceMinWords,
 }: {
   content: FreeTextContent;
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
-  maxWords?: number;
   practiceMinWords?: number | null;
 }) {
   const wordCount = (value ?? "").trim().split(/\s+/).filter(Boolean).length;
-  const planLimit = maxWords ?? content.wordLimit;
-  const overLimit = planLimit ? wordCount > planLimit : false;
+  const submissionLimit = getWritingSubmissionWordLimit(content.wordLimit);
+  const overLimit = submissionLimit ? wordCount > submissionLimit : false;
+  const limitHint = formatWritingWordLimitHint(content.wordLimit);
 
   const handleChange = (text: string) => {
-    if (planLimit) {
+    if (submissionLimit) {
       const words = text.trim().split(/\s+/).filter(Boolean);
-      if (words.length > planLimit) {
-        onChange(words.slice(0, planLimit).join(" "));
+      if (words.length > submissionLimit) {
+        onChange(words.slice(0, submissionLimit).join(" "));
         return;
       }
     }
@@ -335,14 +335,7 @@ function FreeTextQuestion({
               Tối thiểu {practiceMinWords} từ để chuyển câu / nộp bài
             </span>
           )}
-          {planLimit && (
-            <span>
-              Giới hạn gói: {planLimit} từ/lần
-              {content.wordLimit && content.wordLimit !== planLimit && (
-                <span className="ml-1">(đề: {content.wordLimit} từ)</span>
-              )}
-            </span>
-          )}
+          {limitHint && <span>{limitHint}</span>}
         </div>
       </div>
     </div>

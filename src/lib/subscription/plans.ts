@@ -19,7 +19,6 @@ export interface PlanLimits {
   dailyMockTests: number;
   /** Full mock (tất cả kỹ năng) */
   allowFullMock: boolean;
-  writingWordLimit: number;
   speakingWordLimit: number;
   /** Luyện Speaking IELTS — lượt / ngày (mỗi lần mở 1 part = 1 lượt) */
   ieltsSpeakingPracticeDaily: number;
@@ -63,10 +62,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     limits: {
       dailyPracticeQuestions: 30,
       weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
-      dailyAiGrading: 1,
+      dailyAiGrading: 3,
       dailyMockTests: 1,
       allowFullMock: false,
-      writingWordLimit: 200,
       speakingWordLimit: 100,
       ieltsSpeakingPracticeDaily: 3,
       ieltsSpeakingMockDaily: 0,
@@ -80,9 +78,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "30 câu luyện tập mỗi ngày",
       "1 mock kỹ năng/ngày",
       "2 lượt placement/tuần (mọi loại đề)",
-      "1 lượt AI/ngày (chấm Writing & Speaking, dùng chung)",
+      "3 lượt AI/ngày (chấm Writing & Speaking, dùng chung)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
-      "Writing tối đa 200 từ/lần · Speaking 100 từ/lần",
+      "Writing theo giới hạn đề thi (+ 20%) · Speaking 100 từ/lần",
       "Speaking IELTS: 3 lượt luyện/ngày · 1 mock/tuần",
       "Speaking Cambridge: 3 lượt luyện/ngày/level · 1 mock/tuần",
       "Miễn phí mãi mãi",
@@ -99,7 +97,6 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       dailyAiGrading: 10,
       dailyMockTests: 5,
       allowFullMock: true,
-      writingWordLimit: 150,
       speakingWordLimit: 150,
       ieltsSpeakingPracticeDaily: 10,
       ieltsSpeakingMockDaily: 1,
@@ -116,7 +113,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "2 lượt placement/tuần (mọi loại đề)",
       "10 lượt AI/ngày (chấm Writing & Speaking)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
-      "Writing & Speaking tối đa 150 từ/lần",
+      "Writing theo giới hạn đề thi (+ 20%) · Speaking tối đa 150 từ/lần",
       "Speaking IELTS: 10 lượt luyện/ngày · 1 mock/ngày",
       "Speaking Cambridge: 10 lượt luyện/ngày/level · 1 mock/ngày",
     ],
@@ -132,7 +129,6 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       dailyAiGrading: 20,
       dailyMockTests: 10,
       allowFullMock: true,
-      writingWordLimit: 300,
       speakingWordLimit: 300,
       ieltsSpeakingPracticeDaily: 20,
       ieltsSpeakingMockDaily: 3,
@@ -148,7 +144,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "2 lượt placement/tuần (mọi loại đề)",
       "20 lượt AI/ngày (chấm Writing & Speaking)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
-      "Writing & Speaking tối đa 300 từ/lần",
+      "Writing theo giới hạn đề thi (+ 20%) · Speaking tối đa 300 từ/lần",
       "Speaking IELTS: 20 lượt luyện/ngày · 3 mock/ngày",
       "Speaking Cambridge: 20 lượt luyện/ngày/level · 3 mock/ngày",
       "Hỗ trợ ưu tiên & cập nhật sớm",

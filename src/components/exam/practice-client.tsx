@@ -64,7 +64,6 @@ interface PracticeClientProps {
   isGuestAttempt?: boolean;
   /** Đề pool động — câu hỏi load sau startAttempt */
   dynamicPool?: boolean;
-  maxWritingWords?: number;
   maxSpeakingWords?: number;
   practicePoolKey?: string | null;
   mockPoolKey?: string | null;
@@ -162,7 +161,6 @@ export function PracticeClient({
   initialAttemptId,
   isGuestAttempt = false,
   dynamicPool = false,
-  maxWritingWords,
   maxSpeakingWords,
   practicePoolKey = null,
   mockPoolKey = null,
@@ -184,6 +182,7 @@ export function PracticeClient({
   const consecutiveCorrectRef = useRef(0);
   const countedPracticeQuestionsRef = useRef<Set<string>>(new Set());
   const speakingGradedIdsRef = useRef<Set<string>>(new Set());
+  const seenQuestionIdsRef = useRef<Set<string>>(new Set());
   const [sessionQuestions, setSessionQuestions] = useState<PaperQuestion[]>(questions);
   const [loadingPool, setLoadingPool] = useState(dynamicPool && !initialAttemptId);
   const [objectiveFeedback, setObjectiveFeedback] = useState<
@@ -194,8 +193,18 @@ export function PracticeClient({
   const readingListeningPractice = isReadingListeningPractice(paperKind, sessionQuestions);
 
   useEffect(() => {
+    seenQuestionIdsRef.current = new Set();
+  }, [paperId]);
+
+  useEffect(() => {
     setSessionQuestions(questions);
   }, [questions]);
+
+  useEffect(() => {
+    for (const q of sessionQuestions) {
+      seenQuestionIdsRef.current.add(q.id);
+    }
+  }, [sessionQuestions]);
 
   useEffect(() => {
     if (initialAttemptId) {
@@ -569,7 +578,11 @@ export function PracticeClient({
     stopAllListeningPlayback();
     play("whoosh");
 
-    const res = await swapPracticeQuestionAction(attemptId, current.id);
+    const res = await swapPracticeQuestionAction(
+      attemptId,
+      current.id,
+      Array.from(seenQuestionIdsRef.current)
+    );
 
     setSwappingQuestion(false);
 
@@ -582,6 +595,8 @@ export function PracticeClient({
 
     const newQuestion = res.question as PaperQuestion;
     const oldId = current.id;
+    seenQuestionIdsRef.current.add(oldId);
+    seenQuestionIdsRef.current.add(newQuestion.id);
 
     setSessionQuestions((prev) =>
       prev.map((q) => (q.id === oldId ? newQuestion : q))
@@ -771,7 +786,6 @@ export function PracticeClient({
                 isListening={(current?.skill ?? currentSection?.skill) === "LISTENING"}
                 onSpeakingTranscript={(text) => handleSpeakingTranscript(text, current)}
                 disabled={submitting}
-                maxWritingWords={maxWritingWords}
                 maxSpeakingWords={maxSpeakingWords}
                 objectiveFeedback={objectiveFeedback[current.id] ?? null}
                 lockObjectiveAnswer={!!objectiveFeedback[current.id]}

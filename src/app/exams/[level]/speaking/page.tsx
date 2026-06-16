@@ -11,6 +11,12 @@ import {
   getCambridgeSpeakingParts,
 } from "@/lib/exam/cambridge-speaking-config";
 import { getCambridgeSpeakingUsageSnapshot } from "@/lib/subscription/cambridge-speaking-limit";
+import {
+  countCambridgeSpeakingMockBankQuestions,
+  countCambridgeSpeakingPartQuestions,
+  getMockBankStats,
+  getPartPracticeBankStats,
+} from "@/lib/exam/bank-stats";
 import { CambridgeSpeakingHubClient } from "@/components/exam/cambridge-speaking-hub-client";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
@@ -77,6 +83,22 @@ export default async function CambridgeSpeakingPage({
 
   const doneSet = new Set(completedIds.map((a) => a.paperId));
 
+  const partStatsEntries = await Promise.all(
+    getCambridgeSpeakingParts(level).map(async (part) => {
+      const poolKey = buildCambridgeSpeakingPracticePoolKey(level, part);
+      const questionCount = await countCambridgeSpeakingPartQuestions(db, level, part);
+      const bankStats = await getPartPracticeBankStats(db, questionCount, poolKey);
+      return { part, bankStats };
+    })
+  );
+  const partStatsMap = new Map(partStatsEntries.map((e) => [e.part, e.bankStats]));
+
+  const mockBankStats = await getMockBankStats(
+    db,
+    await countCambridgeSpeakingMockBankQuestions(db, level),
+    mockPoolKey
+  );
+
   const practiceParts = getCambridgeSpeakingParts(level).map((part) => {
     const poolKey = buildCambridgeSpeakingPracticePoolKey(level, part);
     const paper = practicePapers.find((p) => p.practicePoolKey === poolKey);
@@ -87,6 +109,7 @@ export default async function CambridgeSpeakingPage({
       shortLabel: def.shortLabel,
       description: def.description,
       practiceInfo: "1 câu ngẫu nhiên/lần · AI chấm ngay (tính lượt AI)",
+      bankStats: partStatsMap.get(part),
       paper: paper
         ? {
             id: paper.id,
@@ -123,6 +146,7 @@ export default async function CambridgeSpeakingPage({
       <CambridgeSpeakingHubClient
         usage={usage}
         practiceParts={practiceParts}
+        mockBankStats={mockBankStats}
         mockPaper={
           mockPaper
             ? {

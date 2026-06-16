@@ -13,6 +13,17 @@ import { getCambridgeSpeakingUsageSnapshot } from "@/lib/subscription/cambridge-
 import { getCambridgeWritingUsageSnapshot } from "@/lib/subscription/cambridge-writing-limit";
 import { FullMockGrid, SkillPracticeGrid } from "@/components/exam/skill-practice-grid";
 import { Card, CardContent } from "@/components/ui/card";
+import { db } from "@/lib/db";
+import {
+  buildMockFullPoolKey,
+  buildMockSkillPoolKey,
+  buildPracticePoolKey,
+} from "@/lib/exam/practice-pool";
+import {
+  countFullMockBankQuestions,
+  getMockBankStats,
+  getSkillPracticeBankStats,
+} from "@/lib/exam/bank-stats";
 
 const SKILL_EMOJI: Record<string, string> = {
   READING: "📖",
@@ -72,12 +83,33 @@ export default async function ExamsLevelPage({
   const mockTestUsedUp = usage.mockSkillCount >= mockTestLimit;
   const fullMockLocked = !usage.allowFullMock || mockTestUsedUp;
 
+  const fullMockPoolKey = buildMockFullPoolKey(examLevel);
+  const fullMockBankStats = fullMocks.length
+    ? await getMockBankStats(
+        db,
+        await countFullMockBankQuestions(db, examLevel),
+        fullMockPoolKey
+      )
+    : undefined;
+
+  const skillBankStats = await Promise.all(
+    SKILLS.filter((s) => s.value !== "SPEAKING" && s.value !== "WRITING").map(async (skill) => {
+      const skillValue = skill.value as Skill;
+      const practiceKey = buildPracticePoolKey(examLevel, skillValue);
+      const mockKey = buildMockSkillPoolKey(examLevel, skillValue);
+      const stats = await getSkillPracticeBankStats(db, examLevel, skillValue, practiceKey, mockKey);
+      return { skill: skillValue, stats };
+    })
+  );
+  const skillStatsMap = new Map(skillBankStats.map((e) => [e.skill, e.stats]));
+
   const gridSkills = SKILLS.filter(
     (skill) => skill.value !== "SPEAKING" && skill.value !== "WRITING"
   ).map((skill) => {
     const skillValue = skill.value as Skill;
     const practice = practiceOnly.find((p) => p.skill === skillValue);
     const mock = skillMocks.find((p) => p.skill === skillValue);
+    const bankStats = skillStatsMap.get(skillValue);
 
     return {
       skillLabel:
@@ -85,6 +117,8 @@ export default async function ExamsLevelPage({
       skillEmoji: SKILL_EMOJI[skill.value],
       practiceInfo: practiceInfoText(skillValue),
       mockInfo: mock ? mockInfoText(examLevel, skillValue, mock.timeLimit) : undefined,
+      practiceBankStats: bankStats?.practice,
+      mockBankStats: bankStats?.mock,
       practice: practice
         ? {
             id: practice.id,
@@ -175,6 +209,7 @@ export default async function ExamsLevelPage({
               isMockTest: true,
             }))}
             completedPaperIds={completedPaperIds}
+            bankStats={fullMockBankStats}
             locked={fullMockLocked}
             lockedHint={
               fullMockLocked && !usage.allowFullMock

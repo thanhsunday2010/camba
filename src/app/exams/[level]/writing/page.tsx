@@ -11,6 +11,12 @@ import {
   getCambridgeWritingParts,
 } from "@/lib/exam/cambridge-writing-config";
 import { getCambridgeWritingUsageSnapshot } from "@/lib/subscription/cambridge-writing-limit";
+import {
+  countCambridgeWritingMockBankQuestions,
+  countCambridgeWritingPartQuestions,
+  getMockBankStats,
+  getPartPracticeBankStats,
+} from "@/lib/exam/bank-stats";
 import { CambridgeWritingHubClient } from "@/components/exam/cambridge-writing-hub-client";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
@@ -77,6 +83,22 @@ export default async function CambridgeWritingPage({
 
   const doneSet = new Set(completedIds.map((a) => a.paperId));
 
+  const partStatsEntries = await Promise.all(
+    getCambridgeWritingParts(level).map(async (part) => {
+      const poolKey = buildCambridgeWritingPracticePoolKey(level, part);
+      const questionCount = await countCambridgeWritingPartQuestions(db, level, part);
+      const bankStats = await getPartPracticeBankStats(db, questionCount, poolKey);
+      return { part, bankStats };
+    })
+  );
+  const partStatsMap = new Map(partStatsEntries.map((e) => [e.part, e.bankStats]));
+
+  const mockBankStats = await getMockBankStats(
+    db,
+    await countCambridgeWritingMockBankQuestions(db, level),
+    mockPoolKey
+  );
+
   const practiceParts = getCambridgeWritingParts(level).map((part) => {
     const poolKey = buildCambridgeWritingPracticePoolKey(level, part);
     const paper = practicePapers.find((p) => p.practicePoolKey === poolKey);
@@ -87,6 +109,7 @@ export default async function CambridgeWritingPage({
       shortLabel: def.shortLabel,
       description: def.description,
       practiceInfo: "1 câu ngẫu nhiên/lần · AI chấm ngay (tính lượt AI)",
+      bankStats: partStatsMap.get(part),
       paper: paper
         ? {
             id: paper.id,
@@ -123,6 +146,7 @@ export default async function CambridgeWritingPage({
       <CambridgeWritingHubClient
         usage={usage}
         practiceParts={practiceParts}
+        mockBankStats={mockBankStats}
         mockPaper={
           mockPaper
             ? {
