@@ -304,6 +304,13 @@ export async function assignDynamicExamQuestionsForAttempt(
     return assignIeltsSpeakingQuestionsForAttempt(db, attemptId);
   }
 
+  if (/:SPK:/.test(poolKey)) {
+    const { assignCambridgeSpeakingQuestionsForAttempt } = await import(
+      "@/lib/exam/cambridge-speaking-pool"
+    );
+    return assignCambridgeSpeakingQuestionsForAttempt(db, attemptId);
+  }
+
   if (attempt.paper.practicePoolKey) {
     return assignPracticeQuestionsForAttempt(db, attemptId);
   }

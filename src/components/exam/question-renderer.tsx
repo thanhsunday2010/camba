@@ -16,6 +16,7 @@ import type {
 } from "@/lib/exam/scoring";
 import { resolveMcqMedia } from "@/lib/exam/question-media";
 import { stripListeningScriptFromQuestion, normalizeListeningTranscript } from "@/lib/exam/listening-display";
+import { getSpeakingPromptText } from "@/lib/exam/speaking-audio";
 import { cn } from "@/lib/utils";
 
 interface QuestionData {
@@ -35,8 +36,6 @@ interface QuestionRendererProps {
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
   isListening?: boolean;
-  /** Hide speaking prompt/script from students during the test */
-  hideSpeakingScript?: boolean;
   maxWritingWords?: number;
   maxSpeakingWords?: number;
 }
@@ -49,7 +48,6 @@ export function QuestionRenderer({
   onSpeakingTranscript,
   disabled,
   isListening = false,
-  hideSpeakingScript = true,
   maxWritingWords,
   maxSpeakingWords,
 }: QuestionRendererProps) {
@@ -138,9 +136,10 @@ export function QuestionRenderer({
 
       {question.type === "SPEAKING_PROMPT" && (
         <SpeakingQuestion
+          questionId={question.id}
+          audioUrl={audioSrc}
           content={content as SpeakingContent}
           questionTitle={question.title}
-          hideScript={hideSpeakingScript}
           savedTranscript={typeof value === "string" ? value : ""}
           onSpeakingTranscript={onSpeakingTranscript}
           disabled={disabled}
@@ -309,23 +308,25 @@ function FreeTextQuestion({
 }
 
 function SpeakingQuestion({
+  questionId,
+  audioUrl,
   content,
   questionTitle,
-  hideScript = true,
   savedTranscript = "",
   onSpeakingTranscript,
   disabled,
   maxWords,
 }: {
+  questionId: string;
+  audioUrl?: string | null;
   content: SpeakingContent;
   questionTitle?: string | null;
-  hideScript?: boolean;
   savedTranscript?: string;
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
   maxWords?: number;
 }) {
-  const scriptText = content.script?.trim() || content.prompt?.trim() || "";
+  const promptAudioText = getSpeakingPromptText(content);
 
   return (
     <div className="space-y-4">
@@ -334,16 +335,9 @@ function SpeakingQuestion({
         {questionTitle && (
           <p className="mt-1 text-sm font-semibold text-purple-800">{questionTitle}</p>
         )}
-        {hideScript ? (
-          <p className="mt-2 text-sm text-purple-700">
-            Nhấn nút mic và trả lời bằng tiếng Anh. Nội dung câu hỏi không hiển thị — giống thi
-            Speaking thật.
-          </p>
-        ) : (
-          scriptText && (
-            <p className="mt-2 font-bold whitespace-pre-wrap text-purple-900">{scriptText}</p>
-          )
-        )}
+        <p className="mt-2 text-sm text-purple-700">
+          Nghe câu hỏi và trả lời bằng tiếng Anh — giống thi Speaking thật.
+        </p>
         {(content.preparationTime || content.speakingTime) && (
           <p className="mt-2 text-sm text-purple-700">
             {content.preparationTime && `Chuẩn bị: ${content.preparationTime}s`}
@@ -351,6 +345,15 @@ function SpeakingQuestion({
           </p>
         )}
       </div>
+
+      <AudioPlayer
+        questionId={questionId}
+        src={audioUrl}
+        transcript={promptAudioText}
+        title="Câu hỏi Speaking"
+        autoPlay
+        isSpeakingPrompt
+      />
       {savedTranscript.trim().length >= 3 && (
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900">
           ✅ Đã lưu bài nói ({savedTranscript.trim().split(/\s+/).filter(Boolean).length} từ)
@@ -370,7 +373,7 @@ function SpeakingQuestion({
         <AudioRecorder
           onTranscript={(text) => onSpeakingTranscript?.(text)}
           disabled={disabled}
-          hideLiveTranscript={hideScript}
+          hideLiveTranscript
           maxWords={maxWords}
         />
       )}

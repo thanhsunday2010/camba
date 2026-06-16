@@ -255,38 +255,38 @@ export function AudioRecorder({
         </div>
       )}
 
-      <div className="space-y-2 rounded-lg border border-dashed p-4">
-        <Label className="flex items-center gap-2 text-muted-foreground">
-          <Upload className="h-4 w-4" />
-          {hideLiveTranscript
-            ? "Nhập transcript thủ công (nếu micro không hoạt động)"
-            : "Hoặc nhập transcript thủ công"}
-        </Label>
-        <Textarea
-          placeholder="Type what you said in English..."
-          value={manualText}
-          onChange={(e) => {
-            const next = maxWords ? trimToWordLimit(e.target.value, maxWords) : e.target.value;
-            setManualText(next);
-          }}
-          rows={4}
-          disabled={disabled}
-        />
-        {maxWords != null && maxWords > 0 && (
-          <p className="text-xs text-muted-foreground">
-            {manualWordCount}/{maxWords} từ (giới hạn gói)
-          </p>
-        )}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={manualText.trim().length < 3 || disabled}
-          onClick={submitManual}
-        >
-          Gửi transcript
-        </Button>
-      </div>
+      {speechSupported === false && (
+        <div className="space-y-2 rounded-lg border border-dashed border-amber-300 bg-amber-50/50 p-4">
+          <Label className="flex items-center gap-2 text-amber-900">
+            <Upload className="h-4 w-4" />
+            Nhập transcript thủ công (micro không hoạt động)
+          </Label>
+          <Textarea
+            placeholder="Type what you said in English..."
+            value={manualText}
+            onChange={(e) => {
+              const next = maxWords ? trimToWordLimit(e.target.value, maxWords) : e.target.value;
+              setManualText(next);
+            }}
+            rows={4}
+            disabled={disabled}
+          />
+          {maxWords != null && maxWords > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {manualWordCount}/{maxWords} từ (giới hạn gói)
+            </p>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={manualText.trim().length < 3 || disabled}
+            onClick={submitManual}
+          >
+            Gửi transcript
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

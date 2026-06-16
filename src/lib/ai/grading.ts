@@ -74,13 +74,33 @@ export async function gradeSpeaking(params: {
         maxOutputTokens: 512,
         temperature: 0.25,
       });
-      const feedback = speakingFeedbackSchema.parse(raw);
+      const feedback = speakingFeedbackSchema.parse(normalizeSpeakingFeedback(raw));
       return { feedback, raw };
     } catch (e) {
       lastError = e instanceof Error ? e : new Error("Parse failed");
     }
   }
   throw lastError ?? new Error("AI grading failed");
+}
+
+function normalizeSpeakingFeedback(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const o = { ...(raw as Record<string, unknown>) };
+  const tips = Array.isArray(o.tips_vi)
+    ? o.tips_vi.filter((t): t is string => typeof t === "string" && t.trim().length > 0)
+    : [];
+  if (tips.length === 0) {
+    const summary = typeof o.summary_vi === "string" ? o.summary_vi.trim() : "";
+    o.tips_vi = summary
+      ? [summary.slice(0, 120)]
+      : ["Hãy luyện nói thêm và thử ghi âm lại để cải thiện."];
+  } else {
+    o.tips_vi = tips.slice(0, 2);
+  }
+  if (typeof o.summary_vi !== "string" || !o.summary_vi.trim()) {
+    o.summary_vi = "AI đã chấm bài nói của bạn.";
+  }
+  return o;
 }
 
 export async function explainWrongAnswer(params: {

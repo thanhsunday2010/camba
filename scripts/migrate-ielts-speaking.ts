@@ -47,7 +47,7 @@ async function seedQuestions() {
   console.log(`Tạo ${seeds.length} câu IELTS Speaking`);
 
   for (const item of seeds) {
-    await db.question.create({
+    const q = await db.question.create({
       data: {
         type: QuestionType.SPEAKING_PROMPT,
         level: IELTS_SPEAKING_LEVEL,
@@ -62,6 +62,10 @@ async function seedQuestions() {
         },
         points: 10,
       },
+    });
+    await db.question.update({
+      where: { id: q.id },
+      data: { audioUrl: `/audio/speaking/${IELTS_SPEAKING_LEVEL}/${q.id}.mp3` },
     });
   }
 

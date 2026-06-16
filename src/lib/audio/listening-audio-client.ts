@@ -164,3 +164,16 @@ export async function fetchQuestionAudio(questionId: string): Promise<Blob> {
 
   return res.blob();
 }
+
+export async function fetchSpeakingQuestionAudio(questionId: string): Promise<Blob> {
+  const res = await fetch(`/api/speaking-audio/${questionId}`, {
+    method: "GET",
+    cache: "force-cache",
+  });
+
+  if (!res.ok) {
+    throw new Error("API speaking audio không khả dụng");
+  }
+
+  return res.blob();
+}

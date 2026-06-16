@@ -27,6 +27,10 @@ export interface PlanLimits {
   ieltsSpeakingMockDaily: number;
   /** Mock Speaking IELTS / tuần (Free) */
   ieltsSpeakingMockWeekly: number;
+  /** Luyện Speaking Cambridge — lượt / ngày / level (giống IELTS) */
+  cambridgeSpeakingPracticeDaily: number;
+  cambridgeSpeakingMockDaily: number;
+  cambridgeSpeakingMockWeekly: number;
 }
 
 /** Mọi gói đăng ký: 2 lượt placement / tuần */
@@ -67,6 +71,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       ieltsSpeakingPracticeDaily: 3,
       ieltsSpeakingMockDaily: 0,
       ieltsSpeakingMockWeekly: 1,
+      cambridgeSpeakingPracticeDaily: 3,
+      cambridgeSpeakingMockDaily: 0,
+      cambridgeSpeakingMockWeekly: 1,
     },
     pricing: { monthly: 0, yearly: 0 },
     features: [
@@ -77,6 +84,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing tối đa 200 từ/lần · Speaking 100 từ/lần",
       "Speaking IELTS: 3 lượt luyện/ngày · 1 mock/tuần",
+      "Speaking Cambridge: 3 lượt luyện/ngày/level · 1 mock/tuần",
       "Miễn phí mãi mãi",
     ],
   },
@@ -96,6 +104,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       ieltsSpeakingPracticeDaily: 10,
       ieltsSpeakingMockDaily: 1,
       ieltsSpeakingMockWeekly: 0,
+      cambridgeSpeakingPracticeDaily: 10,
+      cambridgeSpeakingMockDaily: 1,
+      cambridgeSpeakingMockWeekly: 0,
     },
     pricing: { monthly: 30_000, yearly: 300_000 },
     highlighted: true,
@@ -107,6 +118,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing & Speaking tối đa 150 từ/lần",
       "Speaking IELTS: 10 lượt luyện/ngày · 1 mock/ngày",
+      "Speaking Cambridge: 10 lượt luyện/ngày/level · 1 mock/ngày",
     ],
   },
   VIP: {
@@ -125,6 +137,9 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       ieltsSpeakingPracticeDaily: 20,
       ieltsSpeakingMockDaily: 3,
       ieltsSpeakingMockWeekly: 0,
+      cambridgeSpeakingPracticeDaily: 20,
+      cambridgeSpeakingMockDaily: 3,
+      cambridgeSpeakingMockWeekly: 0,
     },
     pricing: { monthly: 50_000, yearly: 500_000 },
     features: [
@@ -135,6 +150,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing & Speaking tối đa 300 từ/lần",
       "Speaking IELTS: 20 lượt luyện/ngày · 3 mock/ngày",
+      "Speaking Cambridge: 20 lượt luyện/ngày/level · 3 mock/ngày",
       "Hỗ trợ ưu tiên & cập nhật sớm",
     ],
   },
@@ -208,6 +224,15 @@ export function getIeltsSpeakingLimits(planId: PlanId) {
     practiceDaily: l.ieltsSpeakingPracticeDaily,
     mockDaily: l.ieltsSpeakingMockDaily,
     mockWeekly: l.ieltsSpeakingMockWeekly,
+  };
+}
+
+export function getCambridgeSpeakingLimits(planId: PlanId) {
+  const l = PLANS[planId].limits;
+  return {
+    practiceDaily: l.cambridgeSpeakingPracticeDaily,
+    mockDaily: l.cambridgeSpeakingMockDaily,
+    mockWeekly: l.cambridgeSpeakingMockWeekly,
   };
 }
 

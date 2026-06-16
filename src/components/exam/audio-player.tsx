@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Pause, RotateCcw, Volume2 } from "lucide-react";
 import {
   fetchQuestionAudio,
+  fetchSpeakingQuestionAudio,
   isListeningAudioUnlocked,
   playBlobAudio,
   playHtmlAudio,
@@ -22,6 +23,8 @@ interface AudioPlayerProps {
   autoPlay?: boolean;
   /** Listening section — show prominent play UI */
   isListening?: boolean;
+  /** Speaking examiner question — use speaking TTS API */
+  isSpeakingPrompt?: boolean;
 }
 
 export function AudioPlayer({
@@ -31,6 +34,7 @@ export function AudioPlayer({
   title,
   autoPlay = false,
   isListening = false,
+  isSpeakingPrompt = false,
 }: AudioPlayerProps) {
   const [state, setState] = useState<ListeningPlaybackState>("idle");
   const [staticOk, setStaticOk] = useState<boolean | null>(null);
@@ -75,7 +79,9 @@ export function AudioPlayer({
       if (src && staticOk !== false) {
         await playHtmlAudio(src);
       } else if (questionId) {
-        const blob = await fetchQuestionAudio(questionId);
+        const blob = isSpeakingPrompt
+          ? await fetchSpeakingQuestionAudio(questionId)
+          : await fetchQuestionAudio(questionId);
         await playBlobAudio(blob);
       } else if (transcript) {
         await speakTranscript(transcript);
@@ -87,7 +93,9 @@ export function AudioPlayer({
     } catch {
       if (questionId && src && staticOk !== false) {
         try {
-          const blob = await fetchQuestionAudio(questionId);
+          const blob = isSpeakingPrompt
+            ? await fetchSpeakingQuestionAudio(questionId)
+            : await fetchQuestionAudio(questionId);
           await playBlobAudio(blob);
           if (mountedRef.current) setState("idle");
           return;
@@ -106,7 +114,7 @@ export function AudioPlayer({
       }
       if (mountedRef.current) setState("idle");
     }
-  }, [src, staticOk, questionId, transcript]);
+  }, [src, staticOk, questionId, transcript, isSpeakingPrompt]);
 
   const stopAudio = useCallback(() => {
     stopAllListeningPlayback();
@@ -114,7 +122,8 @@ export function AudioPlayer({
   }, []);
 
   useEffect(() => {
-    if (!autoPlay || autoPlayedRef.current || !transcript) return;
+    if (!autoPlay || autoPlayedRef.current) return;
+    if (!transcript && !src && !questionId) return;
     if (!isListeningAudioUnlocked() && isListening) return;
 
     autoPlayedRef.current = true;
@@ -123,7 +132,7 @@ export function AudioPlayer({
     }, 350);
 
     return () => clearTimeout(t);
-  }, [autoPlay, isListening, transcript, playAudio]);
+  }, [autoPlay, isListening, isSpeakingPrompt, transcript, src, questionId, playAudio]);
 
   if (!transcript && !src && !questionId) {
     return (
@@ -158,7 +167,7 @@ export function AudioPlayer({
           ) : (
             <>
               <Volume2 className="mr-2 h-4 w-4" />
-              {isListening ? "Nghe audio" : "Nghe ngay!"}
+              {isListening ? "Nghe audio" : isSpeakingPrompt ? "Nghe câu hỏi" : "Nghe ngay!"}
             </>
           )}
         </Button>

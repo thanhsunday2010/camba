@@ -24,6 +24,11 @@ import {
 } from "@/lib/subscription/quota-messages";
 import { hasFullMockAccess } from "@/lib/subscription/plans";
 import { isIeltsSpeakingPaper } from "@/lib/exam/ielts-speaking-config";
+import {
+  getCambridgeLevelFromSpeakingPaper,
+  isCambridgeSpeakingPaper,
+  isDedicatedSpeakingPaper,
+} from "@/lib/exam/cambridge-speaking-config";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
 import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
 import { QuestionType, ExamLevel, Skill, PaperKind, Prisma } from "@prisma/client";
@@ -307,6 +312,14 @@ export async function startAttemptAction(paperId: string) {
       );
       const check = await canStartIeltsSpeakingPractice(session.user.id);
       if (!check.ok) return { error: check.error };
+    } else if (isCambridgeSpeakingPaper(paper)) {
+      const level = getCambridgeLevelFromSpeakingPaper(paper);
+      if (!level) return { error: "Đề Speaking Cambridge không hợp lệ" };
+      const { canStartCambridgeSpeakingPractice } = await import(
+        "@/lib/subscription/cambridge-speaking-limit"
+      );
+      const check = await canStartCambridgeSpeakingPractice(session.user.id, level);
+      if (!check.ok) return { error: check.error };
     } else {
       const { canUsePractice } = await import("@/lib/subscription/service");
       const additional = isDynamicPracticePaper(paper) ? PRACTICE_POOL_SIZE : 1;
@@ -336,6 +349,14 @@ export async function startAttemptAction(paperId: string) {
         "@/lib/subscription/ielts-speaking-limit"
       );
       const check = await canStartIeltsSpeakingMock(session.user.id);
+      if (!check.ok) return { error: check.error };
+    } else if (isCambridgeSpeakingPaper(paper)) {
+      const level = getCambridgeLevelFromSpeakingPaper(paper);
+      if (!level) return { error: "Đề Speaking Cambridge không hợp lệ" };
+      const { canStartCambridgeSpeakingMock } = await import(
+        "@/lib/subscription/cambridge-speaking-limit"
+      );
+      const check = await canStartCambridgeSpeakingMock(session.user.id, level);
       if (!check.ok) return { error: check.error };
     } else {
       const { canUseMockTest } = await import("@/lib/subscription/service");
@@ -376,7 +397,7 @@ export async function startAttemptAction(paperId: string) {
   if (
     (paper.paperKind === PaperKind.MOCK_SKILL || paper.paperKind === PaperKind.MOCK_FULL) &&
     session.user.id &&
-    !isIeltsSpeakingPaper(paper)
+    !isDedicatedSpeakingPaper(paper)
   ) {
     const { recordMockTestUsage } = await import("@/lib/subscription/service");
     const recorded = await recordMockTestUsage(session.user.id);

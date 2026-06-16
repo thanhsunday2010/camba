@@ -7,6 +7,9 @@ import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
 import { checkSpeakingAIRateLimit } from "@/lib/ai/rate-limit";
 import { formatAiGradingQuotaExceededMessage } from "@/lib/subscription/quota-messages";
 import { getGeminiApiKey, getSpeechToTextMode } from "@/lib/ai/config";
+import { getSpeakingPromptText } from "@/lib/exam/speaking-audio";
+import type { SpeakingContent } from "@/lib/exam/scoring";
+import type { SpeakingFeedback } from "@/lib/ai/schemas";
 import { z } from "zod";
 
 const jsonSchema = z.object({
@@ -15,15 +18,41 @@ const jsonSchema = z.object({
   transcript: z.string().min(3),
 });
 
+function feedbackFromRecord(record: {
+  overallScore: number | null;
+  cambridgeBand: string | null;
+  criteria: unknown;
+  errors: unknown;
+  suggestions: unknown;
+}): SpeakingFeedback {
+  const criteria = (record.criteria ?? {}) as SpeakingFeedback["criteria"];
+  const errors = Array.isArray(record.errors)
+    ? (record.errors as SpeakingFeedback["errors"])
+    : [];
+  const tips_vi = Array.isArray(record.suggestions)
+    ? (record.suggestions as string[])
+    : [];
+
+  return {
+    overallScore: record.overallScore ?? 0,
+    cambridgeBand: record.cambridgeBand ?? "",
+    criteria: {
+      fluency: criteria.fluency ?? 0,
+      pronunciation: criteria.pronunciation ?? 0,
+      grammar: criteria.grammar ?? 0,
+      vocabulary: criteria.vocabulary ?? 0,
+      taskAchievement: criteria.taskAchievement ?? 0,
+    },
+    errors,
+    tips_vi,
+    summary_vi: tips_vi[0] ?? "Đã chấm bài nói trước đó.",
+  };
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const allowed = await checkSpeakingAIRateLimit(session.user.id);
-  if (!allowed) {
-    return NextResponse.json({ error: formatAiGradingQuotaExceededMessage() }, { status: 429 });
   }
 
   if (!getGeminiApiKey()) {
@@ -48,7 +77,6 @@ export async function POST(req: NextRequest) {
     attemptId = parsed.data.attemptId;
     transcript = parsed.data.transcript;
   } else if (contentType.includes("multipart/form-data")) {
-    // Optional fallback: audio upload → Gemini transcription (when SPEECH_TO_TEXT_MODE=gemini)
     const formData = await req.formData();
     questionId = formData.get("questionId") as string;
     attemptId = (formData.get("attemptId") as string) || undefined;
@@ -78,6 +106,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Question not found" }, { status: 404 });
   }
 
+  if (attemptId) {
+    const existing = await db.aIFeedback.findFirst({
+      where: {
+        userId: session.user.id,
+        questionId: question.id,
+        attemptId,
+        feedbackType: "speaking",
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (existing) {
+      return NextResponse.json({
+        feedback: feedbackFromRecord(existing),
+        feedbackId: existing.id,
+        transcript: existing.transcript ?? transcript,
+        alreadyGraded: true,
+      });
+    }
+  }
+
+  const allowed = await checkSpeakingAIRateLimit(session.user.id);
+  if (!allowed) {
+    return NextResponse.json({ error: formatAiGradingQuotaExceededMessage() }, { status: 429 });
+  }
+
   const { getUserPlanLimits } = await import("@/lib/subscription/service");
   const { countWords } = await import("@/lib/subscription/plans");
   const limits = await getUserPlanLimits(session.user.id);
@@ -91,17 +145,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const content = question.content as {
-    prompt: string;
+  const content = question.content as unknown as SpeakingContent & {
     examTrack?: string;
     ieltsPart?: 1 | 2 | 3;
   };
   const isIelts = content.examTrack === "IELTS";
+  const promptText = getSpeakingPromptText(content);
 
   try {
     const { feedback, raw } = await gradeSpeaking({
       examLevel: question.level,
-      prompt: content.prompt,
+      prompt: promptText,
       transcript,
       track: isIelts ? "ielts" : "cambridge",
       ieltsPart: content.ieltsPart,
@@ -159,6 +213,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ feedback, feedbackId: aiFeedback.id, transcript });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "AI grading failed" }, { status: 500 });
+    const detail = e instanceof Error ? e.message : "unknown";
+    const message =
+      detail.includes("Parse") || detail.includes("parse")
+        ? "AI trả lời không đúng định dạng. Vui lòng thử lại."
+        : detail.includes("quota") || detail.includes("429")
+          ? formatAiGradingQuotaExceededMessage()
+          : "Không thể chấm bài nói bằng AI. Thử lại sau vài giây.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

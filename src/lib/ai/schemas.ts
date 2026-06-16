@@ -35,7 +35,7 @@ export const speakingFeedbackSchema = z.object({
     taskAchievement: z.number().min(0).max(5),
   }),
   errors: z.array(writingErrorSchema).max(3),
-  tips_vi: z.array(z.string()).min(1).max(2),
+  tips_vi: z.array(z.string()).max(2),
   summary_vi: z.string(),
   weakPartPractice: z.string().optional(),
 });

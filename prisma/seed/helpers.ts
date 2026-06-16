@@ -223,6 +223,8 @@ export async function createSpeakings(
   items: SpeakingSeed[],
   bank?: QuestionBankMeta
 ) {
+  const yle = level === "STARTERS" || level === "MOVERS" || level === "FLYERS";
+  const partCycle: (1 | 2 | 3)[] = yle ? [1, 2] : [1, 2, 3];
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -236,12 +238,18 @@ export async function createSpeakings(
           prompt: item.prompt,
           preparationTime: item.preparationTime ?? 15,
           speakingTime: item.speakingTime ?? 60,
+          examTrack: "CAMBRIDGE",
+          cambridgePart: partCycle[i % partCycle.length],
         },
         points: 10,
         orderIndex: i,
         placementSlug: bank?.placementSlug,
         placementPool: bank?.placementPool,
       },
+    });
+    await db.question.update({
+      where: { id: q.id },
+      data: { audioUrl: `/audio/speaking/${level}/${q.id}.mp3` },
     });
     ids.push(q.id);
   }

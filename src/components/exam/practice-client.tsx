@@ -234,7 +234,7 @@ export function PracticeClient({
         ans.trim().length >= 3
       ) {
         try {
-          await fetch("/api/ai/grade-speaking", {
+          const res = await fetch("/api/ai/grade-speaking", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -243,6 +243,10 @@ export function PracticeClient({
               transcript: ans,
             }),
           });
+          if (!res.ok) {
+            const err = (await res.json().catch(() => ({}))) as { error?: string };
+            toast.error(err.error ?? "Không thể chấm AI cho speaking");
+          }
         } catch {
           toast.error("Không thể chấm AI cho speaking");
         }
@@ -500,7 +504,6 @@ export function PracticeClient({
                 value={answers[current.id]}
                 onChange={(v) => setAnswer(current.id, v, current)}
                 isListening={(current?.skill ?? currentSection?.skill) === "LISTENING"}
-                hideSpeakingScript={paperKind !== "PRACTICE"}
                 onSpeakingTranscript={(text) => handleSpeakingTranscript(text, current)}
                 disabled={submitting}
                 maxWritingWords={maxWritingWords}
