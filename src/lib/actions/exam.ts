@@ -8,6 +8,13 @@ import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
 import { processAttemptGamification } from "@/lib/gamification/service";
 import { markAssignmentsComplete } from "@/lib/exam/assignments";
+import {
+  assignDynamicExamQuestionsForAttempt,
+  isDynamicPoolPaper,
+  loadAttemptPracticeQuestions,
+  shouldIncludeCorrectAnswerForPoolPaper,
+  usesAttemptQuestionSet,
+} from "@/lib/exam/practice-pool";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
 import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
 import { QuestionType, ExamLevel, Skill, PaperKind, Prisma } from "@prisma/client";
@@ -271,6 +278,9 @@ export async function startAttemptAction(paperId: string) {
   });
   if (!paper) return { error: "Không tìm thấy đề" };
 
+  const isPool = isDynamicPoolPaper(paper);
+  const includeAnswers = shouldIncludeCorrectAnswerForPoolPaper(paper);
+
   if (paper.paperKind === PaperKind.PRACTICE && session.user.id) {
     const { canUsePractice } = await import("@/lib/subscription/service");
     const allowed = await canUsePractice(session.user.id);
@@ -298,6 +308,17 @@ export async function startAttemptAction(paperId: string) {
     for (const a of existing.answers) {
       savedAnswers[a.questionId] = a.answer;
     }
+
+    if (isPool) {
+      try {
+        await assignDynamicExamQuestionsForAttempt(db, existing.id);
+        const questions = await loadAttemptPracticeQuestions(db, existing.id, includeAnswers);
+        return { attemptId: existing.id, resumed: true, savedAnswers, questions };
+      } catch {
+        return { error: "Không thể tải câu hỏi cho bài thi" };
+      }
+    }
+
     return { attemptId: existing.id, resumed: true, savedAnswers };
   }
 
@@ -310,6 +331,19 @@ export async function startAttemptAction(paperId: string) {
   });
 
   await updateUserStreak(session.user.id);
+
+  if (isPool) {
+    try {
+      await assignDynamicExamQuestionsForAttempt(db, attempt.id);
+      const questions = await loadAttemptPracticeQuestions(db, attempt.id, includeAnswers);
+      return { attemptId: attempt.id, resumed: false, savedAnswers: {}, questions };
+    } catch (e) {
+      await db.attempt.delete({ where: { id: attempt.id } });
+      const msg = e instanceof Error ? e.message : "Không thể bắt đầu bài thi";
+      return { error: msg };
+    }
+  }
+
   return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
 }
 
@@ -370,8 +404,7 @@ export async function submitAttemptAction(
   const skillStats = new Map<Skill, { correct: number; total: number }>();
 
   const questionRows =
-    attempt.paper.paperKind === PaperKind.PLACEMENT &&
-    attempt.attemptQuestions.length > 0
+    usesAttemptQuestionSet(attempt.paper) && attempt.attemptQuestions.length > 0
       ? attempt.attemptQuestions.map((aq) => aq.question)
       : attempt.paper.questions.map((pq) => pq.question);
 

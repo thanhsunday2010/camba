@@ -195,6 +195,40 @@ export function getCambridgeMockFormat(level: ExamLevel): CambridgeMockFormat {
   return CAMBRIDGE_MOCK_FORMATS[level];
 }
 
+export function fullMockQuestionCount(level: ExamLevel): number {
+  const format = getCambridgeMockFormat(level);
+  return format.sections.reduce(
+    (sum, section) => sum + section.slices.reduce((a, slice) => a + slice.count, 0),
+    0
+  );
+}
+
+export function buildFullMockPaperSections(level: ExamLevel) {
+  const format = getCambridgeMockFormat(level);
+  const sections: {
+    skill: Skill;
+    label: string;
+    startIndex: number;
+    endIndex: number;
+    timeLimit: number;
+  }[] = [];
+  let idx = 0;
+  for (const spec of format.sections) {
+    const sectionStart = idx;
+    for (const slice of spec.slices) {
+      idx += slice.count;
+    }
+    sections.push({
+      skill: spec.slices[0]!.skill,
+      label: spec.label,
+      startIndex: sectionStart,
+      endIndex: idx,
+      timeLimit: spec.timeLimitSeconds,
+    });
+  }
+  return sections;
+}
+
 /** Kiểm tra ngân hàng đề đủ câu trước khi seed full mock */
 export function validateMockContentPools(
   level: ExamLevel,

@@ -91,7 +91,7 @@ export default async function ExamsLevelPage({
       {fullMocks.length > 0 && (
         <section className="mb-10">
           <h2 className="mb-3 text-lg font-extrabold text-amber-700">
-            🏆 Full Mock — Thi thử tất cả kỹ năng
+            🏆 Full Mock — Thi thử tất cả kỹ năng · đề ngẫu nhiên
           </h2>
           <SkillPaperList
             papers={fullMocks.map((p) => ({

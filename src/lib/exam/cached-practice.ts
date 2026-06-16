@@ -25,6 +25,8 @@ async function fetchPublishedPracticePaper(paperId: string) {
       timeLimit: true,
       paperKind: true,
       isMockTest: true,
+      practicePoolKey: true,
+      mockPoolKey: true,
       sections: true,
       questions: {
         orderBy: { orderIndex: "asc" as const },

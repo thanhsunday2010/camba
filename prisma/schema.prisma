@@ -210,6 +210,10 @@ model ExamPaper {
   skill         Skill
   paperKind     PaperKind @default(PRACTICE)
   placementSlug String?   @unique
+  /** e.g. KET:READING — đề luyện tập 10 câu ngẫu nhiên từ ngân hàng */
+  practicePoolKey String? @unique
+  /** e.g. SKILL:KET:READING hoặc FULL:KET — mock ngẫu nhiên từ ngân hàng */
+  mockPoolKey     String? @unique
   sections      Json?
   timeLimit   Int?
   isMockTest  Boolean   @default(false)

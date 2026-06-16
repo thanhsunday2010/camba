@@ -1,5 +1,9 @@
 import { ExamLevel, Skill } from "@prisma/client";
 import { getCambridgeMockFormat } from "../../src/lib/exam/cambridge-mock-formats";
+import {
+  SKILL_MOCK_QUESTION_COUNTS,
+  skillMockTimeLimit,
+} from "../../src/lib/exam/mock-config";
 import { isYleLevel } from "./generators/bulk-data";
 
 export type RequiredPoolSizes = {
@@ -13,6 +17,8 @@ export type RequiredPoolSizes = {
 export const PRACTICE_PAPERS_PER_LEVEL = 100;
 export const MOCK_SKILL_PAPERS_PER_SKILL = 5;
 export const MOCK_FULL_PAPERS_PER_LEVEL = 5;
+
+export { SKILL_MOCK_QUESTION_COUNTS, skillMockTimeLimit };
 
 export const PRACTICE_QUESTIONS_PER_PAPER = {
   reading: 10,
@@ -29,52 +35,6 @@ export function getPracticePaperCounts(level: ExamLevel) {
   }
   return { reading: 25, listening: 25, writing: 20, speaking: 15, uoe: 15 };
 }
-
-/** Số câu mỗi đề mock 1 kỹ năng */
-export const SKILL_MOCK_QUESTION_COUNTS: Record<
-  ExamLevel,
-  Partial<Record<Skill, number>>
-> = {
-  STARTERS: {
-    [Skill.READING]: 15,
-    [Skill.LISTENING]: 20,
-    [Skill.WRITING]: 1,
-    [Skill.SPEAKING]: 1,
-  },
-  MOVERS: {
-    [Skill.READING]: 28,
-    [Skill.LISTENING]: 25,
-    [Skill.WRITING]: 2,
-    [Skill.SPEAKING]: 1,
-  },
-  FLYERS: {
-    [Skill.READING]: 32,
-    [Skill.LISTENING]: 25,
-    [Skill.WRITING]: 2,
-    [Skill.SPEAKING]: 1,
-  },
-  KET: {
-    [Skill.READING]: 30,
-    [Skill.LISTENING]: 25,
-    [Skill.WRITING]: 2,
-    [Skill.SPEAKING]: 1,
-    [Skill.USE_OF_ENGLISH]: 15,
-  },
-  PET: {
-    [Skill.READING]: 25,
-    [Skill.LISTENING]: 25,
-    [Skill.WRITING]: 2,
-    [Skill.SPEAKING]: 1,
-    [Skill.USE_OF_ENGLISH]: 15,
-  },
-  FCE: {
-    [Skill.READING]: 30,
-    [Skill.LISTENING]: 25,
-    [Skill.WRITING]: 2,
-    [Skill.SPEAKING]: 1,
-    [Skill.USE_OF_ENGLISH]: 15,
-  },
-};
 
 function fullMockPerSkill(level: ExamLevel): Partial<Record<Skill, number>> {
   const format = getCambridgeMockFormat(level);
@@ -118,16 +78,4 @@ export function computeRequiredPoolSizes(level: ExamLevel): RequiredPoolSizes {
     MOCK_FULL_PAPERS_PER_LEVEL * (fullPerSkill[Skill.USE_OF_ENGLISH] ?? 0);
 
   return { reading, listening, writing, speaking, uoe };
-}
-
-export function skillMockTimeLimit(level: ExamLevel, skill: Skill): number {
-  if (skill === Skill.READING) {
-    if (level === "FCE") return 3600;
-    if (level === "PET") return 2700;
-    return 1800;
-  }
-  if (skill === Skill.LISTENING) return 900;
-  if (skill === Skill.USE_OF_ENGLISH) return 1200;
-  if (skill === Skill.WRITING) return 1200;
-  return 300;
 }

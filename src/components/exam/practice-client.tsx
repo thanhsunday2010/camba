@@ -53,6 +53,8 @@ interface PracticeClientProps {
   initialAttemptId?: string;
   isGuestAttempt?: boolean;
   instantFeedback?: boolean;
+  /** Đề pool động — câu hỏi load sau startAttempt */
+  dynamicPool?: boolean;
   maxWritingWords?: number;
   maxSpeakingWords?: number;
 }
@@ -84,6 +86,7 @@ export function PracticeClient({
   initialAttemptId,
   isGuestAttempt = false,
   instantFeedback = false,
+  dynamicPool = false,
   maxWritingWords,
   maxSpeakingWords,
 }: PracticeClientProps) {
@@ -103,6 +106,12 @@ export function PracticeClient({
   const [objectiveFeedback, setObjectiveFeedback] = useState<
     Record<string, { isCorrect: boolean }>
   >({});
+  const [sessionQuestions, setSessionQuestions] = useState<PaperQuestion[]>(questions);
+  const [loadingPool, setLoadingPool] = useState(dynamicPool && !initialAttemptId);
+
+  useEffect(() => {
+    setSessionQuestions(questions);
+  }, [questions]);
 
   useEffect(() => {
     if (initialAttemptId) {
@@ -118,16 +127,21 @@ export function PracticeClient({
       return;
     }
 
+    setLoadingPool(dynamicPool);
     startAttemptAction(paperId).then((res) => {
+      setLoadingPool(false);
       if (res.attemptId) {
         setAttemptId(res.attemptId);
+        if ("questions" in res && Array.isArray(res.questions) && res.questions.length > 0) {
+          setSessionQuestions(res.questions as PaperQuestion[]);
+        }
         if (res.savedAnswers && Object.keys(res.savedAnswers).length > 0) {
           setAnswers(res.savedAnswers);
           toast.info("Tiếp tục bài làm đang dở");
         }
       } else toast.error(res.error ?? "Không thể bắt đầu bài");
     });
-  }, [paperId, initialAttemptId]);
+  }, [paperId, initialAttemptId, dynamicPool]);
 
   useEffect(() => {
     stopAllListeningPlayback();
@@ -165,8 +179,8 @@ export function PracticeClient({
           }
         }
 
-        const answered = questions.filter((q) => isAnswered(next[q.id])).length;
-        const pct = Math.round((answered / questions.length) * 100);
+        const answered = sessionQuestions.filter((q) => isAnswered(next[q.id])).length;
+        const pct = Math.round((answered / sessionQuestions.length) * 100);
         if (pct >= 50 && !halfProgressShownRef.current) {
           halfProgressShownRef.current = true;
           showMascot(mascotHalfProgressMessage());
@@ -197,7 +211,7 @@ export function PracticeClient({
         });
       }
     },
-    [play, paperKind, attemptId, instantFeedback, questions, showMascot]
+    [play, paperKind, attemptId, instantFeedback, sessionQuestions, showMascot]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -231,7 +245,7 @@ export function PracticeClient({
       return;
     }
 
-    const aiQuestions = questions.filter(
+    const aiQuestions = sessionQuestions.filter(
       (q) => q.type === "FREE_TEXT" || q.type === "SPEAKING_PROMPT"
     );
 
@@ -291,19 +305,21 @@ export function PracticeClient({
     hideMascot();
     router.refresh();
     router.push(`/results/${attemptId}`);
-  }, [attemptId, answers, startedAt, questions, router, paperKind, play, showMascot, hideMascot, isGuestAttempt]);
+  }, [attemptId, answers, startedAt, sessionQuestions, router, paperKind, play, showMascot, hideMascot, isGuestAttempt]);
 
-  const current = questions[currentIndex];
+  const current = sessionQuestions[currentIndex];
   const currentSection = sections?.find(
     (s) => currentIndex >= s.startIndex && currentIndex < s.endIndex
   );
-  const answeredCount = questions.filter((q) => isAnswered(answers[q.id])).length;
-  const progressPct = Math.round((answeredCount / questions.length) * 100);
+  const answeredCount = sessionQuestions.filter((q) => isAnswered(answers[q.id])).length;
+  const progressPct = sessionQuestions.length
+    ? Math.round((answeredCount / sessionQuestions.length) * 100)
+    : 0;
   const strictSequential = isMockTest && paperKind !== "PLACEMENT";
   const useSectionTimer =
     (isMockTest && paperKind === "MOCK_FULL" && !!sections?.length) ||
     (paperKind === "PLACEMENT" && !!sections && sections.length > 1);
-  const firstUnansweredIndex = questions.findIndex((q) => !isAnswered(answers[q.id]));
+  const firstUnansweredIndex = sessionQuestions.findIndex((q) => !isAnswered(answers[q.id]));
 
   const handleSpeakingTranscript = useCallback(
     async (text: string, question: PaperQuestion) => {
@@ -366,7 +382,7 @@ export function PracticeClient({
   const goNext = () => {
     stopAllListeningPlayback();
     play("whoosh");
-    setCurrentIndex((i) => Math.min(i + 1, questions.length - 1));
+    setCurrentIndex((i) => Math.min(i + 1, sessionQuestions.length - 1));
   };
 
   const goPrev = () => {
@@ -440,7 +456,7 @@ export function PracticeClient({
             </p>
           )}
           <p className="text-sm font-semibold text-muted-foreground">
-            Câu {currentIndex + 1}/{questions.length} · Đã trả lời {answeredCount} câu
+            Câu {currentIndex + 1}/{sessionQuestions.length || "…"} · Đã trả lời {answeredCount} câu
           </p>
           <div className="mt-2 h-2 w-48 overflow-hidden rounded-full bg-purple-100">
             <div
@@ -469,11 +485,11 @@ export function PracticeClient({
                 className="mb-3 w-full rounded-full border-amber-300 text-amber-900"
                 onClick={jumpToFirstUnanswered}
               >
-                ↩ Câu chưa làm ({questions.length - answeredCount})
+                ↩ Câu chưa làm ({sessionQuestions.length - answeredCount})
               </Button>
             )}
             <div className="grid grid-cols-5 gap-2 lg:grid-cols-4">
-              {questions.map((q, i) => {
+              {sessionQuestions.map((q, i) => {
                 const sec = sections?.find((s) => i >= s.startIndex && i < s.endIndex);
                 const answered = isAnswered(answers[q.id]);
                 return (
@@ -509,7 +525,12 @@ export function PracticeClient({
         </aside>
 
         <div className="lg:col-span-3">
-          {current && (
+          {loadingPool || (dynamicPool && sessionQuestions.length === 0) ? (
+            <div className="flex min-h-[240px] items-center justify-center rounded-2xl border-2 border-purple-200 bg-white p-8 text-center">
+              <p className="font-semibold text-purple-800">Đang chọn câu hỏi ngẫu nhiên cho bạn…</p>
+            </div>
+          ) : (
+            current && (
             <div className="animate-bounce-in" key={current.id}>
               <QuestionRenderer
                 question={current}
@@ -544,8 +565,10 @@ export function PracticeClient({
                 </>
               )}
             </div>
+            )
           )}
 
+          {!loadingPool && sessionQuestions.length > 0 && (
           <div className="mt-4 flex flex-wrap justify-between gap-2">
             <Button
               variant="outline"
@@ -561,12 +584,13 @@ export function PracticeClient({
             )}
             <Button
               variant="fun"
-              disabled={currentIndex >= questions.length - 1}
+              disabled={currentIndex >= sessionQuestions.length - 1}
               onClick={goNext}
             >
               Câu sau →
             </Button>
           </div>
+          )}
         </div>
       </div>
     </div>

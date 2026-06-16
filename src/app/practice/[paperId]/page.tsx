@@ -21,18 +21,21 @@ export default async function PracticePage({
   ]);
   if (!paper) notFound();
 
+  const dynamicPool = !!paper.practicePoolKey || !!paper.mockPoolKey;
   const instantFeedback = paper.paperKind === "PRACTICE" && !paper.isMockTest;
 
-  const questions = paper.questions.map((pq) => ({
-    id: pq.question.id,
-    type: pq.question.type,
-    content: pq.question.content,
-    audioUrl: pq.question.audioUrl,
-    points: pq.question.points,
-    skill: pq.question.skill,
-    title: pq.question.title,
-    ...(instantFeedback ? { correctAnswer: pq.question.correctAnswer } : {}),
-  }));
+  const questions = dynamicPool
+    ? []
+    : paper.questions.map((pq) => ({
+        id: pq.question.id,
+        type: pq.question.type,
+        content: pq.question.content,
+        audioUrl: pq.question.audioUrl,
+        points: pq.question.points,
+        skill: pq.question.skill,
+        title: pq.question.title,
+        ...(instantFeedback ? { correctAnswer: pq.question.correctAnswer } : {}),
+      }));
 
   const sections = parseSections(paper.sections);
   const isSequential =
@@ -49,6 +52,7 @@ export default async function PracticePage({
       paperKind={paper.paperKind}
       sections={sections}
       questions={questions}
+      dynamicPool={dynamicPool}
       instantFeedback={instantFeedback}
       maxWritingWords={planLimits.writingWordLimit}
       maxSpeakingWords={planLimits.speakingWordLimit}

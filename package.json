@@ -19,6 +19,8 @@
     "content:prune-placement": "tsx scripts/prune-placement.ts",
     "audio:generate": "node scripts/generate-listening-audio.mjs",
     "content:generate-explanations": "node scripts/generate-explanations.mjs",
+    "content:migrate-practice-pools": "node scripts/migrate-practice-pools.mjs",
+    "content:migrate-mock-pools": "tsx scripts/migrate-mock-pools.ts",
     "db:deploy": "node scripts/migrate-deploy.mjs && npm run db:seed",
     "db:baseline": "prisma migrate resolve --applied 20250101000000_init",
     "db:studio": "prisma studio",

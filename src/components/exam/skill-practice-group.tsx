@@ -56,9 +56,10 @@ export function SkillPracticeGroup({
         <div className="min-w-0 flex-1 text-left">
           <p className="text-base font-extrabold text-purple-900">{skillLabel}</p>
           <p className="text-xs font-semibold text-muted-foreground">
-            {practice.length > 0 && `${practice.length} luyện tập`}
+            {practice.length > 0 && "1 bài · 10 câu ngẫu nhiên"}
             {practice.length > 0 && mocks.length > 0 && " · "}
-            {mocks.length > 0 && `${mocks.length} mock`}
+            {mocks.length === 1 && "1 mock · đề ngẫu nhiên từ ngân hàng"}
+            {mocks.length > 1 && `${mocks.length} mock`}
           </p>
         </div>
         {newCount > 0 && (
@@ -71,9 +72,9 @@ export function SkillPracticeGroup({
       <div className={cn("space-y-4 border-t border-purple-100 px-4 py-4")}>
         {practice.length > 0 && (
           <div>
-            <h3 className="mb-2 text-xs font-extrabold uppercase tracking-wide text-purple-700">
-              📚 Luyện tập
-            </h3>
+                    <h3 className="mb-2 text-xs font-extrabold uppercase tracking-wide text-purple-700">
+                      📚 Luyện tập · 10 câu / lần
+                    </h3>
             <SkillPaperList papers={practice} completedPaperIds={completedPaperIds} />
           </div>
         )}
@@ -81,7 +82,7 @@ export function SkillPracticeGroup({
         {mocks.length > 0 && (
           <div>
             <h3 className="mb-2 text-xs font-extrabold uppercase tracking-wide text-amber-700">
-              ⏱ Mock test
+              ⏱ Mock test · đề ngẫu nhiên
             </h3>
             <SkillPaperList
               papers={mocks}
