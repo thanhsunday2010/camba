@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ import {
   getPracticeMinWords,
   meetsPracticeMinWords,
   practiceMinWordsMessage,
+  type PracticeMinWordsContext,
 } from "@/lib/exam/practice-min-words";
 
 interface PaperQuestion {
@@ -64,6 +65,10 @@ interface PracticeClientProps {
   dynamicPool?: boolean;
   maxWritingWords?: number;
   maxSpeakingWords?: number;
+  practicePoolKey?: string | null;
+  mockPoolKey?: string | null;
+  /** Writing/Speaking hub: 1 câu + AI chấm ngay */
+  partAiPractice?: boolean;
 }
 
 const SECTION_EMOJI: Record<string, string> = {
@@ -158,10 +163,17 @@ export function PracticeClient({
   dynamicPool = false,
   maxWritingWords,
   maxSpeakingWords,
+  practicePoolKey = null,
+  mockPoolKey = null,
+  partAiPractice = false,
 }: PracticeClientProps) {
   const router = useRouter();
   const { play } = useKidSound();
   const { showMascot, hideMascot } = useMascotToast();
+  const minWordsContext = useMemo<PracticeMinWordsContext>(
+    () => ({ paperTitle, practicePoolKey, mockPoolKey }),
+    [paperTitle, practicePoolKey, mockPoolKey]
+  );
   const [attemptId, setAttemptId] = useState<string | null>(initialAttemptId ?? null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -170,6 +182,7 @@ export function PracticeClient({
   const [startedAt] = useState(new Date());
   const consecutiveCorrectRef = useRef(0);
   const countedPracticeQuestionsRef = useRef<Set<string>>(new Set());
+  const speakingGradedIdsRef = useRef<Set<string>>(new Set());
   const [sessionQuestions, setSessionQuestions] = useState<PaperQuestion[]>(questions);
   const [loadingPool, setLoadingPool] = useState(dynamicPool && !initialAttemptId);
   const [objectiveFeedback, setObjectiveFeedback] = useState<
@@ -241,7 +254,7 @@ export function PracticeClient({
         play("pop");
       }
 
-      if (paperKind === "PRACTICE" && questionId) {
+      if (paperKind === "PRACTICE" && !partAiPractice && questionId) {
         const answeredNow = isAnswered(value);
         if (answeredNow && !countedPracticeQuestionsRef.current.has(questionId)) {
           countedPracticeQuestionsRef.current.add(questionId);
@@ -262,37 +275,60 @@ export function PracticeClient({
         });
       }
     },
-    [play, paperKind, attemptId, sessionQuestions, showMascot, objectiveFeedback]
+    [play, paperKind, attemptId, sessionQuestions, showMascot, objectiveFeedback, partAiPractice]
   );
 
   const validateMinWordsForQuestion = useCallback(
     (question: PaperQuestion): boolean => {
-      if (meetsPracticeMinWords(question.type, question.content, answers[question.id])) {
+      if (meetsPracticeMinWords(question.type, question.content, answers[question.id], minWordsContext)) {
         return true;
       }
-      toast.error(practiceMinWordsMessage(question.type, question.content));
+      toast.error(practiceMinWordsMessage(question.type, question.content, minWordsContext));
       return false;
     },
-    [answers]
+    [answers, minWordsContext]
   );
 
-  const validateAllMinWords = useCallback((): boolean => {
-    for (const q of sessionQuestions) {
-      if (
-        (q.type === "FREE_TEXT" || q.type === "SPEAKING_PROMPT") &&
-        isAnswered(answers[q.id]) &&
-        !meetsPracticeMinWords(q.type, q.content, answers[q.id])
-      ) {
-        toast.error(practiceMinWordsMessage(q.type, q.content));
-        return false;
+  const handleSubmit = useCallback(async (answerOverride?: Record<string, unknown>) => {
+    if (!attemptId) return;
+    const mergedAnswers = answerOverride ? { ...answers, ...answerOverride } : answers;
+    const activeQuestion = sessionQuestions[currentIndex];
+    if (
+      activeQuestion &&
+      !meetsPracticeMinWords(
+        activeQuestion.type,
+        activeQuestion.content,
+        mergedAnswers[activeQuestion.id],
+        minWordsContext
+      )
+    ) {
+      toast.error(
+        practiceMinWordsMessage(activeQuestion.type, activeQuestion.content, minWordsContext)
+      );
+      return;
+    }
+    if (
+      !sessionQuestions.every((q) => {
+        if (
+          (q.type !== "FREE_TEXT" && q.type !== "SPEAKING_PROMPT") ||
+          !isAnswered(mergedAnswers[q.id])
+        ) {
+          return true;
+        }
+        return meetsPracticeMinWords(q.type, q.content, mergedAnswers[q.id], minWordsContext);
+      })
+    ) {
+      const bad = sessionQuestions.find(
+        (q) =>
+          (q.type === "FREE_TEXT" || q.type === "SPEAKING_PROMPT") &&
+          isAnswered(mergedAnswers[q.id]) &&
+          !meetsPracticeMinWords(q.type, q.content, mergedAnswers[q.id], minWordsContext)
+      );
+      if (bad) {
+        toast.error(practiceMinWordsMessage(bad.type, bad.content, minWordsContext));
+        return;
       }
     }
-    return true;
-  }, [sessionQuestions, answers]);
-
-  const handleSubmit = useCallback(async () => {
-    if (!attemptId) return;
-    if (!validateAllMinWords()) return;
 
     setSubmitting(true);
     play("celebrate");
@@ -304,7 +340,7 @@ export function PracticeClient({
     });
 
     const timeSpent = Math.floor((Date.now() - startedAt.getTime()) / 1000);
-    const result = await submitAttemptAction(attemptId, answers, timeSpent);
+    const result = await submitAttemptAction(attemptId, mergedAnswers, timeSpent);
 
     if (result.error) {
       hideMascot();
@@ -328,8 +364,8 @@ export function PracticeClient({
     );
 
     for (const q of aiQuestions) {
-      const ans = answers[q.id];
-      if (q.type === "FREE_TEXT" && typeof ans === "string" && meetsPracticeMinWords(q.type, q.content, ans)) {
+      const ans = mergedAnswers[q.id];
+      if (q.type === "FREE_TEXT" && typeof ans === "string" && meetsPracticeMinWords(q.type, q.content, ans, minWordsContext)) {
         try {
           await fetch("/api/ai/grade-writing", {
             method: "POST",
@@ -348,7 +384,8 @@ export function PracticeClient({
         !isGuestAttempt &&
         q.type === "SPEAKING_PROMPT" &&
         typeof ans === "string" &&
-        meetsPracticeMinWords(q.type, q.content, ans)
+        meetsPracticeMinWords(q.type, q.content, ans, minWordsContext) &&
+        !speakingGradedIdsRef.current.has(q.id)
       ) {
         try {
           const res = await fetch("/api/ai/grade-speaking", {
@@ -387,9 +424,10 @@ export function PracticeClient({
     hideMascot();
     router.refresh();
     router.push(`/results/${attemptId}`);
-  }, [attemptId, answers, startedAt, sessionQuestions, router, paperKind, play, showMascot, hideMascot, isGuestAttempt, validateAllMinWords]);
+  }, [attemptId, answers, startedAt, sessionQuestions, currentIndex, router, paperKind, play, showMascot, hideMascot, isGuestAttempt, minWordsContext]);
 
   const current = sessionQuestions[currentIndex];
+  const isPartAiPracticeUi = partAiPractice && paperKind === "PRACTICE";
   const currentSection = sections?.find(
     (s) => currentIndex >= s.startIndex && currentIndex < s.endIndex
   );
@@ -436,11 +474,15 @@ export function PracticeClient({
         play("success");
         showMascot(mascotSpeakingDoneMessage());
         toast.success("Giỏi lắm! Đã gửi bài nói 🎤");
+        speakingGradedIdsRef.current.add(question.id);
+        if (partAiPractice && sessionQuestions.length === 1 && !submitting) {
+          void handleSubmit({ [question.id]: text });
+        }
       } catch {
         toast.error("Không thể chấm speaking — câu trả lời đã được lưu.");
       }
     },
-    [attemptId, isGuestAttempt, play, setAnswer, showMascot]
+    [attemptId, isGuestAttempt, play, setAnswer, showMascot, partAiPractice, sessionQuestions, submitting, handleSubmit]
   );
 
   const handleSectionTimeUp = useCallback(() => {
@@ -527,7 +569,13 @@ export function PracticeClient({
           này sẽ chuyển sang phần tiếp theo — không quay lại phần đã qua.
         </div>
       )}
-      {isMockTest && paperKind !== "PLACEMENT" && paperKind !== "MOCK_FULL" && (
+      {isPartAiPracticeUi && (
+        <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-violet-300 bg-gradient-to-r from-violet-50 to-fuchsia-50 px-4 py-3 text-sm font-semibold text-violet-900">
+          ✨ <strong>Luyện 1 câu:</strong> Làm xong và nộp — AI chấm sửa ngay (tính 1 lượt AI
+          chấm).
+        </div>
+      )}
+      {isMockTest && paperKind !== "PLACEMENT" && paperKind !== "MOCK_FULL" && !isPartAiPracticeUi && (
         <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 text-sm font-semibold text-amber-900">
           ⏰ <strong>Chế độ thi thử:</strong> Làm tuần tự từng câu nhé!
         </div>
@@ -546,25 +594,30 @@ export function PracticeClient({
               ⏱ Phần này: {formatDuration(currentSection.timeLimit)}
             </p>
           )}
-          <p className="text-sm font-semibold text-muted-foreground">
-            Câu {currentIndex + 1}/{sessionQuestions.length || "…"} · Đã trả lời {answeredCount} câu
-          </p>
+          {!isPartAiPracticeUi && (
+            <p className="text-sm font-semibold text-muted-foreground">
+              Câu {currentIndex + 1}/{sessionQuestions.length || "…"} · Đã trả lời {answeredCount} câu
+            </p>
+          )}
+          {!isPartAiPracticeUi && (
           <div className="mt-2 h-2 w-48 overflow-hidden rounded-full bg-purple-100">
             <div
               className="h-full rounded-full bg-gradient-to-r from-purple-400 to-pink-400 transition-all duration-500"
               style={{ width: `${progressPct}%` }}
             />
           </div>
+          )}
         </div>
         <ExamTimer
           key={useSectionTimer ? `sec-${currentSection?.startIndex ?? 0}` : "global"}
           timeLimit={useSectionTimer ? currentSection?.timeLimit : timeLimit}
-          onTimeUp={useSectionTimer ? handleSectionTimeUp : handleSubmit}
+          onTimeUp={useSectionTimer ? handleSectionTimeUp : () => void handleSubmit()}
           startedAt={useSectionTimer ? undefined : startedAt}
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-4">
+      <div className={isPartAiPracticeUi ? "max-w-3xl mx-auto" : "grid gap-6 lg:grid-cols-4"}>
+        {!isPartAiPracticeUi && (
         <aside className="lg:col-span-1">
           <div className="sticky top-20 rounded-2xl border-2 border-purple-200 bg-white/90 p-4 shadow-md backdrop-blur-sm">
             <p className="mb-3 text-sm font-extrabold text-purple-700">🗺️ Bản đồ câu hỏi</p>
@@ -612,15 +665,16 @@ export function PracticeClient({
             </div>
             <Button
               className="mt-4 w-full kid-btn-fun"
-              onClick={handleSubmit}
+              onClick={() => void handleSubmit()}
               disabled={submitting || !attemptId}
             >
               {submitting ? "Đang nộp..." : "🎉 Nộp bài"}
             </Button>
           </div>
         </aside>
+        )}
 
-        <div className="lg:col-span-3">
+        <div className={isPartAiPracticeUi ? "" : "lg:col-span-3"}>
           {loadingPool || (dynamicPool && sessionQuestions.length === 0) ? (
             <div className="flex min-h-[240px] items-center justify-center rounded-2xl border-2 border-purple-200 bg-white p-8 text-center">
               <p className="font-semibold text-purple-800">Đang chọn câu hỏi ngẫu nhiên cho bạn…</p>
@@ -640,7 +694,7 @@ export function PracticeClient({
                 maxSpeakingWords={maxSpeakingWords}
                 objectiveFeedback={objectiveFeedback[current.id] ?? null}
                 lockObjectiveAnswer={!!objectiveFeedback[current.id]}
-                practiceMinWords={getPracticeMinWords(current.type, current.content)}
+                practiceMinWords={getPracticeMinWords(current.type, current.content, minWordsContext)}
               />
             </div>
             )
@@ -648,6 +702,7 @@ export function PracticeClient({
 
           {!loadingPool && sessionQuestions.length > 0 && (
           <div className="mt-4 flex flex-wrap justify-between gap-2">
+            {!isPartAiPracticeUi && (
             <Button
               variant="outline"
               disabled={currentIndex === 0 || strictSequential}
@@ -655,27 +710,34 @@ export function PracticeClient({
             >
               ← Câu trước
             </Button>
-            {paperKind === "PLACEMENT" && firstUnansweredIndex >= 0 && (
+            )}
+            {paperKind === "PLACEMENT" && firstUnansweredIndex >= 0 && !isPartAiPracticeUi && (
               <Button variant="secondary" onClick={jumpToFirstUnanswered}>
                 ↩ Câu chưa làm
               </Button>
             )}
             <Button
               variant="fun"
-              className={currentIndex >= sessionQuestions.length - 1 ? "kid-btn-fun" : undefined}
+              className={
+                isPartAiPracticeUi || currentIndex >= sessionQuestions.length - 1
+                  ? "kid-btn-fun ml-auto"
+                  : undefined
+              }
               disabled={
-                currentIndex >= sessionQuestions.length - 1
+                isPartAiPracticeUi || currentIndex >= sessionQuestions.length - 1
                   ? submitting || !attemptId
                   : false
               }
               onClick={
-                currentIndex >= sessionQuestions.length - 1 ? handleSubmit : goNext
+                isPartAiPracticeUi || currentIndex >= sessionQuestions.length - 1
+                  ? () => void handleSubmit()
+                  : goNext
               }
             >
-              {currentIndex >= sessionQuestions.length - 1
+              {isPartAiPracticeUi || currentIndex >= sessionQuestions.length - 1
                 ? submitting
-                  ? "Đang nộp..."
-                  : "🎉 Nộp bài"
+                  ? "Đang chấm AI..."
+                  : "🎉 Nộp bài & chấm AI"
                 : "Câu sau →"}
             </Button>
           </div>

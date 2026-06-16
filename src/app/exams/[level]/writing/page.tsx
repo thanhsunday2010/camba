@@ -5,13 +5,13 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { formatExamLevel } from "@/lib/constants";
 import {
-  buildCambridgeSpeakingMockPoolKey,
-  buildCambridgeSpeakingPracticePoolKey,
-  getCambridgePartDef,
-  getCambridgeSpeakingParts,
-} from "@/lib/exam/cambridge-speaking-config";
-import { getCambridgeSpeakingUsageSnapshot } from "@/lib/subscription/cambridge-speaking-limit";
-import { CambridgeSpeakingHubClient } from "@/components/exam/cambridge-speaking-hub-client";
+  buildCambridgeWritingMockPoolKey,
+  buildCambridgeWritingPracticePoolKey,
+  getCambridgeWritingPartDef,
+  getCambridgeWritingParts,
+} from "@/lib/exam/cambridge-writing-config";
+import { getCambridgeWritingUsageSnapshot } from "@/lib/subscription/cambridge-writing-limit";
+import { CambridgeWritingHubClient } from "@/components/exam/cambridge-writing-hub-client";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 
@@ -19,7 +19,7 @@ export const revalidate = 60;
 
 const VALID_LEVELS = ["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"];
 
-export default async function CambridgeSpeakingPage({
+export default async function CambridgeWritingPage({
   params,
 }: {
   params: Promise<{ level: string }>;
@@ -32,13 +32,13 @@ export default async function CambridgeSpeakingPage({
 
   const level = levelParam as ExamLevel;
   const theme = LEVEL_THEMES[levelParam] ?? LEVEL_THEMES.KET;
-  const mockPoolKey = buildCambridgeSpeakingMockPoolKey(level);
-  const partKeys = getCambridgeSpeakingParts(level).map((part) =>
-    buildCambridgeSpeakingPracticePoolKey(level, part)
+  const mockPoolKey = buildCambridgeWritingMockPoolKey(level);
+  const partKeys = getCambridgeWritingParts(level).map((part) =>
+    buildCambridgeWritingPracticePoolKey(level, part)
   );
 
   const [usage, practicePapers, mockPaper, completedIds] = await Promise.all([
-    getCambridgeSpeakingUsageSnapshot(session.user.id, level),
+    getCambridgeWritingUsageSnapshot(session.user.id, level),
     db.examPaper.findMany({
       where: {
         published: true,
@@ -77,10 +77,10 @@ export default async function CambridgeSpeakingPage({
 
   const doneSet = new Set(completedIds.map((a) => a.paperId));
 
-  const practiceParts = getCambridgeSpeakingParts(level).map((part) => {
-    const poolKey = buildCambridgeSpeakingPracticePoolKey(level, part);
+  const practiceParts = getCambridgeWritingParts(level).map((part) => {
+    const poolKey = buildCambridgeWritingPracticePoolKey(level, part);
     const paper = practicePapers.find((p) => p.practicePoolKey === poolKey);
-    const def = getCambridgePartDef(level, part);
+    const def = getCambridgeWritingPartDef(level, part);
     return {
       part,
       label: def.label,
@@ -110,17 +110,17 @@ export default async function CambridgeSpeakingPage({
           >
             ← {formatExamLevel(levelParam)}
           </Link>
-          <h1 className={`mt-1 text-3xl font-extrabold kid-gradient-text`}>
-            Speaking {formatExamLevel(levelParam)} {theme.emoji}
+          <h1 className="mt-1 text-3xl font-extrabold kid-gradient-text">
+            Writing {formatExamLevel(levelParam)} {theme.emoji}
           </h1>
           <p className="mt-1 max-w-2xl font-semibold text-muted-foreground">
-            AI chấm sửa theo band Cambridge · mỗi lần luyện 1 câu ngẫu nhiên · mock full giống
-            format thi thật
+            Mỗi lần luyện 1 câu ngẫu nhiên · AI chấm sửa ngay sau khi nộp · mock full giống format
+            thi thật
           </p>
         </div>
       </div>
 
-      <CambridgeSpeakingHubClient
+      <CambridgeWritingHubClient
         usage={usage}
         practiceParts={practiceParts}
         mockPaper={

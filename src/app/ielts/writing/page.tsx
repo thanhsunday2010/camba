@@ -3,26 +3,26 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import {
-  IELTS_SPEAKING_MOCK_POOL_KEY,
-  IELTS_SPEAKING_PART_DEFS,
-  IELTS_SPEAKING_PARTS,
-} from "@/lib/exam/ielts-speaking-config";
-import { getIeltsSpeakingUsageSnapshot } from "@/lib/subscription/ielts-speaking-limit";
-import { IeltsSpeakingHubClient } from "@/components/ielts/ielts-speaking-hub-client";
+  IELTS_WRITING_MOCK_POOL_KEY,
+  IELTS_WRITING_TASK_DEFS,
+  IELTS_WRITING_TASKS,
+} from "@/lib/exam/ielts-writing-config";
+import { getIeltsWritingUsageSnapshot } from "@/lib/subscription/ielts-writing-limit";
+import { IeltsWritingHubClient } from "@/components/ielts/ielts-writing-hub-client";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 
 export const revalidate = 60;
 
-export default async function IeltsSpeakingPage() {
+export default async function IeltsWritingPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
   const [usage, practicePapers, mockPaper, completedIds] = await Promise.all([
-    getIeltsSpeakingUsageSnapshot(session.user.id),
+    getIeltsWritingUsageSnapshot(session.user.id),
     db.examPaper.findMany({
       where: {
         published: true,
-        practicePoolKey: { startsWith: "IELTS:SPK:P" },
+        practicePoolKey: { startsWith: "IELTS:WRT:T" },
       },
       orderBy: { practicePoolKey: "asc" },
       select: {
@@ -34,7 +34,7 @@ export default async function IeltsSpeakingPage() {
       },
     }),
     db.examPaper.findFirst({
-      where: { published: true, mockPoolKey: IELTS_SPEAKING_MOCK_POOL_KEY },
+      where: { published: true, mockPoolKey: IELTS_WRITING_MOCK_POOL_KEY },
       select: {
         id: true,
         title: true,
@@ -48,8 +48,8 @@ export default async function IeltsSpeakingPage() {
         status: { in: ["SUBMITTED", "GRADED"] },
         paper: {
           OR: [
-            { practicePoolKey: { startsWith: "IELTS:SPK:P" } },
-            { mockPoolKey: IELTS_SPEAKING_MOCK_POOL_KEY },
+            { practicePoolKey: { startsWith: "IELTS:WRT:T" } },
+            { mockPoolKey: IELTS_WRITING_MOCK_POOL_KEY },
           ],
         },
       },
@@ -60,12 +60,12 @@ export default async function IeltsSpeakingPage() {
 
   const doneSet = new Set(completedIds.map((a) => a.paperId));
 
-  const practiceParts = IELTS_SPEAKING_PARTS.map((part) => {
-    const poolKey = `IELTS:SPK:P${part}`;
+  const practiceParts = IELTS_WRITING_TASKS.map((task) => {
+    const poolKey = `IELTS:WRT:T${task}`;
     const paper = practicePapers.find((p) => p.practicePoolKey === poolKey);
-    const def = IELTS_SPEAKING_PART_DEFS[part];
+    const def = IELTS_WRITING_TASK_DEFS[task];
     return {
-      part,
+      part: task,
       label: def.label,
       shortLabel: def.shortLabel,
       description: def.description,
@@ -91,16 +91,15 @@ export default async function IeltsSpeakingPage() {
             ← Chọn level
           </Link>
           <h1 className="mt-1 text-3xl font-extrabold kid-gradient-text">
-            Luyện thi Speaking IELTS
+            Luyện thi Writing IELTS
           </h1>
           <p className="mt-1 max-w-2xl font-semibold text-muted-foreground">
-            AI chấm sửa theo band IELTS · mỗi lần luyện 1 câu ngẫu nhiên · mock full (Part 1 + 2 +
-            3) giống format thi thật
+            Mỗi lần luyện 1 câu ngẫu nhiên · AI chấm band ngay sau khi nộp · mock Task 1 + Task 2
           </p>
         </div>
       </div>
 
-      <IeltsSpeakingHubClient
+      <IeltsWritingHubClient
         usage={usage}
         practiceParts={practiceParts}
         mockPaper={

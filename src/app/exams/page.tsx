@@ -38,7 +38,7 @@ export default async function ExamsHubPage() {
           <div>
             <p className="text-lg font-extrabold text-rose-800">🎤 Luyện thi Speaking IELTS</p>
             <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
-              Luyện từng Part hoặc mock full · AI chấm band IELTS · gợi ý part yếu
+              1 câu ngẫu nhiên/Part · AI chấm band ngay · mock full Part 1+2+3
             </p>
           </div>
           <Link
@@ -46,6 +46,23 @@ export default async function ExamsHubPage() {
             className="kid-btn-fun inline-flex rounded-full bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-700"
           >
             Vào luyện Speaking IELTS
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-4 border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 to-white">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 py-6">
+          <div>
+            <p className="text-lg font-extrabold text-amber-900">✏️ Luyện thi Writing IELTS</p>
+            <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
+              1 câu ngẫu nhiên/Task · AI chấm band ngay sau nộp · mock Task 1 + Task 2
+            </p>
+          </div>
+          <Link
+            href="/ielts/writing"
+            className="kid-btn-fun inline-flex rounded-full bg-amber-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-700"
+          >
+            Vào luyện Writing IELTS
           </Link>
         </CardContent>
       </Card>

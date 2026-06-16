@@ -17,6 +17,7 @@ import {
 } from "./placement-content";
 import { PLACEMENT_SLUG_BY_TITLE } from "../../src/lib/placement/placement-config";
 import { poolCountForTest, seedPlacementQuestionBank } from "./placement-bank";
+import type { SeedDifficulty } from "../../src/lib/exam/question-diversity";
 import {
   computeRequiredPoolSizes,
   getPracticePaperCounts,
@@ -37,6 +38,7 @@ export type McqSeed = {
   imageDescription?: string;
   sceneEmoji?: string;
   questionType?: string;
+  difficulty?: SeedDifficulty;
 };
 
 export type GapSeed = {
@@ -44,6 +46,7 @@ export type GapSeed = {
   passage: string;
   question: string;
   answer: string;
+  difficulty?: SeedDifficulty;
 };
 
 export type WritingSeed = {
@@ -51,6 +54,7 @@ export type WritingSeed = {
   taskPrompt: string;
   wordLimit: number;
   instructions: string;
+  difficulty?: SeedDifficulty;
 };
 
 export type ListeningSeed = {
@@ -64,6 +68,7 @@ export type ListeningSeed = {
   imageDescription?: string;
   sceneEmoji?: string;
   questionType?: string;
+  difficulty?: SeedDifficulty;
 };
 
 export type SpeakingSeed = {
@@ -71,6 +76,7 @@ export type SpeakingSeed = {
   prompt: string;
   preparationTime?: number;
   speakingTime?: number;
+  difficulty?: SeedDifficulty;
 };
 
 export type QuestionBankMeta = {
@@ -102,6 +108,7 @@ export async function createMcqs(
           ...(item.imageDescription ? { imageDescription: item.imageDescription } : {}),
           ...(item.sceneEmoji ? { sceneEmoji: item.sceneEmoji } : {}),
           ...(item.questionType ? { questionType: item.questionType } : {}),
+          ...(item.difficulty ? { difficulty: item.difficulty } : {}),
         },
         correctAnswer: item.answer,
         points: 1,
@@ -133,7 +140,11 @@ export async function createGaps(
         level,
         skill: Skill.USE_OF_ENGLISH,
         title: item.title,
-        content: { passage, blanks: 1 },
+        content: {
+          passage,
+          blanks: 1,
+          ...(item.difficulty ? { difficulty: item.difficulty } : {}),
+        },
         correctAnswer: item.answer,
         points: 1,
         orderIndex: i,
@@ -165,6 +176,7 @@ export async function createWritings(
           taskPrompt: item.taskPrompt,
           wordLimit: item.wordLimit,
           instructions: item.instructions,
+          ...(item.difficulty ? { difficulty: item.difficulty } : {}),
         },
         points: 10,
         orderIndex: i,
@@ -204,6 +216,7 @@ export async function createListenings(
           ...(item.imageDescription ? { imageDescription: item.imageDescription } : {}),
           ...(item.sceneEmoji ? { sceneEmoji: item.sceneEmoji } : {}),
           ...(item.questionType ? { questionType: item.questionType } : {}),
+          ...(item.difficulty ? { difficulty: item.difficulty } : {}),
         },
         correctAnswer: item.answer,
         points: 1,
@@ -240,6 +253,7 @@ export async function createSpeakings(
           speakingTime: item.speakingTime ?? 60,
           examTrack: "CAMBRIDGE",
           cambridgePart: partCycle[i % partCycle.length],
+          ...(item.difficulty ? { difficulty: item.difficulty } : {}),
         },
         points: 10,
         orderIndex: i,

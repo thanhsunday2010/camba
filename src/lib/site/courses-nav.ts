@@ -22,6 +22,12 @@ export const COURSES_NAV: CourseNavGroup[] = [
     children: [{ label: "Speaking IELTS — Luyện & Mock", href: IELTS_SPEAKING_URL }],
   },
   {
+    id: "ielts-writing",
+    label: "Luyện thi Writing IELTS",
+    href: "/ielts/writing",
+    children: [{ label: "Writing IELTS — Luyện & Mock", href: "/ielts/writing" }],
+  },
+  {
     id: "cambridge",
     label: "Luyện thi Cambridge",
     href: CAMBRIDGE_COURSES_URL,

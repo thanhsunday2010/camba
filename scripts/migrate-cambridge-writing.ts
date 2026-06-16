@@ -1,6 +1,6 @@
 /**
- * Tag Cambridge Speaking questions by Part + tạo đề luyện/mock theo Part (giống IELTS).
- * Usage: npm run content:migrate-cambridge-speaking
+ * Tag Cambridge Writing questions by Part + tạo đề luyện/mock theo Part.
+ * Usage: npm run content:migrate-cambridge-writing
  */
 import "dotenv/config";
 import {
@@ -12,26 +12,26 @@ import {
   Skill,
 } from "@prisma/client";
 import {
-  buildCambridgeSpeakingMockPoolKey,
-  buildCambridgeSpeakingPracticePoolKey,
-  CAMBRIDGE_SPEAKING_LEVELS,
-  getCambridgePartDef,
-  getCambridgeSpeakingMockQuestionCount,
-  getCambridgeSpeakingParts,
-  buildCambridgeSpeakingMockSections,
-  buildCambridgeSpeakingMockTimeLimit,
-} from "../src/lib/exam/cambridge-speaking-config";
+  buildCambridgeWritingMockPoolKey,
+  buildCambridgeWritingPracticePoolKey,
+  CAMBRIDGE_WRITING_LEVELS,
+  getCambridgeWritingMockQuestionCount,
+  getCambridgeWritingParts,
+  getCambridgeWritingPartDef,
+  buildCambridgeWritingMockSections,
+  buildCambridgeWritingMockTimeLimit,
+} from "../src/lib/exam/cambridge-writing-config";
 import { formatExamLevel } from "../src/lib/constants";
 
 const db = new PrismaClient();
 
 async function tagQuestionsForLevel(level: ExamLevel) {
-  const parts = getCambridgeSpeakingParts(level);
+  const parts = getCambridgeWritingParts(level);
   const rows = await db.question.findMany({
     where: {
       level,
-      skill: Skill.SPEAKING,
-      type: QuestionType.SPEAKING_PROMPT,
+      skill: Skill.WRITING,
+      type: QuestionType.FREE_TEXT,
       placementSlug: null,
     },
     select: { id: true, content: true },
@@ -48,7 +48,7 @@ async function tagQuestionsForLevel(level: ExamLevel) {
     const q = questions[i]!;
     const part = parts[i % parts.length]!;
     const content = (q.content ?? {}) as Record<string, unknown>;
-    if (content.examTrack === "CAMBRIDGE" && content.cambridgePart === part) continue;
+    if (content.examTrack === "CAMBRIDGE" && content.cambridgeWritingPart === part) continue;
 
     await db.question.update({
       where: { id: q.id },
@@ -56,7 +56,7 @@ async function tagQuestionsForLevel(level: ExamLevel) {
         content: {
           ...content,
           examTrack: "CAMBRIDGE",
-          cambridgePart: part,
+          cambridgeWritingPart: part,
         },
       },
     });
@@ -66,25 +66,25 @@ async function tagQuestionsForLevel(level: ExamLevel) {
   return { total: questions.length, tagged };
 }
 
-async function countPartPool(level: ExamLevel, part: 1 | 2 | 3) {
+async function countPartPool(level: ExamLevel, part: 1 | 2) {
   return db.question.count({
     where: {
       level,
-      skill: Skill.SPEAKING,
+      skill: Skill.WRITING,
       placementSlug: null,
       AND: [
         { content: { path: ["examTrack"], equals: "CAMBRIDGE" } },
-        { content: { path: ["cambridgePart"], equals: part } },
+        { content: { path: ["cambridgeWritingPart"], equals: part } },
       ],
     },
   });
 }
 
-async function upsertPracticePaper(level: ExamLevel, part: 1 | 2 | 3, poolCount: number) {
-  const def = getCambridgePartDef(level, part);
-  const poolKey = buildCambridgeSpeakingPracticePoolKey(level, part);
+async function upsertPracticePaper(level: ExamLevel, part: 1 | 2, poolCount: number) {
+  const def = getCambridgeWritingPartDef(level, part);
+  const poolKey = buildCambridgeWritingPracticePoolKey(level, part);
   const levelLabel = formatExamLevel(level);
-  const title = `${levelLabel} Speaking — ${def.shortLabel} Luyện tập`;
+  const title = `${levelLabel} Writing — ${def.shortLabel} Luyện tập`;
   const description = `1 câu ngẫu nhiên/lần · AI chấm ngay · ngân hàng ${poolCount} câu · ${def.description}`;
 
   const existing = await db.examPaper.findUnique({ where: { practicePoolKey: poolKey } });
@@ -99,7 +99,7 @@ async function upsertPracticePaper(level: ExamLevel, part: 1 | 2 | 3, poolCount:
         paperKind: PaperKind.PRACTICE,
         timeLimit: def.practiceTimeLimitSeconds,
         level,
-        skill: Skill.SPEAKING,
+        skill: Skill.WRITING,
       },
     });
     return "updated";
@@ -110,7 +110,7 @@ async function upsertPracticePaper(level: ExamLevel, part: 1 | 2 | 3, poolCount:
       title,
       description,
       level,
-      skill: Skill.SPEAKING,
+      skill: Skill.WRITING,
       paperKind: PaperKind.PRACTICE,
       practicePoolKey: poolKey,
       timeLimit: def.practiceTimeLimitSeconds,
@@ -123,11 +123,11 @@ async function upsertPracticePaper(level: ExamLevel, part: 1 | 2 | 3, poolCount:
 
 async function upsertMockPaper(level: ExamLevel, totalPool: number) {
   const levelLabel = formatExamLevel(level);
-  const poolKey = buildCambridgeSpeakingMockPoolKey(level);
-  const count = getCambridgeSpeakingMockQuestionCount(level);
-  const title = `${levelLabel} Speaking — Mock test full`;
+  const poolKey = buildCambridgeWritingMockPoolKey(level);
+  const count = getCambridgeWritingMockQuestionCount(level);
+  const title = `${levelLabel} Writing — Mock test full`;
   const description = `${count} câu theo format Cambridge · ngân hàng ${totalPool} câu`;
-  const sections = buildCambridgeSpeakingMockSections(level);
+  const sections = buildCambridgeWritingMockSections(level);
 
   const existing = await db.examPaper.findUnique({ where: { mockPoolKey: poolKey } });
   if (existing) {
@@ -139,10 +139,10 @@ async function upsertMockPaper(level: ExamLevel, totalPool: number) {
         published: true,
         isMockTest: true,
         paperKind: PaperKind.MOCK_SKILL,
-        timeLimit: buildCambridgeSpeakingMockTimeLimit(level),
+        timeLimit: buildCambridgeWritingMockTimeLimit(level),
         sections: sections as unknown as Prisma.InputJsonValue,
         level,
-        skill: Skill.SPEAKING,
+        skill: Skill.WRITING,
       },
     });
     return "updated";
@@ -153,10 +153,10 @@ async function upsertMockPaper(level: ExamLevel, totalPool: number) {
       title,
       description,
       level,
-      skill: Skill.SPEAKING,
+      skill: Skill.WRITING,
       paperKind: PaperKind.MOCK_SKILL,
       mockPoolKey: poolKey,
-      timeLimit: buildCambridgeSpeakingMockTimeLimit(level),
+      timeLimit: buildCambridgeWritingMockTimeLimit(level),
       sections: sections as unknown as Prisma.InputJsonValue,
       isMockTest: true,
       published: true,
@@ -165,9 +165,9 @@ async function upsertMockPaper(level: ExamLevel, totalPool: number) {
   return "created";
 }
 
-async function unpublishLegacySpeakingPapers(level: ExamLevel) {
-  const legacyPracticeKey = `${level}:SPEAKING`;
-  const legacyMockKey = `SKILL:${level}:SPEAKING`;
+async function unpublishLegacyWritingPapers(level: ExamLevel) {
+  const legacyPracticeKey = `${level}:WRITING`;
+  const legacyMockKey = `SKILL:${level}:WRITING`;
 
   const result = await db.examPaper.updateMany({
     where: {
@@ -179,16 +179,13 @@ async function unpublishLegacySpeakingPapers(level: ExamLevel) {
   const extra = await db.examPaper.updateMany({
     where: {
       level,
-      skill: Skill.SPEAKING,
+      skill: Skill.WRITING,
       published: true,
-      OR: [
-        { practicePoolKey: { not: null } },
-        { mockPoolKey: { not: null } },
-      ],
+      OR: [{ practicePoolKey: { not: null } }, { mockPoolKey: { not: null } }],
       NOT: {
         OR: [
-          { practicePoolKey: { startsWith: `${level}:SPK:` } },
-          { mockPoolKey: buildCambridgeSpeakingMockPoolKey(level) },
+          { practicePoolKey: { startsWith: `${level}:WRT:` } },
+          { mockPoolKey: buildCambridgeWritingMockPoolKey(level) },
         ],
       },
     },
@@ -199,15 +196,14 @@ async function unpublishLegacySpeakingPapers(level: ExamLevel) {
 }
 
 async function main() {
-  console.log("\n=== Cambridge Speaking — tag questions & papers ===\n");
+  console.log("\n=== Cambridge Writing — tag questions & papers ===\n");
 
-  for (const level of CAMBRIDGE_SPEAKING_LEVELS) {
+  for (const level of CAMBRIDGE_WRITING_LEVELS) {
     console.log(`\n--- ${level} ---`);
     const { total, tagged } = await tagQuestionsForLevel(level);
-    console.log(`Tagged ${tagged}/${total} speaking questions`);
+    console.log(`Tagged ${tagged}/${total} writing questions`);
 
-    const parts = getCambridgeSpeakingParts(level);
-    for (const part of parts) {
+    for (const part of getCambridgeWritingParts(level)) {
       const poolCount = await countPartPool(level, part);
       const status = await upsertPracticePaper(level, part, poolCount);
       console.log(`${status} practice Part ${part}: ${poolCount} câu trong pool`);
@@ -215,11 +211,11 @@ async function main() {
 
     const mockStatus = await upsertMockPaper(level, total);
     console.log(
-      `${mockStatus} mock full (${getCambridgeSpeakingMockQuestionCount(level)} câu/lần)`
+      `${mockStatus} mock full (${getCambridgeWritingMockQuestionCount(level)} câu/lần)`
     );
 
-    const hidden = await unpublishLegacySpeakingPapers(level);
-    if (hidden > 0) console.log(`Ẩn ${hidden} đề Speaking cũ`);
+    const hidden = await unpublishLegacyWritingPapers(level);
+    if (hidden > 0) console.log(`Ẩn ${hidden} đề Writing cũ`);
   }
 
   console.log("\nXong.");

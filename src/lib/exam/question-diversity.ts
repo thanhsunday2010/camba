@@ -7,6 +7,59 @@ export type QuestionPickMeta = {
   content: unknown;
 };
 
+export type SeedDifficulty = "easy" | "medium" | "hard";
+
+export function seedToQuestionContent(
+  type: QuestionType,
+  seed: Record<string, unknown>
+): Record<string, unknown> {
+  const content: Record<string, unknown> = { ...seed };
+  delete content.title;
+  delete content.answer;
+  delete content.audioSlug;
+  if (type === QuestionType.MCQ) {
+    return {
+      passage: content.passage ?? content.transcript,
+      question: content.question,
+      options: content.options,
+      questionType: content.questionType,
+      difficulty: content.difficulty,
+    };
+  }
+  if (type === QuestionType.GAP_FILL) {
+    return { passage: content.passage, difficulty: content.difficulty };
+  }
+  if (type === QuestionType.FREE_TEXT) {
+    return {
+      taskPrompt: content.taskPrompt,
+      wordLimit: content.wordLimit,
+      instructions: content.instructions,
+      difficulty: content.difficulty,
+    };
+  }
+  if (type === QuestionType.SPEAKING_PROMPT) {
+    return {
+      prompt: content.prompt,
+      preparationTime: content.preparationTime,
+      speakingTime: content.speakingTime,
+      difficulty: content.difficulty,
+    };
+  }
+  return content;
+}
+
+export function getSeedDiversityKey(
+  type: QuestionType,
+  seed: { title: string } & Record<string, unknown>
+): string {
+  return getQuestionDiversityKey({
+    id: seed.title,
+    type,
+    title: seed.title,
+    content: seedToQuestionContent(type, seed),
+  });
+}
+
 function asRecord(content: unknown): Record<string, unknown> {
   if (content && typeof content === "object" && !Array.isArray(content)) {
     return content as Record<string, unknown>;

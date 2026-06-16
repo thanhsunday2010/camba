@@ -24,13 +24,25 @@ import {
 } from "@/lib/subscription/quota-messages";
 import { hasFullMockAccess } from "@/lib/subscription/plans";
 import { isIeltsSpeakingPaper } from "@/lib/exam/ielts-speaking-config";
+import { isIeltsWritingPaper } from "@/lib/exam/ielts-writing-config";
 import {
   getCambridgeLevelFromSpeakingPaper,
   isCambridgeSpeakingPaper,
   isDedicatedSpeakingPaper,
 } from "@/lib/exam/cambridge-speaking-config";
+import {
+  getCambridgeLevelFromWritingPaper,
+  isCambridgeWritingPaper,
+  isDedicatedWritingPaper,
+} from "@/lib/exam/cambridge-writing-config";
+import { isPartAiPracticePaper } from "@/lib/exam/ai-practice-config";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
 import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
+import {
+  buildPracticeMinWordsContext,
+  meetsPracticeMinWords,
+  practiceMinWordsMessage,
+} from "@/lib/exam/practice-min-words";
 import { QuestionType, ExamLevel, Skill, PaperKind, Prisma } from "@prisma/client";
 import { requireAdminPermission } from "@/lib/admin/access";
 
@@ -312,6 +324,12 @@ export async function startAttemptAction(paperId: string) {
       );
       const check = await canStartIeltsSpeakingPractice(session.user.id);
       if (!check.ok) return { error: check.error };
+    } else if (isIeltsWritingPaper(paper)) {
+      const { canStartIeltsWritingPractice } = await import(
+        "@/lib/subscription/ielts-writing-limit"
+      );
+      const check = await canStartIeltsWritingPractice(session.user.id);
+      if (!check.ok) return { error: check.error };
     } else if (isCambridgeSpeakingPaper(paper)) {
       const level = getCambridgeLevelFromSpeakingPaper(paper);
       if (!level) return { error: "Đề Speaking Cambridge không hợp lệ" };
@@ -320,7 +338,15 @@ export async function startAttemptAction(paperId: string) {
       );
       const check = await canStartCambridgeSpeakingPractice(session.user.id, level);
       if (!check.ok) return { error: check.error };
-    } else {
+    } else if (isCambridgeWritingPaper(paper)) {
+      const level = getCambridgeLevelFromWritingPaper(paper);
+      if (!level) return { error: "Đề Writing Cambridge không hợp lệ" };
+      const { canStartCambridgeWritingPractice } = await import(
+        "@/lib/subscription/cambridge-writing-limit"
+      );
+      const check = await canStartCambridgeWritingPractice(session.user.id, level);
+      if (!check.ok) return { error: check.error };
+    } else if (!isPartAiPracticePaper(paper)) {
       const { canUsePractice } = await import("@/lib/subscription/service");
       const additional = isDynamicPracticePaper(paper) ? PRACTICE_POOL_SIZE : 1;
       const allowed = await canUsePractice(session.user.id, additional);
@@ -350,6 +376,12 @@ export async function startAttemptAction(paperId: string) {
       );
       const check = await canStartIeltsSpeakingMock(session.user.id);
       if (!check.ok) return { error: check.error };
+    } else if (isIeltsWritingPaper(paper)) {
+      const { canStartIeltsWritingMock } = await import(
+        "@/lib/subscription/ielts-writing-limit"
+      );
+      const check = await canStartIeltsWritingMock(session.user.id);
+      if (!check.ok) return { error: check.error };
     } else if (isCambridgeSpeakingPaper(paper)) {
       const level = getCambridgeLevelFromSpeakingPaper(paper);
       if (!level) return { error: "Đề Speaking Cambridge không hợp lệ" };
@@ -357,6 +389,14 @@ export async function startAttemptAction(paperId: string) {
         "@/lib/subscription/cambridge-speaking-limit"
       );
       const check = await canStartCambridgeSpeakingMock(session.user.id, level);
+      if (!check.ok) return { error: check.error };
+    } else if (isCambridgeWritingPaper(paper)) {
+      const level = getCambridgeLevelFromWritingPaper(paper);
+      if (!level) return { error: "Đề Writing Cambridge không hợp lệ" };
+      const { canStartCambridgeWritingMock } = await import(
+        "@/lib/subscription/cambridge-writing-limit"
+      );
+      const check = await canStartCambridgeWritingMock(session.user.id, level);
       if (!check.ok) return { error: check.error };
     } else {
       const { canUseMockTest } = await import("@/lib/subscription/service");
@@ -397,7 +437,8 @@ export async function startAttemptAction(paperId: string) {
   if (
     (paper.paperKind === PaperKind.MOCK_SKILL || paper.paperKind === PaperKind.MOCK_FULL) &&
     session.user.id &&
-    !isDedicatedSpeakingPaper(paper)
+    !isDedicatedSpeakingPaper(paper) &&
+    !isDedicatedWritingPaper(paper)
   ) {
     const { recordMockTestUsage } = await import("@/lib/subscription/service");
     const recorded = await recordMockTestUsage(session.user.id);
@@ -484,6 +525,19 @@ export async function submitAttemptAction(
     usesAttemptQuestionSet(attempt.paper) && attempt.attemptQuestions.length > 0
       ? attempt.attemptQuestions.map((aq) => aq.question)
       : attempt.paper.questions.map((pq) => pq.question);
+
+  const minWordsContext = buildPracticeMinWordsContext(attempt.paper);
+  for (const q of questionRows) {
+    const studentAnswer = answers[q.id];
+    if (
+      (q.type === "FREE_TEXT" || q.type === "SPEAKING_PROMPT") &&
+      studentAnswer != null &&
+      studentAnswer !== "" &&
+      !meetsPracticeMinWords(q.type, q.content, studentAnswer, minWordsContext)
+    ) {
+      return { error: practiceMinWordsMessage(q.type, q.content, minWordsContext) };
+    }
+  }
 
   for (const q of questionRows) {
     const studentAnswer = answers[q.id];

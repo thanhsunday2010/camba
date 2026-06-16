@@ -10,6 +10,7 @@ import { PRACTICE_POOL_SIZE } from "@/lib/exam/practice-pool";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 import { getDailyUsageSnapshot } from "@/lib/subscription/service";
 import { getCambridgeSpeakingUsageSnapshot } from "@/lib/subscription/cambridge-speaking-limit";
+import { getCambridgeWritingUsageSnapshot } from "@/lib/subscription/cambridge-writing-limit";
 import { FullMockGrid, SkillPracticeGrid } from "@/components/exam/skill-practice-grid";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -24,9 +25,6 @@ const SKILL_EMOJI: Record<string, string> = {
 const YLE_LEVELS = new Set(["STARTERS", "MOVERS", "FLYERS"]);
 
 function practiceInfoText(skill: Skill): string {
-  if (skill === Skill.WRITING || skill === Skill.SPEAKING) {
-    return `${PRACTICE_POOL_SIZE} câu ngẫu nhiên/lần · AI chấm (Free: 1 lượt/ngày dùng chung)`;
-  }
   return `${PRACTICE_POOL_SIZE} câu ngẫu nhiên/lần · lời giải có sẵn ngay`;
 }
 
@@ -54,11 +52,12 @@ export default async function ExamsLevelPage({
   const theme = LEVEL_THEMES[level] ?? LEVEL_THEMES.KET;
   const isYle = YLE_LEVELS.has(level);
 
-  const [papers, completedPaperIds, usage, speakingUsage] = await Promise.all([
+  const [papers, completedPaperIds, usage, speakingUsage, writingUsage] = await Promise.all([
     getPublishedPapersByLevel(examLevel),
     getCompletedPaperIdsForUser(session.user.id, examLevel),
     getDailyUsageSnapshot(session.user.id),
     getCambridgeSpeakingUsageSnapshot(session.user.id, examLevel),
+    getCambridgeWritingUsageSnapshot(session.user.id, examLevel),
   ]);
 
   const fullMocks = papers.filter((p) => p.paperKind === PaperKind.MOCK_FULL);
@@ -73,7 +72,9 @@ export default async function ExamsLevelPage({
   const mockTestUsedUp = usage.mockSkillCount >= mockTestLimit;
   const fullMockLocked = !usage.allowFullMock || mockTestUsedUp;
 
-  const gridSkills = SKILLS.filter((skill) => skill.value !== "SPEAKING").map((skill) => {
+  const gridSkills = SKILLS.filter(
+    (skill) => skill.value !== "SPEAKING" && skill.value !== "WRITING"
+  ).map((skill) => {
     const skillValue = skill.value as Skill;
     const practice = practiceOnly.find((p) => p.skill === skillValue);
     const mock = skillMocks.find((p) => p.skill === skillValue);
@@ -193,7 +194,7 @@ export default async function ExamsLevelPage({
                 🎤 Speaking {formatExamLevel(level)} — Luyện theo Part
               </p>
               <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
-                Luyện từng Part hoặc mock full · AI chấm band Cambridge · hôm nay còn{" "}
+                1 câu ngẫu nhiên/Part · AI chấm ngay · hôm nay còn{" "}
                 {speakingUsage.practiceRemaining}/{speakingUsage.practiceLimit} lượt luyện ·{" "}
                 {speakingUsage.mockRemaining}/{speakingUsage.mockLimit} mock (
                 {speakingUsage.mockPeriod === "week" ? "tuần" : "ngày"})
@@ -204,6 +205,30 @@ export default async function ExamsLevelPage({
               className="kid-btn-fun inline-flex rounded-full bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-700"
             >
               Vào luyện Speaking
+            </Link>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mb-10">
+        <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 to-white">
+          <CardContent className="flex flex-wrap items-center justify-between gap-4 py-6">
+            <div>
+              <p className="text-lg font-extrabold text-amber-900">
+                ✏️ Writing {formatExamLevel(level)} — Luyện theo Part
+              </p>
+              <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
+                1 câu ngẫu nhiên/Part · AI chấm ngay sau nộp · hôm nay còn{" "}
+                {writingUsage.practiceRemaining}/{writingUsage.practiceLimit} lượt luyện ·{" "}
+                {writingUsage.mockRemaining}/{writingUsage.mockLimit} mock (
+                {writingUsage.mockPeriod === "week" ? "tuần" : "ngày"})
+              </p>
+            </div>
+            <Link
+              href={`/exams/${level}/writing`}
+              className="kid-btn-fun inline-flex rounded-full bg-amber-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-700"
+            >
+              Vào luyện Writing
             </Link>
           </CardContent>
         </Card>

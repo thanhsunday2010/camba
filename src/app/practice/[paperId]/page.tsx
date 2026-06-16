@@ -4,6 +4,7 @@ import { getCachedPracticePaper } from "@/lib/exam/cached-practice";
 import { PracticeClient } from "@/components/exam/practice-client";
 import { parseSections } from "@/lib/exam/paper-sections";
 import { getUserPlanLimits } from "@/lib/subscription/service";
+import { isPartAiPracticePaper } from "@/lib/exam/ai-practice-config";
 
 export const revalidate = 300;
 
@@ -54,6 +55,9 @@ export default async function PracticePage({
       dynamicPool={dynamicPool}
       maxWritingWords={planLimits.writingWordLimit}
       maxSpeakingWords={planLimits.speakingWordLimit}
+      practicePoolKey={paper.practicePoolKey}
+      mockPoolKey={paper.mockPoolKey}
+      partAiPractice={isPartAiPracticePaper(paper)}
     />
   );
 }

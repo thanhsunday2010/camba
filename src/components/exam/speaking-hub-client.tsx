@@ -37,6 +37,7 @@ type PracticePart = {
 
 type Props = {
   trackLabel: string;
+  skillName?: string;
   quotaHint: string;
   usage: SpeakingUsageSnapshot;
   practiceParts: PracticePart[];
@@ -53,6 +54,7 @@ function usagePct(used: number, limit: number) {
 
 export function SpeakingHubClient({
   trackLabel,
+  skillName = "Speaking",
   quotaHint,
   usage,
   practiceParts,
@@ -76,7 +78,7 @@ export function SpeakingHubClient({
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div>
             <div className="mb-1 flex justify-between text-sm font-semibold">
-              <span>Luyện tập (mỗi lần mở 1 Part)</span>
+              <span>Luyện tập (1 câu / Part)</span>
               <span>
                 {usage.practiceUsed}/{usage.practiceLimit}
               </span>
@@ -97,7 +99,7 @@ export function SpeakingHubClient({
 
       {practiceLocked && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
-          Đã hết lượt luyện Speaking {trackLabel} hôm nay.{" "}
+          Đã hết lượt luyện {skillName} {trackLabel} hôm nay.{" "}
           <Link href="/pricing" className="font-bold underline">
             Nâng cấp gói
           </Link>{" "}
@@ -143,7 +145,7 @@ export function SpeakingHubClient({
       </section>
 
       <section>
-        <h2 className="mb-4 text-xl font-extrabold text-amber-800">Mock test Speaking full</h2>
+        <h2 className="mb-4 text-xl font-extrabold text-amber-800">Mock test {skillName} full</h2>
         <Card className="border-2 border-amber-200 bg-amber-50/40">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">

@@ -1,4 +1,4 @@
-import { ExamLevel } from "@prisma/client";
+import { ExamLevel, QuestionType } from "@prisma/client";
 import type { LevelBank } from "./curated/types";
 import {
   generateListening,
@@ -7,44 +7,42 @@ import {
   generateUoe,
   generateWriting,
 } from "./generators/bulk-data";
+import { expandPoolDeduped } from "./generators/expand-pool";
 import { computeRequiredPoolSizes } from "./seed-targets";
-
-function expandPool<T>(
-  base: T[],
-  target: number,
-  generate: (count: number, offset: number) => T[]
-): T[] {
-  if (target <= 0) return [];
-  const out = [...base];
-  let offset = base.length;
-  while (out.length < target) {
-    const need = target - out.length;
-    const batch = generate(Math.min(need, 50), offset);
-    if (batch.length === 0) break;
-    out.push(...batch.slice(0, need));
-    offset += batch.length;
-  }
-  return out.slice(0, target);
-}
 
 export function expandLevelBank(level: ExamLevel, curated: LevelBank): LevelBank {
   const required = computeRequiredPoolSizes(level);
 
   return {
-    reading: expandPool(curated.reading, required.reading, (count, offset) =>
-      generateReading(level, count, offset)
+    reading: expandPoolDeduped(
+      curated.reading,
+      required.reading,
+      QuestionType.MCQ,
+      (offset) => generateReading(level, 1, offset)[0] ?? null
     ),
-    listening: expandPool(curated.listening, required.listening, (count, offset) =>
-      generateListening(level, count, offset)
+    listening: expandPoolDeduped(
+      curated.listening,
+      required.listening,
+      QuestionType.MCQ,
+      (offset) => generateListening(level, 1, offset)[0] ?? null
     ),
-    writing: expandPool(curated.writing, required.writing, (count, offset) =>
-      generateWriting(level, count, offset)
+    writing: expandPoolDeduped(
+      curated.writing,
+      required.writing,
+      QuestionType.FREE_TEXT,
+      (offset) => generateWriting(level, 1, offset)[0] ?? null
     ),
-    speaking: expandPool(curated.speaking, required.speaking, (count, offset) =>
-      generateSpeaking(level, count, offset)
+    speaking: expandPoolDeduped(
+      curated.speaking,
+      required.speaking,
+      QuestionType.SPEAKING_PROMPT,
+      (offset) => generateSpeaking(level, 1, offset)[0] ?? null
     ),
-    uoe: expandPool(curated.uoe, required.uoe, (count, offset) =>
-      generateUoe(level, count, offset)
+    uoe: expandPoolDeduped(
+      curated.uoe,
+      required.uoe,
+      QuestionType.GAP_FILL,
+      (offset) => generateUoe(level, 1, offset)[0] ?? null
     ),
   };
 }

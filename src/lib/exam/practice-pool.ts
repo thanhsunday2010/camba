@@ -302,11 +302,25 @@ export async function assignDynamicExamQuestionsForAttempt(
     return assignIeltsSpeakingQuestionsForAttempt(db, attemptId);
   }
 
+  if (poolKey.startsWith("IELTS:WRT:")) {
+    const { assignIeltsWritingQuestionsForAttempt } = await import(
+      "@/lib/exam/ielts-writing-pool"
+    );
+    return assignIeltsWritingQuestionsForAttempt(db, attemptId);
+  }
+
   if (/:SPK:/.test(poolKey)) {
     const { assignCambridgeSpeakingQuestionsForAttempt } = await import(
       "@/lib/exam/cambridge-speaking-pool"
     );
     return assignCambridgeSpeakingQuestionsForAttempt(db, attemptId);
+  }
+
+  if (/:WRT:/.test(poolKey)) {
+    const { assignCambridgeWritingQuestionsForAttempt } = await import(
+      "@/lib/exam/cambridge-writing-pool"
+    );
+    return assignCambridgeWritingQuestionsForAttempt(db, attemptId);
   }
 
   if (attempt.paper.practicePoolKey) {
