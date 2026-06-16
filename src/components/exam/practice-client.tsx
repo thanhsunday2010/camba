@@ -12,8 +12,9 @@ import {
   stopAllListeningPlayback,
   unlockListeningAudio,
 } from "@/lib/audio/listening-audio-client";
-import { startAttemptAction, submitAttemptAction } from "@/lib/actions/exam";
+import { startAttemptAction, submitAttemptAction, swapPracticeQuestionAction } from "@/lib/actions/exam";
 import { QuestionType } from "@prisma/client";
+import { Shuffle } from "lucide-react";
 import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections";
 import { formatDuration } from "@/lib/constants";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
@@ -188,6 +189,7 @@ export function PracticeClient({
   const [objectiveFeedback, setObjectiveFeedback] = useState<
     Record<string, ObjectiveFeedback>
   >({});
+  const [swappingQuestion, setSwappingQuestion] = useState(false);
 
   const readingListeningPractice = isReadingListeningPractice(paperKind, sessionQuestions);
 
@@ -560,6 +562,48 @@ export function PracticeClient({
     if (firstUnansweredIndex >= 0) jumpToQuestion(firstUnansweredIndex);
   };
 
+  const handleSwapQuestion = useCallback(async () => {
+    if (!attemptId || !current || swappingQuestion || submitting) return;
+
+    setSwappingQuestion(true);
+    stopAllListeningPlayback();
+    play("whoosh");
+
+    const res = await swapPracticeQuestionAction(attemptId, current.id);
+
+    setSwappingQuestion(false);
+
+    if ("error" in res && res.error) {
+      toast.error(res.error);
+      return;
+    }
+
+    if (!("question" in res) || !res.question) return;
+
+    const newQuestion = res.question as PaperQuestion;
+    const oldId = current.id;
+
+    setSessionQuestions((prev) =>
+      prev.map((q) => (q.id === oldId ? newQuestion : q))
+    );
+    setAnswers((prev) => {
+      const next = { ...prev };
+      delete next[oldId];
+      return next;
+    });
+    setObjectiveFeedback((prev) => {
+      const next = { ...prev };
+      delete next[oldId];
+      return next;
+    });
+    countedPracticeQuestionsRef.current.delete(oldId);
+    speakingGradedIdsRef.current.delete(oldId);
+
+    toast.success("Đã đổi sang câu khác");
+  }, [attemptId, current, swappingQuestion, submitting, play]);
+
+  const showSwapQuestionButton = paperKind === "PRACTICE" && !loadingPool && !!current;
+
   return (
     <div
       className="container mx-auto px-4 py-6"
@@ -704,6 +748,21 @@ export function PracticeClient({
           ) : (
             current && (
             <div className="animate-bounce-in" key={current.id}>
+              {showSwapQuestionButton && (
+                <div className="mb-3 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full border-violet-300 text-violet-800 hover:bg-violet-50"
+                    disabled={swappingQuestion || submitting || !attemptId}
+                    onClick={() => void handleSwapQuestion()}
+                  >
+                    <Shuffle className="mr-1.5 size-4" />
+                    {swappingQuestion ? "Đang đổi..." : "Đổi câu khác"}
+                  </Button>
+                </div>
+              )}
               <QuestionRenderer
                 question={current}
                 index={currentIndex}

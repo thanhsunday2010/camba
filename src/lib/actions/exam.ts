@@ -36,6 +36,10 @@ import {
   isDedicatedWritingPaper,
 } from "@/lib/exam/cambridge-writing-config";
 import { isPartAiPracticePaper } from "@/lib/exam/ai-practice-config";
+import {
+  practiceUsesAttemptQuestions,
+  swapPracticeQuestionInAttempt,
+} from "@/lib/exam/swap-practice-question";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
 import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
 import {
@@ -423,6 +427,16 @@ export async function startAttemptAction(paperId: string) {
       }
     }
 
+    if (paper.paperKind === PaperKind.PRACTICE) {
+      const swappedCount = await db.attemptQuestion.count({
+        where: { attemptId: existing.id },
+      });
+      if (swappedCount > 0) {
+        const questions = await loadAttemptPracticeQuestions(db, existing.id, includeAnswers);
+        return { attemptId: existing.id, resumed: true, savedAnswers, questions };
+      }
+    }
+
     return { attemptId: existing.id, resumed: true, savedAnswers };
   }
 
@@ -463,6 +477,31 @@ export async function startAttemptAction(paperId: string) {
   }
 
   return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
+}
+
+export async function swapPracticeQuestionAction(attemptId: string, questionId: string) {
+  const session = await auth();
+  if (!session) return { error: "Chưa đăng nhập" };
+
+  const attempt = await db.attempt.findUnique({
+    where: { id: attemptId },
+    select: { userId: true, status: true },
+  });
+
+  if (!attempt || attempt.userId !== session.user.id) {
+    return { error: "Không có quyền đổi câu này" };
+  }
+  if (attempt.status !== "IN_PROGRESS") {
+    return { error: "Chỉ có thể đổi câu khi đang làm bài" };
+  }
+
+  try {
+    const question = await swapPracticeQuestionInAttempt(db, attemptId, questionId);
+    return { success: true as const, question };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Không thể đổi câu hỏi";
+    return { error: msg };
+  }
 }
 
 export async function submitAttemptAction(
@@ -522,7 +561,9 @@ export async function submitAttemptAction(
   const skillStats = new Map<Skill, { correct: number; total: number }>();
 
   const questionRows =
-    usesAttemptQuestionSet(attempt.paper) && attempt.attemptQuestions.length > 0
+    (usesAttemptQuestionSet(attempt.paper) ||
+      practiceUsesAttemptQuestions(attempt.paper, attempt.attemptQuestions.length)) &&
+    attempt.attemptQuestions.length > 0
       ? attempt.attemptQuestions.map((aq) => aq.question)
       : attempt.paper.questions.map((pq) => pq.question);
 

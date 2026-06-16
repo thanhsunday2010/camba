@@ -67,7 +67,7 @@ export function BugReportButton() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2 rounded-full border-2 border-amber-300 bg-gradient-to-r from-amber-100 to-orange-100 px-4 py-2 text-sm font-bold text-amber-900 shadow-lg transition-transform hover:scale-105"
+          className="flex items-center gap-2 rounded-full border-2 border-amber-300 bg-gradient-to-r from-amber-100 to-orange-100 px-4 py-2 text-xs font-normal text-amber-900 shadow-lg transition-transform hover:scale-105"
           aria-label="Báo lỗi"
         >
           <Bug className="h-4 w-4" />
