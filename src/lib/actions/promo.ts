@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { requireSuperAdmin } from "@/lib/admin/access";
 import { db } from "@/lib/db";
 import {
+  getPromoOfferForGuest,
   getPromoOfferForUser,
   normalizePromoCode,
   parsePromoBenefitType,
@@ -53,7 +54,10 @@ export async function validatePromoCodeAction(input: {
 
 export async function getPromoOfferAction() {
   const session = await auth();
-  if (!session) return { offer: null };
+  if (!session) {
+    const offer = await getPromoOfferForGuest();
+    return { offer };
+  }
   const offer = await getPromoOfferForUser(session.user.id);
   return { offer };
 }

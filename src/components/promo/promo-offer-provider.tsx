@@ -4,7 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { getPromoOfferAction } from "@/lib/actions/promo";
-import { FREE_LIMIT_HIT_EVENT } from "@/lib/promo/events";
+import {
+  FREE_LIMIT_HIT_EVENT,
+  GUEST_PLACEMENT_LIMIT_HIT_EVENT,
+} from "@/lib/promo/events";
 import type { PromoOfferPayload } from "@/lib/promo/service";
 import {
   Dialog,
@@ -17,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const SESSION_LOGIN_KEY = "camba-promo-login-shown";
+const SESSION_GUEST_KEY = "camba-promo-guest-shown";
 const ACTIVE_MS_INTERVAL = 5 * 60 * 1000;
 
 export function PromoOfferProvider() {
@@ -27,14 +31,17 @@ export function PromoOfferProvider() {
   const lastTickRef = useRef<number | null>(null);
   const offerRef = useRef<PromoOfferPayload | null>(null);
 
+  const isGuest = status === "unauthenticated";
+  const isReady = status !== "loading";
+
   const loadOffer = useCallback(async () => {
-    if (status !== "authenticated") return null;
+    if (!isReady) return null;
     const res = await getPromoOfferAction();
     const next = res.offer ?? null;
     setOffer(next);
     offerRef.current = next;
     return next;
-  }, [status]);
+  }, [isReady]);
 
   const showPopup = useCallback(async () => {
     const current = offerRef.current ?? (await loadOffer());
@@ -42,7 +49,9 @@ export function PromoOfferProvider() {
   }, [loadOffer]);
 
   useEffect(() => {
-    if (status !== "authenticated") {
+    if (!isReady) return;
+
+    if (status === "authenticated" && session?.user?.role === "ADMIN") {
       setOffer(null);
       offerRef.current = null;
       setOpen(false);
@@ -50,23 +59,28 @@ export function PromoOfferProvider() {
     }
 
     void loadOffer();
-  }, [status, session?.user?.id, loadOffer]);
+  }, [status, session?.user?.id, session?.user?.role, isReady, loadOffer]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!isReady) return;
+    if (status === "authenticated" && session?.user?.role === "ADMIN") return;
 
-    const loginKey = `${SESSION_LOGIN_KEY}:${session?.user?.id ?? "anon"}`;
-    if (!sessionStorage.getItem(loginKey)) {
-      sessionStorage.setItem(loginKey, "1");
+    const storageKey = isGuest
+      ? SESSION_GUEST_KEY
+      : `${SESSION_LOGIN_KEY}:${session?.user?.id ?? "anon"}`;
+
+    if (!sessionStorage.getItem(storageKey)) {
+      sessionStorage.setItem(storageKey, "1");
       const timer = window.setTimeout(() => {
         void showPopup();
       }, 800);
       return () => window.clearTimeout(timer);
     }
-  }, [status, session?.user?.id, showPopup]);
+  }, [status, session?.user?.id, session?.user?.role, isGuest, isReady, showPopup]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!isReady) return;
+    if (status === "authenticated" && session?.user?.role === "ADMIN") return;
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -101,18 +115,23 @@ export function PromoOfferProvider() {
       document.removeEventListener("visibilitychange", onVisibility);
       window.clearInterval(interval);
     };
-  }, [status, showPopup]);
+  }, [status, session?.user?.role, isReady, showPopup]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!isReady) return;
+    if (status === "authenticated" && session?.user?.role === "ADMIN") return;
 
     const onLimitHit = () => {
       void showPopup();
     };
 
     window.addEventListener(FREE_LIMIT_HIT_EVENT, onLimitHit);
-    return () => window.removeEventListener(FREE_LIMIT_HIT_EVENT, onLimitHit);
-  }, [status, showPopup]);
+    window.addEventListener(GUEST_PLACEMENT_LIMIT_HIT_EVENT, onLimitHit);
+    return () => {
+      window.removeEventListener(FREE_LIMIT_HIT_EVENT, onLimitHit);
+      window.removeEventListener(GUEST_PLACEMENT_LIMIT_HIT_EVENT, onLimitHit);
+    };
+  }, [status, session?.user?.role, isReady, showPopup]);
 
   if (!offer) return null;
 
@@ -134,7 +153,7 @@ export function PromoOfferProvider() {
           </Button>
           <Button asChild className="kid-btn-fun rounded-full">
             <Link href={offer.subscribeUrl} onClick={() => setOpen(false)}>
-              Dùng mã ngay ✨
+              {offer.ctaLabel}
             </Link>
           </Button>
         </DialogFooter>

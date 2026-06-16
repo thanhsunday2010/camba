@@ -19,11 +19,16 @@ import { cn } from "@/lib/utils";
 interface RegisterFormProps {
   oauthProviders: OAuthProviderId[];
   hasReferralInvite?: boolean;
+  callbackUrl?: string;
 }
 
 type RegisterMode = "email" | "phone";
 
-export function RegisterForm({ oauthProviders, hasReferralInvite = false }: RegisterFormProps) {
+export function RegisterForm({
+  oauthProviders,
+  hasReferralInvite = false,
+  callbackUrl = "/dashboard",
+}: RegisterFormProps) {
   const [loading, setLoading] = useState(false);
   const [targetExam, setTargetExam] = useState("KET");
   const [mode, setMode] = useState<RegisterMode>("phone");
@@ -66,7 +71,7 @@ export function RegisterForm({ oauthProviders, hasReferralInvite = false }: Regi
       } else {
         toast.success("Đăng ký thành công!");
       }
-      redirectAfterAuth("/dashboard");
+      redirectAfterAuth(callbackUrl);
     }
   }
 
@@ -81,7 +86,7 @@ export function RegisterForm({ oauthProviders, hasReferralInvite = false }: Regi
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <OAuthSignInButtons providers={oauthProviders} callbackUrl="/dashboard" mode="register" />
+        <OAuthSignInButtons providers={oauthProviders} callbackUrl={callbackUrl} mode="register" />
 
         <div className="inline-flex w-full rounded-full border-2 border-purple-100 bg-purple-50/50 p-1">
           <button

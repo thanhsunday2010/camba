@@ -131,6 +131,52 @@ export interface PromoOfferPayload {
   message: string;
   benefit: string;
   subscribeUrl: string;
+  ctaLabel: string;
+}
+
+function buildSubscribePath(promo: PromoCode): string {
+  const cycle = promo.billingCycle === "YEARLY" ? "yearly" : "monthly";
+  return `/pricing/subscribe?plan=${promo.plan.toLowerCase()}&cycle=${cycle}&promo=${encodeURIComponent(promo.code)}`;
+}
+
+function promoToOffer(promo: PromoCode, options?: { forGuest?: boolean }): PromoOfferPayload {
+  const subscribePath = buildSubscribePath(promo);
+  const forGuest = options?.forGuest ?? false;
+
+  return {
+    code: promo.code,
+    title: promo.popupTitle ?? `Mã ưu đãi ${promo.code}`,
+    message:
+      promo.popupMessage ??
+      `Nhập mã ${promo.code} khi thanh toán để nhận ${describePromoBenefit(promo).toLowerCase()}.`,
+    benefit: describePromoBenefit(promo),
+    subscribeUrl: forGuest
+      ? `/register?callbackUrl=${encodeURIComponent(subscribePath)}`
+      : subscribePath,
+    ctaLabel: forGuest ? "Đăng ký & dùng mã ✨" : "Dùng mã ngay ✨",
+  };
+}
+
+async function findActivePopupPromo(now = new Date()): Promise<PromoCode | null> {
+  const promos = await db.promoCode.findMany({
+    where: { active: true, showInPopup: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  for (const promo of promos) {
+    if (!isPromoInDateRange(promo, now)) continue;
+    if (promo.maxRedemptions != null && promo.redemptionCount >= promo.maxRedemptions) continue;
+    return promo;
+  }
+
+  return null;
+}
+
+/** Popup offer for guest (chưa đăng nhập) — không kiểm tra redemption theo user */
+export async function getPromoOfferForGuest(): Promise<PromoOfferPayload | null> {
+  const promo = await findActivePopupPromo();
+  if (!promo) return null;
+  return promoToOffer(promo, { forGuest: true });
 }
 
 export async function getPromoOfferForUser(userId: string): Promise<PromoOfferPayload | null> {
@@ -138,34 +184,15 @@ export async function getPromoOfferForUser(userId: string): Promise<PromoOfferPa
   const planId = await getUserPlanId(userId);
   if (planId !== "FREE") return null;
 
-  const promos = await db.promoCode.findMany({
-    where: { active: true, showInPopup: true },
-    orderBy: { createdAt: "asc" },
+  const promo = await findActivePopupPromo();
+  if (!promo) return null;
+
+  const used = await db.promoRedemption.findUnique({
+    where: { promoCodeId_userId: { promoCodeId: promo.id, userId } },
   });
+  if (used) return null;
 
-  const now = new Date();
-  for (const promo of promos) {
-    if (!isPromoInDateRange(promo, now)) continue;
-    if (promo.maxRedemptions != null && promo.redemptionCount >= promo.maxRedemptions) continue;
-
-    const used = await db.promoRedemption.findUnique({
-      where: { promoCodeId_userId: { promoCodeId: promo.id, userId } },
-    });
-    if (used) continue;
-
-    const cycle = promo.billingCycle === "YEARLY" ? "yearly" : "monthly";
-    return {
-      code: promo.code,
-      title: promo.popupTitle ?? `Mã ưu đãi ${promo.code}`,
-      message:
-        promo.popupMessage ??
-        `Nhập mã ${promo.code} khi thanh toán để nhận ${describePromoBenefit(promo).toLowerCase()}.`,
-      benefit: describePromoBenefit(promo),
-      subscribeUrl: `/pricing/subscribe?plan=${promo.plan.toLowerCase()}&cycle=${cycle}&promo=${encodeURIComponent(promo.code)}`,
-    };
-  }
-
-  return null;
+  return promoToOffer(promo);
 }
 
 export function parsePromoBenefitType(value: string): PromoBenefitType | null {
