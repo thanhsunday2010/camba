@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminPermissionsCard } from "@/components/admin/admin-permissions-card";
+import { QuestionExportPanel } from "@/components/admin/question-export-panel";
 import { FooterSettingsClient } from "@/components/admin/footer-settings-client";
 import { requireAdminPage, hasPermission } from "@/lib/admin/access";
 import type { AdminPermission } from "@/lib/admin/permissions";
@@ -34,7 +35,7 @@ const MODULES: {
   {
     href: "/admin/questions",
     title: "Câu hỏi",
-    desc: "Tạo và sửa câu hỏi (MCQ, gap fill, writing, speaking)",
+    desc: "Tạo, sửa và export JSON câu hỏi theo level/kỹ năng",
     icon: HelpCircle,
     permission: "questions.manage",
     statKey: "questions",
@@ -249,6 +250,12 @@ export default async function AdminPage({
               </CardContent>
             </Card>
           )}
+        </div>
+      )}
+
+      {hasPermission(access, "questions.manage") && (
+        <div className="mb-8">
+          <QuestionExportPanel />
         </div>
       )}
 

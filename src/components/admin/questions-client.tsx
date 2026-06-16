@@ -17,6 +17,7 @@ import {
   type QuestionListItem,
 } from "@/components/admin/question-form";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { QuestionExportPanel } from "@/components/admin/question-export-panel";
 
 import type { AdminPermission } from "@/lib/admin/permissions";
 
@@ -88,6 +89,8 @@ export function AdminQuestionsClient({
         </Link>
       </div>
       <AdminNav currentPath="/admin/questions" permissions={permissions} />
+
+      <QuestionExportPanel />
 
       <div className="grid gap-8 lg:grid-cols-2">
         <Card>
