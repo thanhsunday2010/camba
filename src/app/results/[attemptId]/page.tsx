@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { ResultsClient } from "@/components/exam/results-client";
 import { parseGamificationSnapshot } from "@/lib/gamification/service";
+import { getPartAiPracticeResultsMeta } from "@/lib/exam/part-ai-practice-results";
 
 export default async function ResultsPage({
   params,
@@ -33,11 +34,19 @@ export default async function ResultsPage({
 
   const gamification = parseGamificationSnapshot(attempt.gamificationSnapshot);
 
+  const partAiPracticeMeta = await getPartAiPracticeResultsMeta(session.user.id, {
+    id: attempt.paper.id,
+    paperKind: attempt.paper.paperKind,
+    practicePoolKey: attempt.paper.practicePoolKey,
+    level: attempt.paper.level,
+  });
+
   return (
     <ResultsClient
       attempt={attempt}
       aiFeedbacks={aiFeedbacks}
       gamification={gamification}
+      partAiPracticeMeta={partAiPracticeMeta}
     />
   );
 }

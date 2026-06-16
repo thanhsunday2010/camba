@@ -8,6 +8,9 @@ import { SpeakingFeedbackView } from "@/components/ai/speaking-feedback";
 import type { WritingFeedback, SpeakingFeedback } from "@/lib/ai/schemas";
 import { QuestionType } from "@prisma/client";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import type { PartAiPracticeResultsMeta } from "@/lib/exam/part-ai-practice-results";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotScoreMessage } from "@/lib/kids/mascot-messages";
 import {
@@ -60,11 +63,19 @@ interface ResultsClientProps {
     maxScore: number | null;
     status: string;
     timeSpent: number | null;
-    paper: { title: string; skill: string; level: string; paperKind?: string };
+    paper: {
+      id: string;
+      title: string;
+      skill: string;
+      level: string;
+      paperKind?: string;
+      practicePoolKey?: string | null;
+    };
     answers: ResultAnswer[];
   };
   aiFeedbacks: AIFeedbackItem[];
   gamification?: GamificationSnapshot | null;
+  partAiPracticeMeta?: PartAiPracticeResultsMeta | null;
 }
 
 function hideObjectiveResultDetails(paper: {
@@ -77,7 +88,12 @@ function hideObjectiveResultDetails(paper: {
   );
 }
 
-export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsClientProps) {
+export function ResultsClient({
+  attempt,
+  aiFeedbacks,
+  gamification,
+  partAiPracticeMeta = null,
+}: ResultsClientProps) {
   const { showMascot } = useMascotToast();
   const mascotShownRef = useRef(false);
 
@@ -125,7 +141,15 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
         <Link href="/dashboard" className="text-sm text-cambridge-600 hover:underline">
           ← Dashboard
         </Link>
-        {attempt.paper.title.includes("IELTS Speaking") && (
+        {partAiPracticeMeta && (
+          <Link
+            href={partAiPracticeMeta.hubHref}
+            className="ml-4 text-sm text-violet-600 hover:underline"
+          >
+            ← {partAiPracticeMeta.skillLabel} {partAiPracticeMeta.trackLabel}
+          </Link>
+        )}
+        {!partAiPracticeMeta && attempt.paper.title.includes("IELTS Speaking") && (
           <Link href="/ielts/speaking" className="ml-4 text-sm text-rose-600 hover:underline">
             ← Speaking IELTS
           </Link>
@@ -289,6 +313,71 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
         })}
       </div>
       )}
+
+      {partAiPracticeMeta && (
+        <div className="mt-8">
+          <PartAiPracticeNextCard meta={partAiPracticeMeta} />
+        </div>
+      )}
     </div>
+  );
+}
+
+function PartAiPracticeNextCard({ meta }: { meta: PartAiPracticeResultsMeta }) {
+  const usagePct =
+    meta.practiceLimit > 0
+      ? Math.min(100, Math.round((meta.practiceUsed / meta.practiceLimit) * 100))
+      : 0;
+
+  return (
+    <Card className="mb-8 border-2 border-violet-200 bg-gradient-to-br from-violet-50/70 via-white to-fuchsia-50/40">
+      <CardContent className="space-y-4 pt-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-violet-700">
+              Luyện tiếp · {meta.skillLabel} {meta.trackLabel}
+            </p>
+            <p className="mt-1 text-base font-semibold text-violet-950">
+              Còn{" "}
+              <span className="text-xl font-extrabold text-violet-700">
+                {meta.practiceRemaining}
+              </span>
+              /{meta.practiceLimit} lượt luyện tập hôm nay
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Gói {meta.planName}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {meta.canStartNext ? (
+              <Button asChild className="kid-btn-fun rounded-full">
+                <Link href={meta.nextPracticeHref}>Câu tiếp theo →</Link>
+              </Button>
+            ) : (
+              <Button disabled className="rounded-full">
+                Đã hết lượt hôm nay
+              </Button>
+            )}
+            <Button asChild variant="outline" className="rounded-full">
+              <Link href={meta.hubHref}>Về hub {meta.skillLabel}</Link>
+            </Button>
+          </div>
+        </div>
+        <div>
+          <div className="mb-1 flex justify-between text-xs font-semibold text-violet-800">
+            <span>Đã dùng {meta.practiceUsed} lượt</span>
+            <span>Còn {meta.practiceRemaining} lượt</span>
+          </div>
+          <Progress value={usagePct} className="h-2" />
+        </div>
+        {!meta.canStartNext && (
+          <p className="text-sm font-medium text-amber-800">
+            Hết lượt luyện tập hôm nay — quay lại ngày mai hoặc{" "}
+            <Link href="/pricing" className="font-bold underline">
+              nâng cấp gói
+            </Link>{" "}
+            để luyện thêm.
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
