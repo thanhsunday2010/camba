@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
+import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { CambaMascot, type MascotMood } from "./camba-mascot";
 import { useKidSound } from "./sound-provider";
@@ -129,14 +130,15 @@ export function MascotToastProvider({
         <>
           <ConfettiBurst active={Boolean(toast.confetti)} />
           <div
-            className={cn(
-              "fixed inset-0 z-[110] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px]",
-              hasActions ? "pointer-events-auto" : "pointer-events-none"
-            )}
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px] pointer-events-auto"
             role="status"
             aria-live="polite"
+            onClick={hideMascot}
           >
-            <div className="flex max-w-xs flex-col items-center gap-3 animate-bounce-in text-center">
+            <div
+              className="flex max-w-xs flex-col items-center gap-3 animate-bounce-in text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div
                 className={cn(
                   "rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-1.5 shadow-lg ring-2 ring-white/80"
@@ -145,6 +147,14 @@ export function MascotToastProvider({
                 <CambaMascot size="lg" mood={toast.mood} />
               </div>
               <div className="relative w-full rounded-2xl border-2 border-purple-200 bg-white px-4 py-3 shadow-xl">
+                <button
+                  type="button"
+                  onClick={hideMascot}
+                  className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-purple-200 bg-white text-purple-700 shadow-md transition-colors hover:bg-purple-50"
+                  aria-label="Đóng"
+                >
+                  <X className="h-4 w-4" />
+                </button>
                 <p className="text-base font-extrabold leading-snug text-purple-900 md:text-lg">
                   {toast.message}
                 </p>

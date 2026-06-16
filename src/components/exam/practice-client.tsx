@@ -19,9 +19,9 @@ import { formatDuration } from "@/lib/constants";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import {
   mascotGradingWaitMessage,
-  mascotHalfProgressMessage,
   mascotPlacementSubmitWaitMessage,
   mascotSpeakingDoneMessage,
+  mascotStreakMessage,
   mascotTestCompleteMessage,
 } from "@/lib/kids/mascot-messages";
 import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
@@ -168,7 +168,7 @@ export function PracticeClient({
   const [submitting, setSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [startedAt] = useState(new Date());
-  const halfProgressShownRef = useRef(false);
+  const consecutiveCorrectRef = useRef(0);
   const countedPracticeQuestionsRef = useRef<Set<string>>(new Set());
   const [sessionQuestions, setSessionQuestions] = useState<PaperQuestion[]>(questions);
   const [loadingPool, setLoadingPool] = useState(dynamicPool && !initialAttemptId);
@@ -220,14 +220,6 @@ export function PracticeClient({
     (questionId: string, value: unknown, question?: PaperQuestion) => {
       setAnswers((prev) => {
         const next = { ...prev, [questionId]: value };
-
-        const answered = sessionQuestions.filter((q) => isAnswered(next[q.id])).length;
-        const pct = Math.round((answered / sessionQuestions.length) * 100);
-        if (pct >= 50 && !halfProgressShownRef.current) {
-          halfProgressShownRef.current = true;
-          showMascot(mascotHalfProgressMessage());
-        }
-
         return next;
       });
 
@@ -237,6 +229,14 @@ export function PracticeClient({
       if (instant && !objectiveFeedback[questionId]) {
         setObjectiveFeedback((prev) => ({ ...prev, [questionId]: instant }));
         play(instant.isCorrect ? "answerCorrect" : "answerWrong");
+        if (instant.isCorrect) {
+          consecutiveCorrectRef.current += 1;
+          if (consecutiveCorrectRef.current === 5) {
+            showMascot(mascotStreakMessage(5));
+          }
+        } else {
+          consecutiveCorrectRef.current = 0;
+        }
       } else if (!q || !usesInstantObjectiveFeedback(paperKind, q)) {
         play("pop");
       }
@@ -662,10 +662,21 @@ export function PracticeClient({
             )}
             <Button
               variant="fun"
-              disabled={currentIndex >= sessionQuestions.length - 1}
-              onClick={goNext}
+              className={currentIndex >= sessionQuestions.length - 1 ? "kid-btn-fun" : undefined}
+              disabled={
+                currentIndex >= sessionQuestions.length - 1
+                  ? submitting || !attemptId
+                  : false
+              }
+              onClick={
+                currentIndex >= sessionQuestions.length - 1 ? handleSubmit : goNext
+              }
             >
-              Câu sau →
+              {currentIndex >= sessionQuestions.length - 1
+                ? submitting
+                  ? "Đang nộp..."
+                  : "🎉 Nộp bài"
+                : "Câu sau →"}
             </Button>
           </div>
           )}
