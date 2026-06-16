@@ -1,14 +1,10 @@
+import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { randomBytes } from "node:crypto";
-
-export const MAX_QUESTION_IMAGE_BYTES = 1024 * 1024; // 1 MB
-
-export const ALLOWED_QUESTION_IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
+import {
+  ALLOWED_QUESTION_IMAGE_TYPES,
+  MAX_QUESTION_IMAGE_BYTES,
+} from "./question-image-constants";
 
 const EXT_BY_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -27,6 +23,10 @@ function getSupabaseConfig() {
 
 function extensionFor(file: File): string {
   return EXT_BY_TYPE[file.type] ?? "jpg";
+}
+
+function uniqueSuffix(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function validateQuestionImageFile(file: File): string | null {
@@ -61,7 +61,7 @@ async function uploadToSupabase(
       "Content-Type": contentType,
       "x-upsert": "true",
     },
-    body: buffer,
+    body: new Uint8Array(buffer),
   });
 
   if (!res.ok) {
@@ -90,8 +90,7 @@ export async function uploadQuestionImageFile(
   if (validationError) throw new Error(validationError);
 
   const ext = extensionFor(file);
-  const suffix = randomBytes(4).toString("hex");
-  const objectPath = `uploads/questions/${questionId}-${suffix}.${ext}`;
+  const objectPath = `uploads/questions/${questionId}-${uniqueSuffix()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   if (getSupabaseConfig()) {

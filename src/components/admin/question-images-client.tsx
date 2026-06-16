@@ -179,7 +179,7 @@ export function QuestionImagesClient({
             <CardContent className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant={item.imageStatus === "missing" ? "destructive" : "secondary"}>
+                  <Badge variant={item.imageStatus === "missing" ? "danger" : "secondary"}>
                     {item.imageStatus === "missing" ? "Thiếu ảnh" : "Đã có ảnh"}
                   </Badge>
                   <Badge variant="outline">{formatExamLevel(item.level)}</Badge>

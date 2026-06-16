@@ -12,7 +12,7 @@ import {
   updateQuestionImageDescriptionAction,
   uploadQuestionImageAction,
 } from "@/lib/actions/question-image";
-import { MAX_QUESTION_IMAGE_BYTES } from "@/lib/storage/question-image-upload";
+import { MAX_QUESTION_IMAGE_BYTES } from "@/lib/storage/question-image-constants";
 
 type QuestionImageUploadProps = {
   questionId: string;
@@ -57,6 +57,11 @@ export function QuestionImageUpload({
 
     if (result.error) {
       toast.error(result.error);
+      return;
+    }
+
+    if (!result.imageUrl) {
+      toast.error("Upload thất bại");
       return;
     }
 
