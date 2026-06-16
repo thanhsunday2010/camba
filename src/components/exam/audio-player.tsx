@@ -25,6 +25,8 @@ interface AudioPlayerProps {
   isListening?: boolean;
   /** Speaking examiner question — use speaking TTS API */
   isSpeakingPrompt?: boolean;
+  /** Nằm trong card Speaking — bỏ khung lồng */
+  embedded?: boolean;
 }
 
 export function AudioPlayer({
@@ -35,6 +37,7 @@ export function AudioPlayer({
   autoPlay = false,
   isListening = false,
   isSpeakingPrompt = false,
+  embedded = false,
 }: AudioPlayerProps) {
   const [state, setState] = useState<ListeningPlaybackState>("idle");
   const [staticOk, setStaticOk] = useState<boolean | null>(null);
@@ -145,12 +148,18 @@ export function AudioPlayer({
   const isPlaying = state === "loading";
 
   return (
-    <div className="rounded-2xl border-2 border-purple-300 bg-gradient-to-r from-purple-50 via-pink-50 to-sky-50 p-4 shadow-sm">
-      {title && (
+    <div
+      className={
+        embedded
+          ? "space-y-2"
+          : "rounded-2xl border-2 border-purple-300 bg-gradient-to-r from-purple-50 via-pink-50 to-sky-50 p-4 shadow-sm"
+      }
+    >
+      {title && !embedded && (
         <p className="mb-2 text-sm font-extrabold text-purple-800">🎧 {title}</p>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="default"
@@ -198,10 +207,12 @@ export function AudioPlayer({
           </Button>
         )}
 
-        <span className="text-xs font-semibold text-purple-600">
+        <span className="text-xs font-medium text-purple-600/90">
           {isListening && !isListeningAudioUnlocked()
             ? "Nhấn nút để nghe — sau lần đầu audio sẽ tự phát ở câu Listening tiếp theo"
-            : "Giọng đọc tiếng Anh chuẩn Cambridge 🔊"}
+            : isSpeakingPrompt
+              ? "Giọng giám khảo · Cambridge / IELTS"
+              : "Giọng đọc tiếng Anh chuẩn Cambridge 🔊"}
         </span>
       </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { QuestionType } from "@prisma/client";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +19,7 @@ import { resolveMcqMedia } from "@/lib/exam/question-media";
 import { stripListeningScriptFromQuestion, normalizeListeningTranscript } from "@/lib/exam/listening-display";
 import { getSpeakingPromptText } from "@/lib/exam/speaking-audio";
 import { cn } from "@/lib/utils";
+import { Eye, EyeOff } from "lucide-react";
 import { QuestionExplanationPanel } from "@/components/exam/question-explanation-panel";
 import {
   PracticeObjectiveFeedback,
@@ -106,7 +108,8 @@ export function QuestionRenderer({
         />
       )}
 
-      {(isListening || audioSrc || transcript) && (
+      {(question.type !== "SPEAKING_PROMPT" &&
+        (isListening || audioSrc || transcript)) && (
         <AudioPlayer
           key={question.id}
           questionId={question.id}
@@ -367,48 +370,96 @@ function SpeakingQuestion({
   maxWords?: number;
   practiceMinWords?: number | null;
 }) {
-  const promptAudioText = getSpeakingPromptText(content);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const promptText = getSpeakingPromptText(content);
   const wordCount = savedTranscript.trim().split(/\s+/).filter(Boolean).length;
+  const meetsMin =
+    practiceMinWords != null &&
+    wordCount >= practiceMinWords &&
+    savedTranscript.trim().length >= 3;
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-2xl border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50 p-4">
-        <p className="font-bold text-purple-900">🎤 Bài nói</p>
-        {questionTitle && (
-          <p className="mt-1 text-sm font-semibold text-purple-800">{questionTitle}</p>
-        )}
-        <p className="mt-2 text-sm text-purple-700">
-          Nghe câu hỏi và trả lời bằng tiếng Anh — giống thi Speaking thật.
-        </p>
-        {(content.preparationTime || content.speakingTime) && (
-          <p className="mt-2 text-sm text-purple-700">
-            {content.preparationTime && `Chuẩn bị: ${content.preparationTime}s`}
-            {content.speakingTime && ` | Nói: ${content.speakingTime}s`}
+    <div className="space-y-3">
+      <div className="overflow-hidden rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50/90 via-white to-pink-50/40 shadow-sm">
+        <div className="border-b border-purple-100 px-4 py-3">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="text-sm font-extrabold text-purple-900">🎤 Bài nói</p>
+              {questionTitle && (
+                <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{questionTitle}</p>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {content.preparationTime != null && content.preparationTime > 0 && (
+                <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-xs font-bold text-purple-700 ring-1 ring-purple-100">
+                  Chuẩn bị {content.preparationTime}s
+                </span>
+              )}
+              {content.speakingTime != null && content.speakingTime > 0 && (
+                <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-xs font-bold text-purple-700 ring-1 ring-purple-100">
+                  Nói {content.speakingTime}s
+                </span>
+              )}
+            </div>
+          </div>
+          <p className="mt-2 text-xs font-medium leading-relaxed text-purple-800/90">
+            Nghe câu hỏi của giám khảo, rồi trả lời bằng tiếng Anh — giống thi Speaking thật.
           </p>
-        )}
-        {practiceMinWords != null && (
-          <p className="mt-2 text-sm font-semibold text-purple-800">
-            Tối thiểu {practiceMinWords} từ tiếng Anh để chuyển câu / nộp bài
-            {wordCount >= practiceMinWords && savedTranscript.trim().length >= 3 && (
-              <span className="ml-1 text-emerald-700">· Đủ rồi ✅</span>
-            )}
-          </p>
-        )}
+          {practiceMinWords != null && (
+            <p
+              className={cn(
+                "mt-1.5 text-xs font-semibold",
+                meetsMin ? "text-emerald-700" : "text-amber-800"
+              )}
+            >
+              Tối thiểu {practiceMinWords} từ tiếng Anh để nộp bài
+              {meetsMin && " · Đủ rồi ✅"}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-3 px-4 py-3">
+          <AudioPlayer
+            questionId={questionId}
+            src={audioUrl}
+            transcript={promptText}
+            autoPlay
+            isSpeakingPrompt
+            embedded
+          />
+
+          {promptText && (
+            <div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 rounded-full border-purple-200 text-xs font-bold text-purple-800"
+                onClick={() => setShowPrompt((v) => !v)}
+              >
+                {showPrompt ? (
+                  <EyeOff className="mr-1.5 h-3.5 w-3.5" />
+                ) : (
+                  <Eye className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                {showPrompt ? "Ẩn nội dung câu hỏi" : "Hiện nội dung câu hỏi"}
+              </Button>
+              {showPrompt && (
+                <div className="mt-2 rounded-xl border border-sky-200/80 bg-sky-50/60 px-3 py-2.5 text-sm font-medium leading-relaxed text-sky-950 whitespace-pre-wrap">
+                  {promptText}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      <AudioPlayer
-        questionId={questionId}
-        src={audioUrl}
-        transcript={promptAudioText}
-        title="Câu hỏi Speaking"
-        autoPlay
-        isSpeakingPrompt
-      />
       {savedTranscript.trim().length >= 3 && (
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900">
-          ✅ Đã lưu bài nói ({savedTranscript.trim().split(/\s+/).filter(Boolean).length} từ)
+          ✅ Đã lưu bài nói ({wordCount} từ)
         </p>
       )}
+
       {maxWords != null && maxWords <= 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-purple-300 bg-purple-50/50 p-6 text-center">
           <p className="font-bold text-purple-900">🔒 Speaking chỉ có ở gói Pro trở lên</p>

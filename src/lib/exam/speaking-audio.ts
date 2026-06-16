@@ -1,6 +1,6 @@
 import type { SpeakingContent } from "@/lib/exam/scoring";
 
-/** Text read aloud as the examiner question (never shown as text in UI). */
+/** Text read aloud as the examiner question (hidden by default; user can reveal in Speaking UI). */
 export function getSpeakingPromptText(content: SpeakingContent): string {
   const raw = content.script?.trim() || content.prompt?.trim() || "";
   return raw.replace(/^\[[^\]]+\]\s*/, "").trim();
