@@ -16,6 +16,7 @@ import {
 import { EXAM_LEVELS, SKILLS } from "@/lib/constants";
 
 type PoolFilter = "practice" | "placement" | "all";
+type ExportFormat = "csv" | "json";
 
 function parseFilename(contentDisposition: string | null): string | null {
   if (!contentDisposition) return null;
@@ -27,12 +28,13 @@ export function QuestionExportPanel() {
   const [level, setLevel] = useState<string>("all");
   const [skill, setSkill] = useState<string>("all");
   const [pool, setPool] = useState<PoolFilter>("practice");
+  const [format, setFormat] = useState<ExportFormat>("csv");
   const [exporting, setExporting] = useState(false);
 
   async function handleExport() {
     setExporting(true);
     try {
-      const params = new URLSearchParams({ level, skill, pool });
+      const params = new URLSearchParams({ level, skill, pool, format });
       const res = await fetch(`/api/admin/questions/export?${params.toString()}`);
 
       if (!res.ok) {
@@ -46,11 +48,12 @@ export function QuestionExportPanel() {
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download =
-        parseFilename(res.headers.get("Content-Disposition")) ?? "camba-questions.json";
+        parseFilename(res.headers.get("Content-Disposition")) ??
+        (format === "csv" ? "camba-questions.csv" : "camba-questions.json");
       anchor.click();
       URL.revokeObjectURL(url);
 
-      toast.success("Đã tải file JSON câu hỏi");
+      toast.success(format === "csv" ? "Đã tải file CSV (mở bằng Excel)" : "Đã tải file JSON");
     } catch {
       toast.error("Không thể export câu hỏi");
     } finally {
@@ -66,7 +69,7 @@ export function QuestionExportPanel() {
           Export câu hỏi
         </CardTitle>
         <CardDescription>
-          Tải ngân hàng câu hỏi ra file JSON (level, skill, nội dung, đáp án, audio URL).
+          CSV mở trực tiếp bằng Excel — cột nội dung dễ đọc. JSON giữ đầy đủ dữ liệu kỹ thuật.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
@@ -118,6 +121,19 @@ export function QuestionExportPanel() {
           </Select>
         </div>
 
+        <div className="grid min-w-[140px] flex-1 gap-1.5">
+          <Label htmlFor="export-format">Định dạng</Label>
+          <Select value={format} onValueChange={(v) => setFormat(v as ExportFormat)}>
+            <SelectTrigger id="export-format">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="csv">CSV (Excel)</SelectItem>
+              <SelectItem value="json">JSON (đầy đủ)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Button
           type="button"
           className="sm:mb-0.5"
@@ -132,7 +148,7 @@ export function QuestionExportPanel() {
           ) : (
             <>
               <Download className="h-4 w-4" />
-              Tải JSON
+              {format === "csv" ? "Tải CSV" : "Tải JSON"}
             </>
           )}
         </Button>
