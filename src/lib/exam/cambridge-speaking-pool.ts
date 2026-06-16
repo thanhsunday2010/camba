@@ -11,30 +11,24 @@ import {
   type CambridgeSpeakingPart,
 } from "@/lib/exam/cambridge-speaking-config";
 import { getUsedPoolQuestionIds } from "@/lib/exam/practice-pool";
+import {
+  pickDiverseQuestionIds,
+  type QuestionPickMeta,
+} from "@/lib/exam/question-diversity";
 
-function shuffle<T>(arr: T[]): T[] {
-  const out = [...arr];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
-}
+const speakingPoolPickSelect = {
+  id: true,
+  type: true,
+  title: true,
+  content: true,
+} as const;
 
-function pickQuestionIds(pool: string[], exclude: Set<string>, count: number): string[] {
-  if (pool.length === 0) return [];
-  const target = Math.min(count, pool.length);
-  let available = pool.filter((id) => !exclude.has(id));
-  if (available.length < target) available = [...pool];
-  return shuffle(available).slice(0, target);
-}
-
-export async function getCambridgeSpeakingPoolQuestionIds(
+export async function getCambridgeSpeakingPoolQuestions(
   db: PrismaClient,
   level: import("@prisma/client").ExamLevel,
   part: CambridgeSpeakingPart
-): Promise<string[]> {
-  const rows = await db.question.findMany({
+): Promise<QuestionPickMeta[]> {
+  return db.question.findMany({
     where: {
       level,
       skill: Skill.SPEAKING,
@@ -45,10 +39,9 @@ export async function getCambridgeSpeakingPoolQuestionIds(
         { content: { path: ["cambridgePart"], equals: part } },
       ],
     },
-    select: { id: true },
+    select: speakingPoolPickSelect,
     orderBy: { id: "asc" },
   });
-  return rows.map((r) => r.id);
 }
 
 async function createAttemptQuestions(
@@ -91,13 +84,13 @@ export async function assignCambridgeSpeakingQuestionsForAttempt(
     if (!parsed) throw new Error("practicePoolKey Cambridge không hợp lệ");
 
     const { level, part } = parsed;
-    const pool = await getCambridgeSpeakingPoolQuestionIds(db, level, part);
+    const pool = await getCambridgeSpeakingPoolQuestions(db, level, part);
     if (pool.length === 0) {
       throw new Error(`Ngân hàng Speaking ${level} Part ${part} chưa có câu hỏi`);
     }
 
     const count = getCambridgePartDef(level, part).practiceQuestionCount;
-    const picked = pickQuestionIds(pool, exclude, count);
+    const picked = pickDiverseQuestionIds(pool, exclude, count);
     return createAttemptQuestions(db, attemptId, picked);
   }
 
@@ -106,12 +99,12 @@ export async function assignCambridgeSpeakingQuestionsForAttempt(
     const orderedIds: string[] = [];
 
     for (const part of getCambridgeSpeakingParts(level)) {
-      const pool = await getCambridgeSpeakingPoolQuestionIds(db, level, part);
+      const pool = await getCambridgeSpeakingPoolQuestions(db, level, part);
       const need = getCambridgePartDef(level, part).mockQuestionCount;
       if (pool.length === 0) {
         throw new Error(`Ngân hàng Speaking ${level} Part ${part} chưa có câu hỏi`);
       }
-      const picked = pickQuestionIds(pool, exclude, need);
+      const picked = pickDiverseQuestionIds(pool, exclude, need);
       for (const id of picked) exclude.add(id);
       orderedIds.push(...picked);
     }

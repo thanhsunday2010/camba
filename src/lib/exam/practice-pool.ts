@@ -10,6 +10,10 @@ import {
   getCambridgeMockFormat,
 } from "@/lib/exam/cambridge-mock-formats";
 import { getMockSkillQuestionCount } from "@/lib/exam/mock-config";
+import {
+  pickDiverseQuestionIds,
+  type QuestionPickMeta,
+} from "@/lib/exam/question-diversity";
 
 /** Số câu mỗi lần luyện tập (pool động) */
 export const PRACTICE_POOL_SIZE = 10;
@@ -79,29 +83,36 @@ export function isDynamicPoolPaper(paper: {
   return isDynamicPracticePaper(paper) || isDynamicMockPaper(paper);
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const out = [...arr];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
-}
+const poolQuestionPickSelect = {
+  id: true,
+  type: true,
+  title: true,
+  content: true,
+} as const;
 
-export async function getPracticePoolQuestionIds(
+export async function getPracticePoolQuestionsForPick(
   db: PrismaClient,
   level: ExamLevel,
   skill: Skill
-): Promise<string[]> {
-  const rows = await db.question.findMany({
+): Promise<QuestionPickMeta[]> {
+  return db.question.findMany({
     where: {
       level,
       skill,
       placementSlug: null,
     },
-    select: { id: true },
+    select: poolQuestionPickSelect,
     orderBy: { id: "asc" },
   });
+}
+
+/** @deprecated use getPracticePoolQuestionsForPick */
+export async function getPracticePoolQuestionIds(
+  db: PrismaClient,
+  level: ExamLevel,
+  skill: Skill
+): Promise<string[]> {
+  const rows = await getPracticePoolQuestionsForPick(db, level, skill);
   return rows.map((r) => r.id);
 }
 
@@ -126,19 +137,6 @@ export async function getUsedPoolQuestionIds(
 
 /** @deprecated use getUsedPoolQuestionIds */
 export const getUsedPracticeQuestionIds = getUsedPoolQuestionIds;
-
-function pickQuestionIds(pool: string[], exclude: Set<string>, count: number): string[] {
-  if (pool.length === 0) return [];
-
-  const target = Math.min(count, pool.length);
-  let available = pool.filter((id) => !exclude.has(id));
-
-  if (available.length < target) {
-    available = [...pool];
-  }
-
-  return shuffle(available).slice(0, target);
-}
 
 async function createAttemptQuestions(
   db: PrismaClient,
@@ -181,13 +179,13 @@ export async function assignPracticeQuestionsForAttempt(
   const parsed = parsePracticePoolKey(attempt.paper.practicePoolKey);
   if (!parsed) throw new Error("practicePoolKey không hợp lệ");
 
-  const pool = await getPracticePoolQuestionIds(db, parsed.level, parsed.skill);
+  const pool = await getPracticePoolQuestionsForPick(db, parsed.level, parsed.skill);
   if (pool.length === 0) {
     throw new Error(`Ngân hàng ${parsed.level}/${parsed.skill} chưa có câu hỏi luyện tập`);
   }
 
   const used = await getUsedPoolQuestionIds(db, attempt.userId, attempt.paperId);
-  const picked = pickQuestionIds(pool, used, PRACTICE_POOL_SIZE);
+  const picked = pickDiverseQuestionIds(pool, used, PRACTICE_POOL_SIZE);
 
   return createAttemptQuestions(db, attemptId, picked);
 }
@@ -220,13 +218,13 @@ export async function assignMockSkillQuestionsForAttempt(
     throw new Error(`Mock ${parsed.level}/${parsed.skill} chưa được cấu hình`);
   }
 
-  const pool = await getPracticePoolQuestionIds(db, parsed.level, parsed.skill);
+  const pool = await getPracticePoolQuestionsForPick(db, parsed.level, parsed.skill);
   if (pool.length === 0) {
     throw new Error(`Ngân hàng ${parsed.level}/${parsed.skill} chưa có câu hỏi mock`);
   }
 
   const used = await getUsedPoolQuestionIds(db, attempt.userId, attempt.paperId);
-  const picked = pickQuestionIds(pool, used, count);
+  const picked = pickDiverseQuestionIds(pool, used, count);
 
   return createAttemptQuestions(db, attemptId, picked);
 }
@@ -260,12 +258,12 @@ export async function assignMockFullQuestionsForAttempt(
 
   for (const spec of format.sections) {
     for (const slice of spec.slices) {
-      const pool = await getPracticePoolQuestionIds(db, level, slice.skill);
+      const pool = await getPracticePoolQuestionsForPick(db, level, slice.skill);
       if (pool.length === 0) {
         throw new Error(`Ngân hàng ${level}/${slice.skill} chưa có câu hỏi full mock`);
       }
 
-      const picked = pickQuestionIds(pool, exclude, slice.count);
+      const picked = pickDiverseQuestionIds(pool, exclude, slice.count);
       if (picked.length < slice.count && pool.length >= slice.count) {
         throw new Error(`Không đủ câu ${level}/${slice.skill} cho full mock`);
       }
@@ -387,4 +385,4 @@ export function shouldIncludeCorrectAnswerForPoolPaper(paper: {
 }): boolean {
   return paper.paperKind === PaperKind.PRACTICE;
 }
-
+
