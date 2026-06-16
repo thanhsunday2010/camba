@@ -32,9 +32,12 @@ const LEVEL_LABEL = {
 };
 
 function practiceSkills(level) {
-  const base = ["READING", "LISTENING", "WRITING", "SPEAKING"];
-  if (!YLE.has(level)) base.push("USE_OF_ENGLISH");
-  return base;
+  return ["READING", "LISTENING", "WRITING", "SPEAKING", "USE_OF_ENGLISH"];
+}
+
+function practiceSkillLabel(level, skill) {
+  if (YLE.has(level) && skill === "USE_OF_ENGLISH") return "Grammar";
+  return SKILL_LABEL[skill];
 }
 
 function practiceTimeLimit(skill) {
@@ -53,7 +56,7 @@ async function main() {
   for (const level of LEVELS) {
     for (const skill of practiceSkills(level)) {
       const poolKey = buildPracticePoolKey(level, skill);
-      const title = `${SKILL_LABEL[skill]} — ${LEVEL_LABEL[level]} Luyện tập`;
+      const title = `${practiceSkillLabel(level, skill)} — ${LEVEL_LABEL[level]} Luyện tập`;
 
       const poolCount = await db.question.count({
         where: { level, skill, placementSlug: null },

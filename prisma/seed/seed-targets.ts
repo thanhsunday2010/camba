@@ -31,7 +31,7 @@ export const PRACTICE_QUESTIONS_PER_PAPER = {
 /** Phân bổ 100 đề luyện tập / level (tổng = 100) */
 export function getPracticePaperCounts(level: ExamLevel) {
   if (isYleLevel(level)) {
-    return { reading: 30, listening: 30, writing: 20, speaking: 20, uoe: 0 };
+    return { reading: 28, listening: 28, writing: 18, speaking: 18, uoe: 8 };
   }
   return { reading: 25, listening: 25, writing: 20, speaking: 15, uoe: 15 };
 }

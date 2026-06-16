@@ -1,6 +1,6 @@
 /**
  * Batch-generate explanationVi for objective questions (Reading, Listening, UoE).
- * Usage: npm run content:generate-explanations [-- --limit=50] [-- --force]
+ * Usage: npm run content:generate-explanations [-- --limit=50] [-- --skill=LISTENING] [-- --force]
  *
  * Requires GOOGLE_AI_API_KEY and DATABASE_URL in .env
  */
@@ -16,6 +16,8 @@ const args = process.argv.slice(2);
 const force = args.includes("--force");
 const limitArg = args.find((a) => a.startsWith("--limit="));
 const limit = limitArg ? Number(limitArg.split("=")[1]) : undefined;
+const skillArg = args.find((a) => a.startsWith("--skill="));
+const skillFilter = skillArg ? skillArg.split("=")[1]?.toUpperCase() : undefined;
 
 function getApiKey() {
   return (
@@ -204,12 +206,22 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Model: ${MODEL} | force=${force} | limit=${limit ?? "all"}`);
+  console.log(`Model: ${MODEL} | force=${force} | limit=${limit ?? "all"} | skill=${skillFilter ?? "all"}`);
+
+  const validSkills = [Skill.READING, Skill.LISTENING, Skill.USE_OF_ENGLISH];
+  let skills = validSkills;
+  if (skillFilter) {
+    if (!validSkills.includes(skillFilter)) {
+      console.error(`Skill không hợp lệ: ${skillFilter} (READING, LISTENING, USE_OF_ENGLISH)`);
+      process.exit(1);
+    }
+    skills = [skillFilter];
+  }
 
   const questions = await db.question.findMany({
     where: {
       type: { in: [QuestionType.MCQ, QuestionType.GAP_FILL] },
-      skill: { in: [Skill.READING, Skill.LISTENING, Skill.USE_OF_ENGLISH] },
+      skill: { in: skills },
     },
     orderBy: [{ level: "asc" }, { skill: "asc" }, { createdAt: "asc" }],
   });

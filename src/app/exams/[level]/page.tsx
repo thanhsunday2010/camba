@@ -66,21 +66,18 @@ export default async function ExamsLevelPage({
   const practiceOnly = skillPapers.filter((p) => p.paperKind === PaperKind.PRACTICE);
   const skillMocks = skillPapers.filter((p) => p.paperKind === PaperKind.MOCK_SKILL);
 
-  const skillsForPage = SKILLS.filter(
-    (skill) => skill.value !== "USE_OF_ENGLISH" || !isYle
-  );
-
   const mockTestLimit = usage.mockTestLimit;
   const mockTestUsedUp = usage.mockSkillCount >= mockTestLimit;
   const fullMockLocked = !usage.allowFullMock || mockTestUsedUp;
 
-  const gridSkills = skillsForPage.map((skill) => {
+  const gridSkills = SKILLS.map((skill) => {
     const skillValue = skill.value as Skill;
     const practice = practiceOnly.find((p) => p.skill === skillValue);
     const mock = skillMocks.find((p) => p.skill === skillValue);
 
     return {
-      skillLabel: skill.label,
+      skillLabel:
+        isYle && skill.value === "USE_OF_ENGLISH" ? "Grammar (bổ trợ)" : skill.label,
       skillEmoji: SKILL_EMOJI[skill.value],
       practiceInfo: practiceInfoText(skillValue),
       mockInfo: mock ? mockInfoText(examLevel, skillValue, mock.timeLimit) : undefined,

@@ -64,7 +64,7 @@ export function isYleLevel(level: ExamLevel): boolean {
 
 export function questionCounts(level: ExamLevel) {
   if (isYleLevel(level)) {
-    return { reading: 55, listening: 25, writing: 10, speaking: 10, uoe: 0 };
+    return { reading: 55, listening: 25, writing: 10, speaking: 10, uoe: 20 };
   }
   return { reading: 50, listening: 25, writing: 10, speaking: 10, uoe: 30 };
 }
@@ -189,20 +189,70 @@ export function generateUoe(
   count: number,
   startOffset = 0
 ): GapSeed[] {
-  if (isYleLevel(level)) return [];
   const templates: GapSeed[] = [];
   const verbs = [
-    ["go", "goes"], ["have", "has"], ["do", "does"], ["watch", "watches"], ["study", "studies"],
-    ["play", "plays"], ["like", "likes"], ["want", "wants"], ["need", "needs"], ["enjoy", "enjoys"],
+    ["go", "goes"],
+    ["have", "has"],
+    ["do", "does"],
+    ["watch", "watches"],
+    ["study", "studies"],
+    ["play", "plays"],
+    ["like", "likes"],
+    ["want", "wants"],
+    ["need", "needs"],
+    ["enjoy", "enjoys"],
   ];
   const preps = [
-    ["interested", "in"], ["good", "at"], ["afraid", "of"], ["proud", "of"], ["keen", "on"],
+    ["interested", "in"],
+    ["good", "at"],
+    ["afraid", "of"],
+    ["proud", "of"],
+    ["keen", "on"],
   ];
 
   for (let i = 0; i < count; i++) {
     const idx = startOffset + i;
     const name = pick(NAMES, idx);
-    if (level === "KET" || idx % 3 === 0) {
+    const animal = pick(ANIMALS, idx);
+    const food = pick(FOODS, idx);
+
+    if (level === "STARTERS") {
+      const starters = [
+        gap(`Grammar ${idx + 1}`, `I ___ a ${animal}.`, "have"),
+        gap(`Grammar ${idx + 1}`, `She ___ happy.`, "is"),
+        gap(`Grammar ${idx + 1}`, `They ___ ${food}.`, "like"),
+        gap(`Grammar ${idx + 1}`, `It ___ a ${pick(COLORS, idx)} ball.`, "is"),
+        gap(`Grammar ${idx + 1}`, `We ___ to school.`, "go"),
+        gap(`Grammar ${idx + 1}`, `The ${animal} ___ on the table.`, "is"),
+        gap(`Grammar ${idx + 1}`, `I can ___ a bike.`, "ride"),
+        gap(`Grammar ${idx + 1}`, `This is my ___.`, "bag"),
+      ];
+      templates.push(starters[idx % starters.length]);
+    } else if (level === "MOVERS") {
+      const movers = [
+        gap(`Grammar ${idx + 1}`, `${name} ___ (${pick(verbs, idx)[0]}) to school every day.`, pick(verbs, idx)[1]),
+        gap(`Grammar ${idx + 1}`, `There ___ two ${animal}s in the garden.`, "are"),
+        gap(`Grammar ${idx + 1}`, `I ___ (not like) ${food}.`, "don't like"),
+        gap(`Grammar ${idx + 1}`, `${name} is ___ (tall) than me.`, "taller"),
+        gap(`Grammar ${idx + 1}`, `We ___ (play) football now.`, "are playing"),
+        gap(`Grammar ${idx + 1}`, `She ___ (watch) TV every evening.`, "watches"),
+        gap(`Grammar ${idx + 1}`, `The book is ___ the bag.`, "in"),
+        gap(`Grammar ${idx + 1}`, `Can you ___ (${pick(verbs, idx + 2)[0]}) English?`, pick(verbs, idx + 2)[0]),
+      ];
+      templates.push(movers[idx % movers.length]);
+    } else if (level === "FLYERS") {
+      const flyers = [
+        gap(`Grammar ${idx + 1}`, `${name} ___ (visit) London last year.`, "visited"),
+        gap(`Grammar ${idx + 1}`, `If it rains, we ___ (stay) at home.`, "will stay"),
+        gap(`Grammar ${idx + 1}`, `This is the ___ (good) film I've seen.`, "best"),
+        gap(`Grammar ${idx + 1}`, `${name} has ___ (live) here since 2020.`, "lived"),
+        gap(`Grammar ${idx + 1}`, `They ___ (not finish) their homework yet.`, "haven't finished"),
+        gap(`Grammar ${idx + 1}`, `I was ___ (read) when you called.`, "reading"),
+        gap(`Grammar ${idx + 1}`, `${name} is ${pick(preps, idx)[0]} ___ maths.`, pick(preps, idx)[1]),
+        gap(`Grammar ${idx + 1}`, `We ___ (go) to the beach tomorrow.`, "are going"),
+      ];
+      templates.push(flyers[idx % flyers.length]);
+    } else if (level === "KET" || idx % 3 === 0) {
       const [base, form] = pick(verbs, idx);
       templates.push(
         gap(
