@@ -250,7 +250,11 @@ export function PracticeClient({
         } else {
           consecutiveCorrectRef.current = 0;
         }
-      } else if (!q || !usesInstantObjectiveFeedback(paperKind, q)) {
+      } else if (
+        q &&
+        q.type !== "FREE_TEXT" &&
+        !usesInstantObjectiveFeedback(paperKind, q)
+      ) {
         play("pop");
       }
 
@@ -363,11 +367,17 @@ export function PracticeClient({
       (q) => q.type === "FREE_TEXT" || q.type === "SPEAKING_PROMPT"
     );
 
+    let writingGradeFailed = false;
+
     for (const q of aiQuestions) {
       const ans = mergedAnswers[q.id];
-      if (q.type === "FREE_TEXT" && typeof ans === "string" && meetsPracticeMinWords(q.type, q.content, ans, minWordsContext)) {
+      if (
+        q.type === "FREE_TEXT" &&
+        typeof ans === "string" &&
+        meetsPracticeMinWords(q.type, q.content, ans, minWordsContext)
+      ) {
         try {
-          await fetch("/api/ai/grade-writing", {
+          const res = await fetch("/api/ai/grade-writing", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -376,7 +386,15 @@ export function PracticeClient({
               studentAnswer: ans,
             }),
           });
+          if (!res.ok) {
+            writingGradeFailed = true;
+            const err = (await res.json().catch(() => ({}))) as { error?: string };
+            const msg = err.error ?? "Không thể chấm AI cho writing";
+            if (String(msg).toLowerCase().includes("hết")) notifyFreeLimitHit();
+            toast.error(msg);
+          }
         } catch {
+          writingGradeFailed = true;
           toast.error("Không thể chấm AI cho writing");
         }
       }
@@ -408,7 +426,11 @@ export function PracticeClient({
     }
 
     setShowConfetti(true);
-    toast.success("Tuyệt vời! Nộp bài thành công! 🎉");
+    toast.success(
+      writingGradeFailed
+        ? "Đã nộp bài — AI chấm writing thất bại, xem thông báo lỗi ở trên."
+        : "Tuyệt vời! Nộp bài thành công! 🎉"
+    );
 
     if (result.gamification) {
       showMascot(mascotGamificationCelebration(result.gamification));

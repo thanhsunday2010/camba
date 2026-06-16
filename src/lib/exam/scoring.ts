@@ -26,6 +26,13 @@ export interface FreeTextContent {
   instructions?: string;
 }
 
+/** Task text shown to student and sent to AI grader */
+export function getWritingTaskPrompt(content: unknown): string {
+  if (!content || typeof content !== "object") return "";
+  const c = content as Record<string, unknown>;
+  return String(c.taskPrompt ?? c.prompt ?? c.question ?? "").trim();
+}
+
 export interface SpeakingContent {
   prompt: string;
   preparationTime?: number;
