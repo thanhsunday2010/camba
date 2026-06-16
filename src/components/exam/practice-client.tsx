@@ -211,6 +211,15 @@ export function PracticeClient({
       return;
     }
 
+    if ("alreadySubmitted" in result && result.alreadySubmitted) {
+      if (paperKind === "PLACEMENT") {
+        router.push(`/placement/results/${attemptId}`);
+      } else {
+        router.push(`/results/${attemptId}`);
+      }
+      return;
+    }
+
     const aiQuestions = questions.filter(
       (q) => q.type === "FREE_TEXT" || q.type === "SPEAKING_PROMPT"
     );

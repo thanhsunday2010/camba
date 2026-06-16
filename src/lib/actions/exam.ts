@@ -338,7 +338,21 @@ export async function submitAttemptAction(
     },
   });
 
-  if (!attempt || attempt.status !== "IN_PROGRESS") {
+  if (!attempt) {
+    return { error: "Bài làm không hợp lệ" };
+  }
+
+  const earlyFinalized =
+    (attempt.status === "SUBMITTED" || attempt.status === "GRADED") && !attempt.submittedAt;
+
+  if (attempt.status !== "IN_PROGRESS" && !earlyFinalized) {
+    if (
+      attempt.userId &&
+      session?.user?.id === attempt.userId &&
+      (attempt.status === "SUBMITTED" || attempt.status === "GRADED")
+    ) {
+      return { attemptId, alreadySubmitted: true };
+    }
     return { error: "Bài làm không hợp lệ" };
   }
 

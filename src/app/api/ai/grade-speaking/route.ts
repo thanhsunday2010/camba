@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { gradeSpeaking, transcribeAudio } from "@/lib/ai/grading";
+import { AttemptStatus } from "@prisma/client";
 import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
 import { checkSpeakingAIRateLimit, getSpeakingAIRateLimitInfo } from "@/lib/ai/rate-limit";
 import { getGeminiApiKey, getSpeechToTextMode } from "@/lib/ai/config";
@@ -123,14 +124,32 @@ export async function POST(req: NextRequest) {
     await recordSpeakingAiGradingUsage(session.user.id);
 
     if (attemptId) {
-      await db.attemptAnswer.updateMany({
-        where: { attemptId, questionId: question.id },
-        data: {
+      const attempt = await db.attempt.findUnique({
+        where: { id: attemptId },
+        select: { status: true },
+      });
+
+      await db.attemptAnswer.upsert({
+        where: {
+          attemptId_questionId: { attemptId, questionId: question.id },
+        },
+        create: {
+          attemptId,
+          questionId: question.id,
+          answer: transcript,
+          score: (feedback.overallScore / 100) * question.points,
+          isCorrect: feedback.overallScore >= 60,
+        },
+        update: {
+          answer: transcript,
           score: (feedback.overallScore / 100) * question.points,
           isCorrect: feedback.overallScore >= 60,
         },
       });
-      await finalizeAttemptGrading(attemptId);
+
+      if (attempt && attempt.status !== AttemptStatus.IN_PROGRESS) {
+        await finalizeAttemptGrading(attemptId);
+      }
     }
 
     return NextResponse.json({ feedback, feedbackId: aiFeedback.id, transcript });

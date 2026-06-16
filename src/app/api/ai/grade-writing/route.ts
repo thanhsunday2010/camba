@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { AttemptStatus } from "@prisma/client";
 import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
 import { gradeWriting } from "@/lib/ai/grading";
 import { getGeminiApiKey } from "@/lib/ai/config";
@@ -92,17 +93,35 @@ export async function POST(req: NextRequest) {
     await recordWritingAiGradingUsage(session.user.id);
 
     if (parsed.data.attemptId) {
-      await db.attemptAnswer.updateMany({
+      const attempt = await db.attempt.findUnique({
+        where: { id: parsed.data.attemptId },
+        select: { status: true },
+      });
+
+      await db.attemptAnswer.upsert({
         where: {
+          attemptId_questionId: {
+            attemptId: parsed.data.attemptId,
+            questionId: question.id,
+          },
+        },
+        create: {
           attemptId: parsed.data.attemptId,
           questionId: question.id,
+          answer: parsed.data.studentAnswer,
+          score: (feedback.overallScore / 100) * question.points,
+          isCorrect: feedback.overallScore >= 60,
         },
-        data: {
+        update: {
+          answer: parsed.data.studentAnswer,
           score: (feedback.overallScore / 100) * question.points,
           isCorrect: feedback.overallScore >= 60,
         },
       });
-      await finalizeAttemptGrading(parsed.data.attemptId);
+
+      if (attempt && attempt.status !== AttemptStatus.IN_PROGRESS) {
+        await finalizeAttemptGrading(parsed.data.attemptId);
+      }
     }
 
     return NextResponse.json({ feedback, feedbackId: aiFeedback.id });

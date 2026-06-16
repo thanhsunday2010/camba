@@ -60,10 +60,29 @@ function parseJsonResponse(text: string): unknown {
   return JSON.parse(jsonStr);
 }
 
-function extractText(response: { text?: string }): string {
-  const text = response.text?.trim();
-  if (!text) throw new Error("Empty Gemini response");
-  return text;
+type GeminiTextResponse = {
+  text?: string;
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
+};
+
+function extractText(response: GeminiTextResponse): string {
+  const direct = response.text?.trim();
+  if (direct) return direct;
+
+  const fromParts = (response.candidates?.[0]?.content?.parts ?? [])
+    .map((part) => part.text ?? "")
+    .join("")
+    .trim();
+  if (fromParts) return fromParts;
+
+  throw new Error("Empty Gemini response");
+}
+
+/** Strip optional models/ prefix from env overrides */
+export function normalizeGeminiModelName(modelName: string): string {
+  return modelName.replace(/^models\//, "").trim();
 }
 
 type GeminiCallOptions = {
@@ -78,8 +97,9 @@ export async function callGeminiJson(
   options: GeminiCallOptions = {}
 ): Promise<unknown> {
   const ai = getGeminiClient();
+  const model = normalizeGeminiModelName(modelName);
   const response = await ai.models.generateContent({
-    model: modelName,
+    model,
     contents: user,
     config: {
       systemInstruction: system,
@@ -100,8 +120,9 @@ export async function callGeminiText(
   modelName: string
 ): Promise<string> {
   const ai = getGeminiClient();
+  const model = normalizeGeminiModelName(modelName);
   const response = await ai.models.generateContent({
-    model: modelName,
+    model,
     contents: user,
     config: {
       systemInstruction: system,
@@ -118,7 +139,7 @@ export async function transcribeAudioWithGemini(
 ): Promise<string> {
   const ai = getGeminiClient();
   const response = await ai.models.generateContent({
-    model: GEMINI_MODELS.audio,
+    model: normalizeGeminiModelName(GEMINI_MODELS.audio),
     contents: [
       "Transcribe the following English speech accurately. Return ONLY the transcript text in English, with no labels or commentary.",
       {

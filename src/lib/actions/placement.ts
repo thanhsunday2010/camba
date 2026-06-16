@@ -187,10 +187,14 @@ export async function savePlacementAnswerAction(
     include: { paper: true },
   });
 
+  const earlyFinalized =
+    (attempt?.status === "SUBMITTED" || attempt?.status === "GRADED") &&
+    !attempt?.submittedAt;
+
   if (
     !attempt ||
-    attempt.status !== "IN_PROGRESS" ||
-    attempt.paper.paperKind !== PaperKind.PLACEMENT
+    attempt.paper.paperKind !== PaperKind.PLACEMENT ||
+    (attempt.status !== "IN_PROGRESS" && !earlyFinalized)
   ) {
     return { error: "Bài làm không hợp lệ" };
   }

@@ -66,6 +66,7 @@ export function AudioRecorder({
 }: AudioRecorderProps) {
   const [recording, setRecording] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
+  const [stoppedTranscript, setStoppedTranscript] = useState("");
   const [manualText, setManualText] = useState("");
   const [speechSupported, setSpeechSupported] = useState<boolean | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -87,7 +88,10 @@ export function AudioRecorder({
       toast.error("Nói hoặc nhập ít nhất vài từ tiếng Anh nhé.");
       return;
     }
-    onTranscript(maxWords ? trimToWordLimit(text, maxWords) : text);
+    const trimmed = maxWords ? trimToWordLimit(text, maxWords) : text;
+    setStoppedTranscript(trimmed);
+    setManualText(trimmed);
+    onTranscript(trimmed);
   };
 
   const stopRecording = () => {
@@ -96,7 +100,10 @@ export function AudioRecorder({
     setRecording(false);
 
     window.setTimeout(() => {
-      submitTranscript(collectTranscript());
+      const text = collectTranscript();
+      setLiveTranscript(text);
+      setStoppedTranscript(text);
+      submitTranscript(text);
     }, 350);
   };
 
@@ -107,6 +114,7 @@ export function AudioRecorder({
     finalTranscriptRef.current = "";
     interimTranscriptRef.current = "";
     setLiveTranscript("");
+    setStoppedTranscript("");
 
     const recognition = new SpeechRecognitionCtor();
     recognition.lang = "en-US";
@@ -181,6 +189,8 @@ export function AudioRecorder({
     submitTranscript(manualText);
   };
 
+  const displayTranscript = stoppedTranscript || (!recording ? liveTranscript : "");
+  const displayWordCount = countWords(displayTranscript);
   const manualWordCount = countWords(manualText);
   const canUseSpeech = speechSupported !== false;
 
@@ -219,11 +229,9 @@ export function AudioRecorder({
             )}
           </div>
 
-          {(recording || liveTranscript) && !hideLiveTranscript && (
+          {recording && !hideLiveTranscript && (
             <div className="mt-3 rounded-md bg-white p-3 text-sm">
-              <p className="mb-1 text-xs text-muted-foreground">
-                {recording ? "Đang nghe..." : "Transcript:"}
-              </p>
+              <p className="mb-1 text-xs text-muted-foreground">Đang nghe...</p>
               <p className="whitespace-pre-wrap">{liveTranscript || "..."}</p>
             </div>
           )}
@@ -232,6 +240,17 @@ export function AudioRecorder({
             <p className="mt-3 text-sm font-medium text-purple-700">
               🎙️ Đang ghi âm — hãy nói bằng tiếng Anh, rồi bấm Dừng & gửi chấm
             </p>
+          )}
+
+          {!recording && displayTranscript.length >= 3 && (
+            <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm">
+              <p className="mb-1 text-xs font-semibold text-emerald-800">Transcript đã ghi:</p>
+              <p className="whitespace-pre-wrap text-emerald-950">{displayTranscript}</p>
+              <p className="mt-2 text-xs font-semibold text-emerald-700">
+                {displayWordCount} từ
+                {maxWords != null && maxWords > 0 && ` / ${maxWords} từ (giới hạn gói)`}
+              </p>
+            </div>
           )}
         </div>
       )}

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { explainWrongAnswer } from "@/lib/ai/grading";
 import { getGeminiApiKey } from "@/lib/ai/config";
 import { checkAiGradingRateLimit, getAiGradingRateLimitInfo } from "@/lib/ai/rate-limit";
+import { isAdminUserId } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import {
   EXPLAIN_AI_SKILLS,
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const isAdmin = session.user.role === "ADMIN";
+  const isAdmin = session.user.role === "ADMIN" || (await isAdminUserId(session.user.id));
 
   if (!isAdmin) {
     const allowed = await checkAiGradingRateLimit(session.user.id, aiSkill);
@@ -78,10 +79,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ explanation });
   } catch (e) {
     console.error("[explain-answer]", e);
-    const message =
-      e instanceof Error && e.message.includes("404")
-        ? "Model Gemini không khả dụng. Kiểm tra GEMINI_MODEL_EXPLAIN trong .env."
-        : "Không thể gọi Gemini. Kiểm tra GOOGLE_AI_API_KEY.";
+    const detail = e instanceof Error ? e.message : String(e);
+    const message = detail.includes("404") || detail.toLowerCase().includes("not found")
+      ? "Model Gemini không khả dụng. Kiểm tra GEMINI_MODEL_EXPLAIN trong .env."
+      : detail.includes("API key") || detail.includes("401") || detail.includes("403")
+        ? "Không thể gọi Gemini. Kiểm tra GOOGLE_AI_API_KEY."
+        : "Không thể giải thích lúc này. Thử lại sau.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

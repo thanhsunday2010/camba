@@ -7,6 +7,7 @@ import { getPublishedPapersByLevel } from "@/lib/exam/cached-papers";
 import { getCompletedPaperIdsForUser } from "@/lib/exam/user-paper-progress";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 import { SkillPaperList } from "@/components/exam/skill-paper-list";
+import { SkillPracticeGroup } from "@/components/exam/skill-practice-group";
 
 const SKILL_EMOJI: Record<string, string> = {
   READING: "📖",
@@ -106,78 +107,34 @@ export default async function ExamsLevelPage({
         </section>
       )}
 
-      <div className="space-y-10">
-        {grouped.map(({ skill, practice, mocks }) => {
+      <div className="space-y-3">
+        {grouped.map(({ skill, practice, mocks }, index) => {
           const allSkill = [...practice, ...mocks];
           const skillNew = allSkill.filter((p) => !completedPaperIds.has(p.id)).length;
 
-          if (allSkill.length === 0) {
-            return (
-              <section key={skill.value}>
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 text-base shadow-sm">
-                    {SKILL_EMOJI[skill.value]}
-                  </div>
-                  <h2 className="text-lg font-extrabold">{skill.label}</h2>
-                </div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Chưa có đề cho kỹ năng này.
-                </p>
-              </section>
-            );
-          }
-
           return (
-            <section key={skill.value}>
-              <div className="mb-4 flex flex-wrap items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 text-base shadow-sm">
-                  {SKILL_EMOJI[skill.value]}
-                </div>
-                <h2 className="text-lg font-extrabold">{skill.label}</h2>
-                {skillNew > 0 && (
-                  <span className="text-xs font-semibold text-sky-600">{skillNew} mới</span>
-                )}
-              </div>
-
-              <div className="space-y-6">
-                {practice.length > 0 && (
-                  <div>
-                    <h3 className="mb-2 text-sm font-extrabold uppercase tracking-wide text-purple-700">
-                      📚 Luyện tập · {practice.length} đề
-                    </h3>
-                    <SkillPaperList
-                      papers={practice.map((p) => ({
-                        id: p.id,
-                        title: p.title,
-                        description: p.description,
-                        timeLimit: p.timeLimit,
-                        isMockTest: false,
-                      }))}
-                      completedPaperIds={completedPaperIds}
-                    />
-                  </div>
-                )}
-
-                {mocks.length > 0 && (
-                  <div>
-                    <h3 className="mb-2 text-sm font-extrabold uppercase tracking-wide text-amber-700">
-                      ⏱ Mock test · {mocks.length} đề
-                    </h3>
-                    <SkillPaperList
-                      papers={mocks.map((p) => ({
-                        id: p.id,
-                        title: p.title,
-                        description: p.description,
-                        timeLimit: p.timeLimit,
-                        isMockTest: true,
-                      }))}
-                      completedPaperIds={completedPaperIds}
-                      className="border-amber-200"
-                    />
-                  </div>
-                )}
-              </div>
-            </section>
+            <SkillPracticeGroup
+              key={skill.value}
+              skillLabel={skill.label}
+              skillEmoji={SKILL_EMOJI[skill.value]}
+              practice={practice.map((p) => ({
+                id: p.id,
+                title: p.title,
+                description: p.description,
+                timeLimit: p.timeLimit,
+                isMockTest: false,
+              }))}
+              mocks={mocks.map((p) => ({
+                id: p.id,
+                title: p.title,
+                description: p.description,
+                timeLimit: p.timeLimit,
+                isMockTest: true,
+              }))}
+              completedPaperIds={completedPaperIds}
+              newCount={skillNew}
+              defaultOpen={index === 0 && skillNew > 0}
+            />
           );
         })}
       </div>

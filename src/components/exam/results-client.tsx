@@ -19,6 +19,10 @@ import {
 import { GamificationCelebrationCard } from "@/components/gamification/gamification-celebration-card";
 import type { GamificationSnapshot } from "@/lib/gamification/types";
 import { notifyFreeLimitHit } from "@/lib/promo/events";
+import {
+  EXPLAIN_AI_SKILLS,
+  paperSkillToAiGradingSkill,
+} from "@/lib/subscription/plans";
 
 interface ResultAnswer {
   id: string;
@@ -31,6 +35,7 @@ interface ResultAnswer {
     content: unknown;
     correctAnswer: unknown;
     points: number;
+    skill: string;
   };
 }
 
@@ -124,7 +129,7 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
           question: questionContext,
           correctAnswer: JSON.stringify(answer.question.correctAnswer),
           studentAnswer: JSON.stringify(answer.answer),
-          paperSkill: attempt.paper.skill,
+          paperSkill: answer.question.skill ?? attempt.paper.skill,
         }),
       });
       const data = await res.json();
@@ -234,7 +239,12 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
                     <div className="rounded-lg bg-slate-50 p-3 text-sm">
                       <strong>Trả lời:</strong> {JSON.stringify(answer.answer)}
                     </div>
-                    {answer.isCorrect === false && (
+                    {answer.isCorrect === false &&
+                      EXPLAIN_AI_SKILLS.includes(
+                        paperSkillToAiGradingSkill(
+                          answer.question.skill ?? attempt.paper.skill
+                        ) as (typeof EXPLAIN_AI_SKILLS)[number]
+                      ) && (
                       <div className="space-y-2">
                         <p className="text-sm">
                           <strong>Đáp án đúng:</strong>{" "}

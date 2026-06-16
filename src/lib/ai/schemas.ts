@@ -43,9 +43,9 @@ export type SpeakingFeedback = z.infer<typeof speakingFeedbackSchema>;
 
 /** Giải thích câu sai — tối đa vài câu ngắn */
 export const explainWrongAnswerSchema = z.object({
-  mistake_vi: z.string(),
-  correct_vi: z.string(),
-  tip_vi: z.string().optional(),
+  mistake_vi: z.string().min(1),
+  correct_vi: z.string().min(1),
+  tip_vi: z.string().nullable().optional(),
 });
 
 export type ExplainWrongAnswer = z.infer<typeof explainWrongAnswerSchema>;

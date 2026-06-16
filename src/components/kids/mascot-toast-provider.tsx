@@ -136,20 +136,20 @@ export function MascotToastProvider({
             role="status"
             aria-live="polite"
           >
-            <div className="flex max-w-md flex-col items-center gap-4 animate-bounce-in text-center">
+            <div className="flex max-w-xs flex-col items-center gap-3 animate-bounce-in text-center">
               <div
                 className={cn(
-                  "rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-2 shadow-xl ring-4 ring-white/80"
+                  "rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-1.5 shadow-lg ring-2 ring-white/80"
                 )}
               >
-                <CambaMascot size="xl" mood={toast.mood} />
+                <CambaMascot size="lg" mood={toast.mood} />
               </div>
-              <div className="relative w-full rounded-3xl border-2 border-purple-200 bg-white px-5 py-4 shadow-2xl">
-                <p className="text-lg font-extrabold leading-snug text-purple-900 md:text-xl">
+              <div className="relative w-full rounded-2xl border-2 border-purple-200 bg-white px-4 py-3 shadow-xl">
+                <p className="text-base font-extrabold leading-snug text-purple-900 md:text-lg">
                   {toast.message}
                 </p>
                 {toast.subtitle && (
-                  <p className="mt-2 text-sm font-semibold text-purple-700/90 md:text-base">
+                  <p className="mt-1.5 text-xs font-semibold text-purple-700/90 md:text-sm">
                     {toast.subtitle}
                   </p>
                 )}

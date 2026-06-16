@@ -12,7 +12,7 @@ import {
   type SpeakingFeedback,
   type WritingFeedback,
 } from "./schemas";
-import { callGeminiJson, transcribeAudioWithGemini } from "./gemini";
+import { callGeminiJson, callGeminiText, transcribeAudioWithGemini } from "./gemini";
 import { GEMINI_MODELS } from "./config";
 
 export async function gradeWriting(params: {
@@ -84,7 +84,7 @@ export async function explainWrongAnswer(params: {
   for (let i = 0; i < 2; i++) {
     try {
       const raw = await callGeminiJson(system, user, GEMINI_MODELS.explain, {
-        maxOutputTokens: 180,
+        maxOutputTokens: 512,
         temperature: 0.2,
       });
       const parsed = explainWrongAnswerSchema.parse(raw);
@@ -93,5 +93,13 @@ export async function explainWrongAnswer(params: {
       lastError = e instanceof Error ? e : new Error("Parse failed");
     }
   }
+
+  try {
+    const text = await callGeminiText(system, user, GEMINI_MODELS.explain);
+    if (text.trim()) return text.trim();
+  } catch (e) {
+    lastError = e instanceof Error ? e : lastError;
+  }
+
   throw lastError ?? new Error("AI explain failed");
 }
