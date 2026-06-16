@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
+import {
+  IELTS_SPEAKING_CTA_LABEL,
+  IELTS_SPEAKING_URL,
+} from "@/lib/site/ielts-speaking-cta";
 
 export const footerLinkSchema = z.object({
   label: z.string().min(1).max(80),
@@ -33,7 +37,8 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
     {
       title: "Luyện tập",
       links: [
-        { label: "Chọn level", href: "/exams" },
+        { label: IELTS_SPEAKING_CTA_LABEL, href: IELTS_SPEAKING_URL },
+        { label: "Luyện thi Cambridge", href: "/exams" },
         { label: "Test trình độ", href: "/placement" },
         { label: "Bảng giá", href: "/pricing" },
       ],
@@ -44,6 +49,7 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
         { label: "Đăng ký miễn phí", href: "/register" },
         { label: "Đăng nhập", href: "/login" },
         { label: "Trang của tôi", href: "/dashboard" },
+        { label: IELTS_SPEAKING_CTA_LABEL, href: IELTS_SPEAKING_URL },
         { label: VTEN_COURSE_LABEL, href: VTEN_COURSE_URL },
       ],
     },
@@ -65,18 +71,20 @@ export function renderCopyright(template: string): string {
   return template.replace("{year}", String(new Date().getFullYear()));
 }
 
-/** Cột 2 footer luôn có link VTEN — kể cả khi admin đã lưu cấu hình cũ. */
+/** Cột 2 footer luôn có link VTEN & IELTS Speaking — kể cả khi admin đã lưu cấu hình cũ. */
 export function ensureVtenCourseFooterLink(settings: FooterSettings): FooterSettings {
   if (settings.columns.length < 2) return settings;
 
   const columns = settings.columns.map((column, index) => {
     if (index !== 1) return column;
-    const hasLink = column.links.some((link) => link.href === VTEN_COURSE_URL);
-    if (hasLink) return column;
-    return {
-      ...column,
-      links: [...column.links, { label: VTEN_COURSE_LABEL, href: VTEN_COURSE_URL }],
-    };
+    let links = [...column.links];
+    if (!links.some((link) => link.href === VTEN_COURSE_URL)) {
+      links = [...links, { label: VTEN_COURSE_LABEL, href: VTEN_COURSE_URL }];
+    }
+    if (!links.some((link) => link.href === IELTS_SPEAKING_URL)) {
+      links = [...links, { label: IELTS_SPEAKING_CTA_LABEL, href: IELTS_SPEAKING_URL }];
+    }
+    return { ...column, links };
   });
 
   return { ...settings, columns };

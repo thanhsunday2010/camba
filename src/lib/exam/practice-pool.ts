@@ -296,6 +296,14 @@ export async function assignDynamicExamQuestionsForAttempt(
   if (!attempt) throw new Error("Attempt không tồn tại");
   if (attempt.attemptQuestions.length > 0) return attempt.attemptQuestions.length;
 
+  const poolKey = attempt.paper.practicePoolKey ?? attempt.paper.mockPoolKey ?? "";
+  if (poolKey.startsWith("IELTS:SPK:")) {
+    const { assignIeltsSpeakingQuestionsForAttempt } = await import(
+      "@/lib/exam/ielts-speaking-pool"
+    );
+    return assignIeltsSpeakingQuestionsForAttempt(db, attemptId);
+  }
+
   if (attempt.paper.practicePoolKey) {
     return assignPracticeQuestionsForAttempt(db, attemptId);
   }

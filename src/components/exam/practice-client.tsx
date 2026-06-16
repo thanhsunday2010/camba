@@ -279,6 +279,7 @@ export function PracticeClient({
   const strictSequential = isMockTest && paperKind !== "PLACEMENT";
   const useSectionTimer =
     (isMockTest && paperKind === "MOCK_FULL" && !!sections?.length) ||
+    (isMockTest && paperKind === "MOCK_SKILL" && !!sections?.length) ||
     (paperKind === "PLACEMENT" && !!sections && sections.length > 1);
   const firstUnansweredIndex = sessionQuestions.findIndex((q) => !isAnswered(answers[q.id]));
 

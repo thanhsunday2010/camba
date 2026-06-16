@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { formatExamLevel } from "@/lib/constants";
 import { LevelPicker } from "@/components/exam/level-picker";
 import { CambaMascot } from "@/components/kids/camba-mascot";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default async function ExamsHubPage() {
   const session = await auth();
@@ -31,6 +32,23 @@ export default async function ExamsHubPage() {
       </div>
 
       <LevelPicker currentLevel={user.targetExam} variant="full" />
+
+      <Card className="mt-8 border-2 border-rose-200 bg-gradient-to-br from-rose-50/60 to-white">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 py-6">
+          <div>
+            <p className="text-lg font-extrabold text-rose-800">🎤 Luyện thi Speaking IELTS</p>
+            <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
+              Luyện từng Part hoặc mock full · AI chấm band IELTS · gợi ý part yếu
+            </p>
+          </div>
+          <Link
+            href="/ielts/speaking"
+            className="kid-btn-fun inline-flex rounded-full bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-700"
+          >
+            Vào luyện Speaking IELTS
+          </Link>
+        </CardContent>
+      </Card>
 
       <p className="mt-8 text-center text-sm font-medium text-muted-foreground">
         Muốn biết trình độ?{" "}

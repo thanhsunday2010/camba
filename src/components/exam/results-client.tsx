@@ -113,6 +113,11 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
         <Link href="/dashboard" className="text-sm text-cambridge-600 hover:underline">
           ← Dashboard
         </Link>
+        {attempt.paper.title.includes("IELTS Speaking") && (
+          <Link href="/ielts/speaking" className="ml-4 text-sm text-rose-600 hover:underline">
+            ← Speaking IELTS
+          </Link>
+        )}
         <h1 className="mt-2 text-3xl font-bold">{attempt.paper.title}</h1>
         <p className="text-muted-foreground">Kết quả bài làm</p>
       </div>
@@ -196,6 +201,11 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
                   />
                 ) : answer.question.type === "SPEAKING_PROMPT" && aiFb?.criteria ? (
                   <SpeakingFeedbackView
+                    variant={
+                      (content as { examTrack?: string }).examTrack === "IELTS"
+                        ? "ielts"
+                        : "cambridge"
+                    }
                     feedback={{
                       overallScore: aiFb.overallScore ?? 0,
                       cambridgeBand: aiFb.cambridgeBand ?? "",
@@ -203,7 +213,11 @@ export function ResultsClient({ attempt, aiFeedbacks, gamification }: ResultsCli
                       errors: (aiFb.errors as SpeakingFeedback["errors"]) ?? [],
                       tips_vi: (aiFb.suggestions as string[]) ?? [],
                       summary_vi:
-                        (aiFb.rawResponse as { summary_vi?: string })?.summary_vi ?? "",
+                        (aiFb.rawResponse as { summary_vi?: string; weakPartPractice?: string })
+                          ?.summary_vi ?? "",
+                      weakPartPractice: (
+                        aiFb.rawResponse as { weakPartPractice?: string }
+                      )?.weakPartPractice,
                     }}
                     transcript={aiFb.transcript ?? aiFb.inputText}
                   />

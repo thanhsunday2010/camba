@@ -57,11 +57,14 @@ export async function gradeSpeaking(params: {
   examLevel: ExamLevel;
   prompt: string;
   transcript: string;
+  track?: "cambridge" | "ielts";
+  ieltsPart?: 1 | 2 | 3;
 }): Promise<{ feedback: SpeakingFeedback; raw: unknown }> {
   const { system, user } = buildSpeakingPrompt(
     params.examLevel,
     params.prompt,
-    params.transcript
+    params.transcript,
+    { track: params.track, ieltsPart: params.ieltsPart }
   );
 
   let lastError: Error | null = null;

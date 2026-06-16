@@ -19,7 +19,8 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: "Camba | App học Tiếng Anh miễn phí có AI chấm sửa",
-  description: "Luyện thi Cambridge cho trẻ em với game, âm thanh và AI chấm bài thông minh",
+  description:
+    "Test trình độ, Luyện tập, Mock test thi thử, chấm sửa AI cao cấp, ... | App luyện thi miễn phí IELTS, SAT, ĐGNL V-ACT, HSA, TSA | App chấm sửa Speaking Ielts miễn phí",
 };
 
 /** Chạy SSR/API gần Supabase (Singapore) và user VN */

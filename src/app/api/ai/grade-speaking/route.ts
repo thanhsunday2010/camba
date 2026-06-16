@@ -91,13 +91,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const content = question.content as { prompt: string };
+  const content = question.content as {
+    prompt: string;
+    examTrack?: string;
+    ieltsPart?: 1 | 2 | 3;
+  };
+  const isIelts = content.examTrack === "IELTS";
 
   try {
     const { feedback, raw } = await gradeSpeaking({
       examLevel: question.level,
       prompt: content.prompt,
       transcript,
+      track: isIelts ? "ielts" : "cambridge",
+      ieltsPart: content.ieltsPart,
     });
 
     const aiFeedback = await db.aIFeedback.create({

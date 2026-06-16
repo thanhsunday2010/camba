@@ -6,6 +6,12 @@ import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 import { MascotHero } from "@/components/kids/mascot-buddy";
 import { HomeStreakCta } from "@/components/home/home-session-ctas";
 import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
+import {
+  CAMBRIDGE_COURSES_CTA_LABEL,
+  CAMBRIDGE_COURSES_URL,
+  IELTS_SPEAKING_CTA_LABEL,
+  IELTS_SPEAKING_URL,
+} from "@/lib/site/ielts-speaking-cta";
 import { Trophy, Target, Gem, ArrowRight, Star } from "lucide-react";
 
 export const revalidate = 3600;
@@ -38,8 +44,11 @@ export default function HomePage() {
                 <Button asChild size="lg" variant="fun" className="rounded-full">
                   <Link href="/placement">🎯 Test trình độ</Link>
                 </Button>
+                <Button asChild size="lg" className="rounded-full bg-rose-600 font-bold hover:bg-rose-700">
+                  <Link href={IELTS_SPEAKING_URL}>🎤 {IELTS_SPEAKING_CTA_LABEL}</Link>
+                </Button>
                 <Button asChild size="lg" variant="secondary" className="kid-btn-fun rounded-full text-purple-800">
-                  <Link href="/exams">📚 Chọn cấp độ luyện tập</Link>
+                  <Link href={CAMBRIDGE_COURSES_URL}>📚 {CAMBRIDGE_COURSES_CTA_LABEL}</Link>
                 </Button>
                 <Button
                   asChild

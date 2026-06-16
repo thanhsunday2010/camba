@@ -23,6 +23,7 @@ import {
   formatMockTestQuotaExceededMessage,
 } from "@/lib/subscription/quota-messages";
 import { hasFullMockAccess } from "@/lib/subscription/plans";
+import { isIeltsSpeakingPaper } from "@/lib/exam/ielts-speaking-config";
 import { evaluatePlacement } from "@/lib/placement/evaluate";
 import { inferTrackFromPaperTitle } from "@/lib/placement/build-report";
 import { QuestionType, ExamLevel, Skill, PaperKind, Prisma } from "@prisma/client";
@@ -300,11 +301,19 @@ export async function startAttemptAction(paperId: string) {
   });
 
   if (paper.paperKind === PaperKind.PRACTICE && session.user.id && !existing) {
-    const { canUsePractice } = await import("@/lib/subscription/service");
-    const additional = isDynamicPracticePaper(paper) ? PRACTICE_POOL_SIZE : 1;
-    const allowed = await canUsePractice(session.user.id, additional);
-    if (!allowed) {
-      return { error: formatPracticeQuotaExceededMessage() };
+    if (isIeltsSpeakingPaper(paper)) {
+      const { canStartIeltsSpeakingPractice } = await import(
+        "@/lib/subscription/ielts-speaking-limit"
+      );
+      const check = await canStartIeltsSpeakingPractice(session.user.id);
+      if (!check.ok) return { error: check.error };
+    } else {
+      const { canUsePractice } = await import("@/lib/subscription/service");
+      const additional = isDynamicPracticePaper(paper) ? PRACTICE_POOL_SIZE : 1;
+      const allowed = await canUsePractice(session.user.id, additional);
+      if (!allowed) {
+        return { error: formatPracticeQuotaExceededMessage() };
+      }
     }
   }
 
@@ -322,10 +331,18 @@ export async function startAttemptAction(paperId: string) {
   }
 
   if (paper.paperKind === PaperKind.MOCK_SKILL && session.user.id && !existing) {
-    const { canUseMockTest } = await import("@/lib/subscription/service");
-    const allowed = await canUseMockTest(session.user.id);
-    if (!allowed) {
-      return { error: formatMockTestQuotaExceededMessage() };
+    if (isIeltsSpeakingPaper(paper)) {
+      const { canStartIeltsSpeakingMock } = await import(
+        "@/lib/subscription/ielts-speaking-limit"
+      );
+      const check = await canStartIeltsSpeakingMock(session.user.id);
+      if (!check.ok) return { error: check.error };
+    } else {
+      const { canUseMockTest } = await import("@/lib/subscription/service");
+      const allowed = await canUseMockTest(session.user.id);
+      if (!allowed) {
+        return { error: formatMockTestQuotaExceededMessage() };
+      }
     }
   }
 
@@ -358,7 +375,8 @@ export async function startAttemptAction(paperId: string) {
 
   if (
     (paper.paperKind === PaperKind.MOCK_SKILL || paper.paperKind === PaperKind.MOCK_FULL) &&
-    session.user.id
+    session.user.id &&
+    !isIeltsSpeakingPaper(paper)
   ) {
     const { recordMockTestUsage } = await import("@/lib/subscription/service");
     const recorded = await recordMockTestUsage(session.user.id);

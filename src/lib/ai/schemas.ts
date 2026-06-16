@@ -37,6 +37,7 @@ export const speakingFeedbackSchema = z.object({
   errors: z.array(writingErrorSchema).max(3),
   tips_vi: z.array(z.string()).min(1).max(2),
   summary_vi: z.string(),
+  weakPartPractice: z.string().optional(),
 });
 
 export type SpeakingFeedback = z.infer<typeof speakingFeedbackSchema>;

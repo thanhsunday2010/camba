@@ -59,8 +59,49 @@ JSON only.`;
 export function buildSpeakingPrompt(
   examLevel: ExamLevel,
   prompt: string,
-  transcript: string
+  transcript: string,
+  options?: { track?: "cambridge" | "ielts"; ieltsPart?: 1 | 2 | 3 }
 ): { system: string; user: string } {
+  if (options?.track === "ielts") {
+    const partLabel = options.ieltsPart ? `Part ${options.ieltsPart}` : "Speaking";
+    const system = `IELTS Speaking examiner. Grade ${partLabel} from transcript only.
+
+Return ONLY valid JSON:
+{
+  "overallScore": number (0-100),
+  "cambridgeBand": string (IELTS band 0-9, half bands OK e.g. "6.5"),
+  "criteria": {
+    "fluency": number (0-5),
+    "pronunciation": number (0-5),
+    "grammar": number (0-5),
+    "vocabulary": number (0-5),
+    "taskAchievement": number (0-5)
+  },
+  "errors": [
+    { "original": string, "correction": string, "type": string, "explanation_vi": string }
+  ],
+  "tips_vi": [string],
+  "summary_vi": string,
+  "weakPartPractice": string
+}
+
+Rules:
+- criteria map to IELTS: fluency=Fluency & Coherence, vocabulary=Lexical Resource, grammar=Grammatical Range, pronunciation=Pronunciation, taskAchievement=Task Response
+- summary_vi: ONE sentence max 25 words — band estimate + main strength/weakness
+- tips_vi: max 2 short tips in Vietnamese
+- weakPartPractice: suggest which IELTS Speaking part to practice more (e.g. "Part 1 — câu trả lời quá ngắn") — ONE sentence max 15 words
+- Maximum 2 errors
+${COMPACT_JSON_RULES}`;
+
+    const user = `PROMPT: ${prompt}
+
+TRANSCRIPT:
+${transcript}
+
+JSON only.`;
+    return { system, user };
+  }
+
   const system = `Cambridge ${examLevel} Speaking examiner. Grade from transcript.
 
 Return ONLY valid JSON:

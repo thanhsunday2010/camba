@@ -10,6 +10,7 @@ import { SoundToggle } from "@/components/kids/sound-toggle";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { logoutAction } from "@/lib/actions/auth";
 import { ReferralShareNavItem } from "@/components/referral/referral-share-block";
+import { CoursesNavMenu } from "@/components/layout/courses-nav-menu";
 import { Menu, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,9 +36,9 @@ function NavLinks({
       vertical && "block w-full text-left px-4 py-3 text-base"
     );
 
-  if (user) {
-    return (
-      <>
+  return (
+    <>
+      {user && (
         <Link
           href="/dashboard"
           className={linkClass("text-purple-700 hover:bg-purple-100")}
@@ -45,90 +46,94 @@ function NavLinks({
         >
           🏠 Trang chủ
         </Link>
-        <Link
-          href="/placement"
-          className={linkClass("text-sky-700 hover:bg-sky-100")}
-          onClick={onNavigate}
-        >
-          🎯 Test trình độ
-        </Link>
-        <Link
-          href="/exams"
-          className={linkClass("text-emerald-700 hover:bg-emerald-100")}
-          onClick={onNavigate}
-        >
-          📚 Chọn level
-        </Link>
-        <Link
-          href="/pricing"
-          className={linkClass("text-violet-700 hover:bg-violet-100")}
-          onClick={onNavigate}
-        >
-          💎 Bảng giá
-        </Link>
-        {referralCode && (
-          <ReferralShareNavItem referralCode={referralCode} vertical={vertical} />
-        )}
-        {vertical && (
-          <Link
-            href="/dashboard?tab=profile"
-            className={linkClass("text-pink-700 hover:bg-pink-100")}
-            onClick={onNavigate}
-          >
-            👤 Hồ sơ của tôi
-          </Link>
-        )}
-        {user.role === "ADMIN" && (
-          <Link
-            href="/admin"
-            className={linkClass("text-purple-700 hover:bg-purple-100")}
-            onClick={onNavigate}
-          >
-            Admin
-          </Link>
-        )}
-        {user.role === "TEACHER" && (
-          <Link
-            href="/teacher"
-            className={linkClass("text-purple-700 hover:bg-purple-100")}
-            onClick={onNavigate}
-          >
-            Giáo viên
-          </Link>
-        )}
-        <form action={logoutAction} className={vertical ? "pt-2" : undefined}>
-          <Button
-            variant="outline"
-            size={vertical ? "default" : "sm"}
-            type="submit"
-            className={cn("rounded-full border-2", vertical && "w-full")}
-          >
-            Đăng xuất
-          </Button>
-        </form>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Button asChild variant="ghost" size="sm" className={cn("rounded-full font-bold", vertical && "w-full justify-start px-4 py-3 h-auto text-base")}>
-        <Link href="/login" onClick={onNavigate}>
-          Đăng nhập
-        </Link>
-      </Button>
-      <Button
-        asChild
-        size={vertical ? "default" : "sm"}
-        className={cn(
-          "kid-btn-fun rounded-full bg-gradient-to-r from-purple-500 to-pink-500",
-          vertical && "w-full"
-        )}
+      )}
+      <Link
+        href="/placement"
+        className={linkClass("text-sky-700 hover:bg-sky-100")}
+        onClick={onNavigate}
       >
-        <Link href="/register" onClick={onNavigate}>
-          Đăng ký miễn phí ✨
-        </Link>
-      </Button>
+        🎯 Test trình độ
+      </Link>
+      <CoursesNavMenu vertical={vertical} onNavigate={onNavigate} linkClass={linkClass} />
+      <Link
+        href="/pricing"
+        className={linkClass("text-violet-700 hover:bg-violet-100")}
+        onClick={onNavigate}
+      >
+        💎 Bảng giá
+      </Link>
+      {user ? (
+        <>
+          {referralCode && (
+            <ReferralShareNavItem referralCode={referralCode} vertical={vertical} />
+          )}
+          {vertical && (
+            <Link
+              href="/dashboard?tab=profile"
+              className={linkClass("text-pink-700 hover:bg-pink-100")}
+              onClick={onNavigate}
+            >
+              👤 Hồ sơ của tôi
+            </Link>
+          )}
+          {user.role === "ADMIN" && (
+            <Link
+              href="/admin"
+              className={linkClass("text-purple-700 hover:bg-purple-100")}
+              onClick={onNavigate}
+            >
+              Admin
+            </Link>
+          )}
+          {user.role === "TEACHER" && (
+            <Link
+              href="/teacher"
+              className={linkClass("text-purple-700 hover:bg-purple-100")}
+              onClick={onNavigate}
+            >
+              Giáo viên
+            </Link>
+          )}
+          <form action={logoutAction} className={vertical ? "pt-2" : undefined}>
+            <Button
+              variant="outline"
+              size={vertical ? "default" : "sm"}
+              type="submit"
+              className={cn("rounded-full border-2", vertical && "w-full")}
+            >
+              Đăng xuất
+            </Button>
+          </form>
+        </>
+      ) : (
+        <>
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "rounded-full font-bold",
+              vertical && "h-auto w-full justify-start px-4 py-3 text-base"
+            )}
+          >
+            <Link href="/login" onClick={onNavigate}>
+              Đăng nhập
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size={vertical ? "default" : "sm"}
+            className={cn(
+              "kid-btn-fun rounded-full bg-gradient-to-r from-purple-500 to-pink-500",
+              vertical && "w-full"
+            )}
+          >
+            <Link href="/register" onClick={onNavigate}>
+              Đăng ký miễn phí ✨
+            </Link>
+          </Button>
+        </>
+      )}
     </>
   );
 }

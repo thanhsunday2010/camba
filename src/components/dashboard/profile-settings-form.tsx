@@ -20,6 +20,11 @@ import { CambaMascot } from "@/components/kids/camba-mascot";
 import { ReferralShareInline } from "@/components/referral/referral-share-block";
 import { REFERRAL_BUTTON_LABEL } from "@/lib/referral/constants";
 import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
+import {
+  IELTS_SPEAKING_CTA_LABEL,
+  IELTS_SPEAKING_URL,
+} from "@/lib/site/ielts-speaking-cta";
+import Link from "next/link";
 import { Camera, Trash2, UserRound } from "lucide-react";
 
 interface ProfileSettingsFormProps {
@@ -130,6 +135,20 @@ export function ProfileSettingsForm({ profile, referralCode }: ProfileSettingsFo
           </CardContent>
         </Card>
       )}
+
+      <Card className="border-2 border-rose-200 bg-gradient-to-br from-rose-50/80 to-white">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-extrabold">🎤 Speaking IELTS</CardTitle>
+          <CardDescription>
+            Luyện từng Part hoặc mock full — AI chấm band IELTS miễn phí (Free: 3 lượt/ngày)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild className="kid-btn-fun rounded-full bg-rose-600 hover:bg-rose-700">
+            <Link href={IELTS_SPEAKING_URL}>{IELTS_SPEAKING_CTA_LABEL}</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card className="border-2 border-sky-200 bg-gradient-to-br from-sky-50/80 to-white">
         <CardHeader className="pb-3">
