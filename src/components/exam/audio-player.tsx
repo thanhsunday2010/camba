@@ -207,7 +207,7 @@ export function AudioPlayer({
           </Button>
         )}
 
-        <span className="text-xs font-medium text-purple-600/90">
+        <span className="text-base font-medium text-purple-600/90">
           {isListening && !isListeningAudioUnlocked()
             ? "Nhấn nút để nghe — sau lần đầu audio sẽ tự phát ở câu Listening tiếp theo"
             : isSpeakingPrompt

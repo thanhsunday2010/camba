@@ -386,36 +386,25 @@ function SpeakingQuestion({
             <div>
               <p className="text-sm font-extrabold text-purple-900">🎤 Bài nói</p>
               {questionTitle && (
-                <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{questionTitle}</p>
+                <p className="mt-0.5 text-base font-semibold text-muted-foreground">{questionTitle}</p>
               )}
             </div>
             <div className="flex flex-wrap gap-1.5">
               {content.preparationTime != null && content.preparationTime > 0 && (
-                <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-xs font-bold text-purple-700 ring-1 ring-purple-100">
+                <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-base font-bold text-purple-700 ring-1 ring-purple-100">
                   Chuẩn bị {content.preparationTime}s
                 </span>
               )}
               {content.speakingTime != null && content.speakingTime > 0 && (
-                <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-xs font-bold text-purple-700 ring-1 ring-purple-100">
+                <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-base font-bold text-purple-700 ring-1 ring-purple-100">
                   Nói {content.speakingTime}s
                 </span>
               )}
             </div>
           </div>
-          <p className="mt-2 text-xs font-medium leading-relaxed text-purple-800/90">
+          <p className="mt-2 text-base font-medium leading-relaxed text-purple-800/90">
             Nghe câu hỏi của giám khảo, rồi trả lời bằng tiếng Anh — giống thi Speaking thật.
           </p>
-          {practiceMinWords != null && (
-            <p
-              className={cn(
-                "mt-1.5 text-xs font-semibold",
-                meetsMin ? "text-emerald-700" : "text-amber-800"
-              )}
-            >
-              Tối thiểu {practiceMinWords} từ tiếng Anh để nộp bài
-              {meetsMin && " · Đủ rồi ✅"}
-            </p>
-          )}
         </div>
 
         <div className="space-y-3 px-4 py-3">
@@ -434,7 +423,7 @@ function SpeakingQuestion({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 rounded-full border-purple-200 text-xs font-bold text-purple-800"
+                className="h-9 rounded-full border-purple-200 text-base font-bold text-purple-800"
                 onClick={() => setShowPrompt((v) => !v)}
               >
                 {showPrompt ? (
@@ -476,6 +465,11 @@ function SpeakingQuestion({
           disabled={disabled}
           hideLiveTranscript
           maxWords={maxWords}
+          minWordsHint={
+            practiceMinWords != null
+              ? { min: practiceMinWords, meetsMin }
+              : undefined
+          }
         />
       )}
     </div>

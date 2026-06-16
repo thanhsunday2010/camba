@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface AudioRecorderProps {
   /** Called with transcript from Web Speech API or manual input */
@@ -14,6 +15,8 @@ interface AudioRecorderProps {
   /** Hide live transcript preview while recording (speaking test mode) */
   hideLiveTranscript?: boolean;
   maxWords?: number;
+  /** Shown above record controls (speaking practice min-word hint) */
+  minWordsHint?: { min: number; meetsMin: boolean };
 }
 
 function countWords(text: string): number {
@@ -63,6 +66,7 @@ export function AudioRecorder({
   disabled,
   hideLiveTranscript = false,
   maxWords,
+  minWordsHint,
 }: AudioRecorderProps) {
   const [recording, setRecording] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
@@ -208,9 +212,17 @@ export function AudioRecorder({
 
       {canUseSpeech && (
         <div className="rounded-lg border bg-cambridge-50 p-4">
-          <p className="mb-2 text-sm font-medium text-cambridge-800">
-            Nhận dạng giọng nói miễn phí (Web Speech API)
-          </p>
+          {minWordsHint && (
+            <p
+              className={cn(
+                "mb-2 text-base font-semibold",
+                minWordsHint.meetsMin ? "text-emerald-700" : "text-amber-800"
+              )}
+            >
+              Tối thiểu {minWordsHint.min} từ tiếng Anh để nộp bài
+              {minWordsHint.meetsMin && " · Đủ rồi ✅"}
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             {!recording ? (
               <Button
