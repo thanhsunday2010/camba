@@ -18,6 +18,11 @@ import { resolveMcqMedia } from "@/lib/exam/question-media";
 import { stripListeningScriptFromQuestion, normalizeListeningTranscript } from "@/lib/exam/listening-display";
 import { getSpeakingPromptText } from "@/lib/exam/speaking-audio";
 import { cn } from "@/lib/utils";
+import { QuestionExplanationPanel } from "@/components/exam/question-explanation-panel";
+import {
+  PracticeObjectiveFeedback,
+  type ObjectiveFeedback,
+} from "@/components/exam/practice-objective-feedback";
 
 interface QuestionData {
   id: string;
@@ -26,6 +31,7 @@ interface QuestionData {
   audioUrl?: string | null;
   points: number;
   title?: string | null;
+  correctAnswer?: unknown;
 }
 
 interface QuestionRendererProps {
@@ -38,6 +44,9 @@ interface QuestionRendererProps {
   isListening?: boolean;
   maxWritingWords?: number;
   maxSpeakingWords?: number;
+  objectiveFeedback?: ObjectiveFeedback | null;
+  lockObjectiveAnswer?: boolean;
+  practiceMinWords?: number | null;
 }
 
 export function QuestionRenderer({
@@ -50,6 +59,9 @@ export function QuestionRenderer({
   isListening = false,
   maxWritingWords,
   maxSpeakingWords,
+  objectiveFeedback = null,
+  lockObjectiveAnswer = false,
+  practiceMinWords = null,
 }: QuestionRendererProps) {
   const content = question.content as McqContent | GapFillContent | FreeTextContent | SpeakingContent;
   const mcqContent = content as McqContent;
@@ -111,7 +123,7 @@ export function QuestionRenderer({
           content={{ ...mcqContent, question: displayQuestion }}
           value={value as string}
           onChange={onChange}
-          disabled={disabled}
+          disabled={disabled || lockObjectiveAnswer}
         />
       )}
 
@@ -120,7 +132,7 @@ export function QuestionRenderer({
           content={content as GapFillContent}
           value={value as string[]}
           onChange={onChange}
-          disabled={disabled}
+          disabled={disabled || lockObjectiveAnswer}
         />
       )}
 
@@ -131,6 +143,7 @@ export function QuestionRenderer({
           onChange={onChange}
           disabled={disabled}
           maxWords={maxWritingWords}
+          practiceMinWords={practiceMinWords}
         />
       )}
 
@@ -144,6 +157,17 @@ export function QuestionRenderer({
           onSpeakingTranscript={onSpeakingTranscript}
           disabled={disabled}
           maxWords={maxSpeakingWords}
+          practiceMinWords={practiceMinWords}
+        />
+      )}
+
+      {objectiveFeedback && (
+        <PracticeObjectiveFeedback
+          feedback={objectiveFeedback}
+          questionType={question.type}
+          content={question.content}
+          studentAnswer={value}
+          correctAnswer={question.correctAnswer}
         />
       )}
     </div>
@@ -254,12 +278,14 @@ function FreeTextQuestion({
   onChange,
   disabled,
   maxWords,
+  practiceMinWords,
 }: {
   content: FreeTextContent;
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
   maxWords?: number;
+  practiceMinWords?: number | null;
 }) {
   const wordCount = (value ?? "").trim().split(/\s+/).filter(Boolean).length;
   const planLimit = maxWords ?? content.wordLimit;
@@ -292,16 +318,29 @@ function FreeTextQuestion({
         onChange={(e) => handleChange(e.target.value)}
         disabled={disabled}
       />
-      <div className="flex justify-between text-sm text-muted-foreground">
+      <div className="flex flex-wrap justify-between gap-2 text-sm text-muted-foreground">
         <span className={overLimit ? "font-bold text-red-600" : ""}>{wordCount} từ</span>
-        {planLimit && (
-          <span>
-            Giới hạn gói: {planLimit} từ/lần
-            {content.wordLimit && content.wordLimit !== planLimit && (
-              <span className="ml-1">(đề: {content.wordLimit} từ)</span>
-            )}
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-0.5">
+          {practiceMinWords != null && (
+            <span
+              className={
+                wordCount >= practiceMinWords
+                  ? "font-semibold text-emerald-700"
+                  : "font-semibold text-amber-800"
+              }
+            >
+              Tối thiểu {practiceMinWords} từ để chuyển câu / nộp bài
+            </span>
+          )}
+          {planLimit && (
+            <span>
+              Giới hạn gói: {planLimit} từ/lần
+              {content.wordLimit && content.wordLimit !== planLimit && (
+                <span className="ml-1">(đề: {content.wordLimit} từ)</span>
+              )}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -316,6 +355,7 @@ function SpeakingQuestion({
   onSpeakingTranscript,
   disabled,
   maxWords,
+  practiceMinWords,
 }: {
   questionId: string;
   audioUrl?: string | null;
@@ -325,8 +365,10 @@ function SpeakingQuestion({
   onSpeakingTranscript?: (text: string) => void;
   disabled?: boolean;
   maxWords?: number;
+  practiceMinWords?: number | null;
 }) {
   const promptAudioText = getSpeakingPromptText(content);
+  const wordCount = savedTranscript.trim().split(/\s+/).filter(Boolean).length;
 
   return (
     <div className="space-y-4">
@@ -342,6 +384,14 @@ function SpeakingQuestion({
           <p className="mt-2 text-sm text-purple-700">
             {content.preparationTime && `Chuẩn bị: ${content.preparationTime}s`}
             {content.speakingTime && ` | Nói: ${content.speakingTime}s`}
+          </p>
+        )}
+        {practiceMinWords != null && (
+          <p className="mt-2 text-sm font-semibold text-purple-800">
+            Tối thiểu {practiceMinWords} từ tiếng Anh để chuyển câu / nộp bài
+            {wordCount >= practiceMinWords && savedTranscript.trim().length >= 3 && (
+              <span className="ml-1 text-emerald-700">· Đủ rồi ✅</span>
+            )}
           </p>
         )}
       </div>

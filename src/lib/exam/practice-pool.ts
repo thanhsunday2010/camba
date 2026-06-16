@@ -381,10 +381,10 @@ export function usesAttemptQuestionSet(paper: {
   return paper.paperKind === PaperKind.PLACEMENT || isDynamicPoolPaper(paper);
 }
 
-export function shouldIncludeCorrectAnswerForPoolPaper(_paper: {
+export function shouldIncludeCorrectAnswerForPoolPaper(paper: {
   paperKind: PaperKind;
   practicePoolKey?: string | null;
 }): boolean {
-  return false;
+  return paper.paperKind === PaperKind.PRACTICE;
 }
 

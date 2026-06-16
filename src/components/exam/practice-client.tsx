@@ -26,6 +26,18 @@ import {
 } from "@/lib/kids/mascot-messages";
 import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
 import { notifyFreeLimitHit } from "@/lib/promo/events";
+import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
+import type { GapFillContent } from "@/lib/exam/scoring";
+import {
+  formatCorrectAnswerDisplay,
+  formatExplanationForStudent,
+} from "@/lib/exam/question-explanation";
+import type { ObjectiveFeedback } from "@/components/exam/practice-objective-feedback";
+import {
+  getPracticeMinWords,
+  meetsPracticeMinWords,
+  practiceMinWordsMessage,
+} from "@/lib/exam/practice-min-words";
 
 interface PaperQuestion {
   id: string;
@@ -35,6 +47,7 @@ interface PaperQuestion {
   points: number;
   skill?: string;
   title?: string | null;
+  correctAnswer?: unknown;
 }
 
 interface PracticeClientProps {
@@ -69,6 +82,69 @@ function isAnswered(value: unknown): boolean {
   return true;
 }
 
+function usesInstantObjectiveFeedback(
+  paperKind: string | undefined,
+  question: PaperQuestion
+): boolean {
+  if (paperKind !== "PRACTICE") return false;
+  if (question.skill !== "READING" && question.skill !== "LISTENING") return false;
+  return question.type === "MCQ" || question.type === "GAP_FILL";
+}
+
+function isGapFillComplete(value: unknown, blanks: number): boolean {
+  if (!Array.isArray(value)) return false;
+  return Array.from({ length: blanks }).every(
+    (_, i) => String(value[i] ?? "").trim() !== ""
+  );
+}
+
+function buildObjectiveFeedback(
+  paperKind: string | undefined,
+  question: PaperQuestion,
+  value: unknown
+): ObjectiveFeedback | null {
+  if (!usesInstantObjectiveFeedback(paperKind, question)) return null;
+  if (question.correctAnswer == null) return null;
+
+  if (question.type === "GAP_FILL") {
+    const blanks = (question.content as GapFillContent).blanks;
+    if (!isGapFillComplete(value, blanks)) return null;
+  } else if (question.type === "MCQ") {
+    if (!isAnswered(value)) return null;
+  }
+
+  const { isCorrect } = gradeObjectiveAnswer(
+    question.type,
+    question.correctAnswer,
+    value
+  );
+
+  return {
+    isCorrect,
+    correctDisplay: formatCorrectAnswerDisplay(question.type, question.correctAnswer),
+    explanation: formatExplanationForStudent(
+      question.content,
+      value,
+      question.correctAnswer
+    ),
+  };
+}
+
+function isReadingListeningPractice(
+  paperKind: string | undefined,
+  questions: PaperQuestion[]
+): boolean {
+  return (
+    paperKind === "PRACTICE" &&
+    questions.length > 0 &&
+    questions.every(
+      (q) =>
+        (q.skill === "READING" || q.skill === "LISTENING") &&
+        (q.type === "MCQ" || q.type === "GAP_FILL")
+    )
+  );
+}
+
 export function PracticeClient({
   paperId,
   paperTitle,
@@ -96,6 +172,11 @@ export function PracticeClient({
   const countedPracticeQuestionsRef = useRef<Set<string>>(new Set());
   const [sessionQuestions, setSessionQuestions] = useState<PaperQuestion[]>(questions);
   const [loadingPool, setLoadingPool] = useState(dynamicPool && !initialAttemptId);
+  const [objectiveFeedback, setObjectiveFeedback] = useState<
+    Record<string, ObjectiveFeedback>
+  >({});
+
+  const readingListeningPractice = isReadingListeningPractice(paperKind, sessionQuestions);
 
   useEffect(() => {
     setSessionQuestions(questions);
@@ -136,7 +217,7 @@ export function PracticeClient({
   }, [currentIndex]);
 
   const setAnswer = useCallback(
-    (questionId: string, value: unknown, _question?: PaperQuestion) => {
+    (questionId: string, value: unknown, question?: PaperQuestion) => {
       setAnswers((prev) => {
         const next = { ...prev, [questionId]: value };
 
@@ -149,7 +230,16 @@ export function PracticeClient({
 
         return next;
       });
-      play("pop");
+
+      const q = question ?? sessionQuestions.find((item) => item.id === questionId);
+      const instant = q ? buildObjectiveFeedback(paperKind, q, value) : null;
+
+      if (instant && !objectiveFeedback[questionId]) {
+        setObjectiveFeedback((prev) => ({ ...prev, [questionId]: instant }));
+        play(instant.isCorrect ? "answerCorrect" : "answerWrong");
+      } else if (!q || !usesInstantObjectiveFeedback(paperKind, q)) {
+        play("pop");
+      }
 
       if (paperKind === "PRACTICE" && questionId) {
         const answeredNow = isAnswered(value);
@@ -172,11 +262,38 @@ export function PracticeClient({
         });
       }
     },
-    [play, paperKind, attemptId, sessionQuestions, showMascot]
+    [play, paperKind, attemptId, sessionQuestions, showMascot, objectiveFeedback]
   );
+
+  const validateMinWordsForQuestion = useCallback(
+    (question: PaperQuestion): boolean => {
+      if (meetsPracticeMinWords(question.type, question.content, answers[question.id])) {
+        return true;
+      }
+      toast.error(practiceMinWordsMessage(question.type, question.content));
+      return false;
+    },
+    [answers]
+  );
+
+  const validateAllMinWords = useCallback((): boolean => {
+    for (const q of sessionQuestions) {
+      if (
+        (q.type === "FREE_TEXT" || q.type === "SPEAKING_PROMPT") &&
+        isAnswered(answers[q.id]) &&
+        !meetsPracticeMinWords(q.type, q.content, answers[q.id])
+      ) {
+        toast.error(practiceMinWordsMessage(q.type, q.content));
+        return false;
+      }
+    }
+    return true;
+  }, [sessionQuestions, answers]);
 
   const handleSubmit = useCallback(async () => {
     if (!attemptId) return;
+    if (!validateAllMinWords()) return;
+
     setSubmitting(true);
     play("celebrate");
     showMascot(
@@ -212,7 +329,7 @@ export function PracticeClient({
 
     for (const q of aiQuestions) {
       const ans = answers[q.id];
-      if (q.type === "FREE_TEXT" && typeof ans === "string" && ans.trim().length >= 10) {
+      if (q.type === "FREE_TEXT" && typeof ans === "string" && meetsPracticeMinWords(q.type, q.content, ans)) {
         try {
           await fetch("/api/ai/grade-writing", {
             method: "POST",
@@ -231,7 +348,7 @@ export function PracticeClient({
         !isGuestAttempt &&
         q.type === "SPEAKING_PROMPT" &&
         typeof ans === "string" &&
-        ans.trim().length >= 3
+        meetsPracticeMinWords(q.type, q.content, ans)
       ) {
         try {
           const res = await fetch("/api/ai/grade-speaking", {
@@ -270,7 +387,7 @@ export function PracticeClient({
     hideMascot();
     router.refresh();
     router.push(`/results/${attemptId}`);
-  }, [attemptId, answers, startedAt, sessionQuestions, router, paperKind, play, showMascot, hideMascot, isGuestAttempt]);
+  }, [attemptId, answers, startedAt, sessionQuestions, router, paperKind, play, showMascot, hideMascot, isGuestAttempt, validateAllMinWords]);
 
   const current = sessionQuestions[currentIndex];
   const currentSection = sections?.find(
@@ -346,6 +463,7 @@ export function PracticeClient({
   }, [sections, currentIndex, handleSubmit, play]);
 
   const goNext = () => {
+    if (current && !validateMinWordsForQuestion(current)) return;
     stopAllListeningPlayback();
     play("whoosh");
     setCurrentIndex((i) => Math.min(i + 1, sessionQuestions.length - 1));
@@ -368,6 +486,7 @@ export function PracticeClient({
   };
 
   const jumpToQuestion = (index: number) => {
+    if (current && index !== currentIndex && !validateMinWordsForQuestion(current)) return;
     stopAllListeningPlayback();
     play("click");
     setCurrentIndex(index);
@@ -384,6 +503,12 @@ export function PracticeClient({
     >
       <ConfettiBurst active={showConfetti} />
 
+      {readingListeningPractice && (
+        <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-sky-300 bg-gradient-to-r from-sky-50 to-emerald-50 px-4 py-3 text-sm font-semibold text-sky-900">
+          ⚡ <strong>Luyện tập tương tác:</strong> Chọn đáp án để biết ngay đúng/sai, nghe âm thanh
+          vui nhộn và xem giải thích tại chỗ. Trang kết quả chỉ hiển thị điểm tổng.
+        </div>
+      )}
       {paperKind === "PLACEMENT" && (
         <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-sky-300 bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-3 text-sm font-semibold text-sky-900">
           🎯 <strong>Bài test trình độ:</strong> Bạn có thể nhảy tới bất kỳ câu nào trên bản đồ
@@ -458,6 +583,7 @@ export function PracticeClient({
               {sessionQuestions.map((q, i) => {
                 const sec = sections?.find((s) => i >= s.startIndex && i < s.endIndex);
                 const answered = isAnswered(answers[q.id]);
+                const fb = objectiveFeedback[q.id];
                 return (
                   <button
                     key={q.id}
@@ -470,9 +596,13 @@ export function PracticeClient({
                     className={`h-9 rounded-xl text-sm font-bold transition-all duration-200 ${
                       i === currentIndex
                         ? "scale-110 bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md"
-                        : answered
-                          ? "bg-mint-200 text-mint-900 ring-2 ring-mint-400"
-                          : "bg-amber-50 text-amber-900 ring-2 ring-amber-300 hover:bg-amber-100"
+                        : fb
+                          ? fb.isCorrect
+                            ? "bg-emerald-200 text-emerald-900 ring-2 ring-emerald-400"
+                            : "bg-rose-200 text-rose-900 ring-2 ring-rose-400"
+                          : answered
+                            ? "bg-mint-200 text-mint-900 ring-2 ring-mint-400"
+                            : "bg-amber-50 text-amber-900 ring-2 ring-amber-300 hover:bg-amber-100"
                     } ${strictSequential && i !== currentIndex ? "cursor-not-allowed opacity-50" : "hover:scale-105"}`}
                   >
                     {i + 1}
@@ -508,6 +638,9 @@ export function PracticeClient({
                 disabled={submitting}
                 maxWritingWords={maxWritingWords}
                 maxSpeakingWords={maxSpeakingWords}
+                objectiveFeedback={objectiveFeedback[current.id] ?? null}
+                lockObjectiveAnswer={!!objectiveFeedback[current.id]}
+                practiceMinWords={getPracticeMinWords(current.type, current.content)}
               />
             </div>
             )
