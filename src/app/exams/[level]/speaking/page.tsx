@@ -4,6 +4,7 @@ import { ExamLevel } from "@prisma/client";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { formatExamLevel } from "@/lib/constants";
+import { isYleLevel } from "@/lib/yle/constants";
 import {
   buildCambridgeSpeakingMockPoolKey,
   buildCambridgeSpeakingPracticePoolKey,
@@ -130,7 +131,7 @@ export default async function CambridgeSpeakingPage({
         <CambaMascot size="lg" mood="wave" />
         <div>
           <Link
-            href={`/exams/${levelParam}`}
+            href={isYleLevel(levelParam) ? `/yle/${levelParam}` : `/exams/${levelParam}`}
             className="text-sm font-semibold text-purple-600 hover:underline"
           >
             ← {formatExamLevel(levelParam)}

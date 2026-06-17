@@ -13,6 +13,8 @@ interface CambaMascotProps {
   activity?: MascotActivity;
   /** Mouth / limb motion while speaking or playing feedback SFX */
   talking?: boolean;
+  /** YLE mascot rank tier 1–5 — changes cap / badge visuals */
+  rankTier?: number;
   className?: string;
   animate?: boolean;
 }
@@ -24,11 +26,20 @@ const SIZES = {
   xl: "h-52 w-52",
 };
 
+const RANK_CAP: Record<number, { top: string; band: string; tassel: string }> = {
+  1: { top: "#4F46E5", band: "#3730A3", tassel: "#F59E0B" },
+  2: { top: "#2563EB", band: "#1D4ED8", tassel: "#FBBF24" },
+  3: { top: "#7C3AED", band: "#6D28D9", tassel: "#FDE047" },
+  4: { top: "#D97706", band: "#B45309", tassel: "#FEF08A" },
+  5: { top: "#CA8A04", band: "#A16207", tassel: "#FEF9C3" },
+};
+
 export function CambaMascot({
   size = "md",
   mood = "happy",
   activity = "idle",
   talking = false,
+  rankTier = 1,
   className,
   animate = true,
 }: CambaMascotProps) {
@@ -40,6 +51,8 @@ export function CambaMascot({
   const wavePaw = mood === "wave" || activity === "correct" || activity === "celebrate";
   const wink = !isTalking && (mood === "happy" || mood === "cheer");
   const resolvedMood = activity === "wrong" || activity === "think" ? "think" : mood;
+  const tier = Math.min(5, Math.max(1, rankTier));
+  const capColors = RANK_CAP[tier] ?? RANK_CAP[1]!;
 
   return (
     <div
@@ -173,13 +186,37 @@ export function CambaMascot({
         <rect x="46.5" y="67" width="3" height="4" rx="0.8" fill="white" stroke="#E5E7EB" strokeWidth="0.4" />
         <rect x="50.5" y="67" width="3" height="4" rx="0.8" fill="white" stroke="#E5E7EB" strokeWidth="0.4" />
 
-        {/* Grad cap — small, between ears */}
+        {/* Grad cap — tier colors */}
         <g className={cn(animate && "origin-[50px_36px] animate-mascot-cap-tilt")}>
-          <polygon points="50,32 32,42 68,42" fill="#4F46E5" />
-          <rect x="38" y="42" width="24" height="3" rx="0.5" fill="#3730A3" />
+          <polygon points="50,32 32,42 68,42" fill={capColors.top} />
+          <rect x="38" y="42" width="24" height="3" rx="0.5" fill={capColors.band} />
           <line x1="66" y1="43" x2="72" y2="50" stroke="#FBBF24" strokeWidth="1.5" />
-          <circle cx="72" cy="51" r="2.5" fill="#F59E0B" />
+          <circle cx="72" cy="51" r="2.5" fill={capColors.tassel} />
         </g>
+
+        {tier >= 3 && (
+          <text x="50" y="30" textAnchor="middle" fontSize="9">
+            ⭐
+          </text>
+        )}
+        {tier >= 4 && (
+          <text x="18" y="38" fontSize="8" className={animate ? "animate-float" : undefined}>
+            🌟
+          </text>
+        )}
+        {tier >= 5 && (
+          <>
+            <text x="50" y="24" textAnchor="middle" fontSize="10">
+              👑
+            </text>
+            <circle cx="50" cy="58" r="27" fill="none" stroke="#FBBF24" strokeWidth="1.5" strokeOpacity="0.55" />
+          </>
+        )}
+        {tier >= 2 && tier < 5 && (
+          <text x="78" y="42" fontSize="9" className={animate ? "animate-float" : undefined} style={{ animationDelay: "0.3s" }}>
+            🚀
+          </text>
+        )}
 
         {(resolvedMood === "cheer" || isCelebrate) && (
           <>

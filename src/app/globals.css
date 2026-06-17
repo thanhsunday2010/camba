@@ -164,6 +164,23 @@
   .animate-mascot-feet-talk {
     animation: mascotFeetTalk 0.5s ease-in-out infinite;
   }
+  .animate-yle-orbit-spin {
+    animation: yleOrbitSpin 48s linear infinite;
+  }
+  .animate-yle-orbit-counter {
+    animation: yleOrbitSpin 48s linear infinite reverse;
+  }
+  .animate-yle-planet-pulse {
+    animation: ylePlanetPulse 4s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-yle-orbit-spin,
+  .animate-yle-orbit-counter,
+  .animate-yle-planet-pulse {
+    animation: none !important;
+  }
 }
 
 @keyframes float {
@@ -266,4 +283,14 @@
 @keyframes mascotFeetTalk {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-3px) rotate(6deg); }
+}
+
+@keyframes yleOrbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ylePlanetPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15); }
+  50% { transform: scale(1.03); box-shadow: 0 12px 32px rgba(124, 58, 237, 0.25); }
 }

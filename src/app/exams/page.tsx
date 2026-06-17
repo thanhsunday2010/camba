@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -30,6 +31,18 @@ export default async function ExamsHubPage() {
           <ExamsHubIntro levelLabel={formatExamLevel(user.targetExam)} />
         </div>
       </div>
+
+      <Link
+        href="/yle"
+        className="mb-6 flex items-center gap-3 rounded-2xl border-2 border-violet-300 bg-gradient-to-r from-violet-100 to-pink-100 p-4 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+      >
+        <span className="text-3xl">🌌</span>
+        <div>
+          <p className="font-extrabold text-violet-900">Vũ trụ YLE — Starters · Movers · Flyers</p>
+          <p className="text-sm text-muted-foreground">Hub tròn quanh hành tinh, bảng xếp hạng & thăng hạng Camba</p>
+        </div>
+        <span className="ml-auto text-sm font-bold text-violet-700">Vào →</span>
+      </Link>
 
       <LevelPicker currentLevel={user.targetExam} variant="full" />
 

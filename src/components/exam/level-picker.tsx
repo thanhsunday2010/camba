@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { EXAM_LEVELS } from "@/lib/constants";
+import { isYleLevel } from "@/lib/yle/constants";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 import { updateTargetExamAction } from "@/lib/actions/auth";
 import { cn } from "@/lib/utils";
@@ -29,7 +30,7 @@ export function LevelPicker({ currentLevel, variant = "full" }: LevelPickerProps
     await update({ targetExam: level });
     toast.success(`Đã chọn level ${level}! 🐰`);
     router.refresh();
-    if (navigate) router.push(`/exams/${level}`);
+    if (navigate) router.push(isYleLevel(level) ? `/yle/${level}` : `/exams/${level}`);
   }
 
   if (variant === "compact") {
@@ -98,10 +99,10 @@ export function LevelPicker({ currentLevel, variant = "full" }: LevelPickerProps
                 {active ? "Luyện ngay" : "Chọn level này"}
               </button>
               <Link
-                href={`/exams/${level.value}`}
+                href={isYleLevel(level.value) ? `/yle/${level.value}` : `/exams/${level.value}`}
                 className="rounded-xl border-2 border-purple-200 bg-white px-3 py-2 text-sm font-bold text-purple-700 hover:bg-purple-50"
               >
-                Xem đề
+                {isYleLevel(level.value) ? "Vũ trụ YLE" : "Xem đề"}
               </Link>
             </div>
           </div>

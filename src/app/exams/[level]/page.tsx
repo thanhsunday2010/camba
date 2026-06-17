@@ -52,6 +52,10 @@ export default async function ExamsLevelPage({
   const validLevels = ["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"];
   if (!validLevels.includes(level)) notFound();
 
+  if (YLE_LEVELS.has(level)) {
+    redirect(`/yle/${level}`);
+  }
+
   const examLevel = level as ExamLevel;
   const theme = LEVEL_THEMES[level] ?? LEVEL_THEMES.KET;
   const isYle = YLE_LEVELS.has(level);
