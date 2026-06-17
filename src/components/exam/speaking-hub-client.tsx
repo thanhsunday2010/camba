@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
+import { formatQuotaRatio, isQuotaExhausted, isUnlimitedQuota } from "@/lib/subscription/plans";
 
 export type SpeakingUsageSnapshot = {
   planName: string;
@@ -51,7 +52,7 @@ type Props = {
 };
 
 function usagePct(used: number, limit: number) {
-  if (limit <= 0) return 0;
+  if (isUnlimitedQuota(limit) || limit <= 0) return 0;
   return Math.min(100, Math.round((used / limit) * 100));
 }
 
@@ -67,8 +68,8 @@ export function SpeakingHubClient({
   mockBankStats,
   migrateHint = "Chưa có đề — chạy migrate Speaking",
 }: Props) {
-  const practiceLocked = usage.practiceRemaining <= 0;
-  const mockLocked = usage.mockRemaining <= 0;
+  const practiceLocked = isQuotaExhausted(usage.practiceUsed, usage.practiceLimit);
+  const mockLocked = isQuotaExhausted(usage.mockUsed, usage.mockLimit);
 
   return (
     <div className="space-y-8">
@@ -83,18 +84,14 @@ export function SpeakingHubClient({
           <div>
             <div className="mb-1 flex justify-between text-sm font-semibold">
               <span>Luyện tập (1 câu / Part)</span>
-              <span>
-                {usage.practiceUsed}/{usage.practiceLimit}
-              </span>
+              <span>{formatQuotaRatio(usage.practiceUsed, usage.practiceLimit)}</span>
             </div>
             <Progress value={usagePct(usage.practiceUsed, usage.practiceLimit)} />
           </div>
           <div>
             <div className="mb-1 flex justify-between text-sm font-semibold">
               <span>Mock test ({usage.mockPeriod === "week" ? "tuần" : "ngày"})</span>
-              <span>
-                {usage.mockUsed}/{usage.mockLimit}
-              </span>
+              <span>{formatQuotaRatio(usage.mockUsed, usage.mockLimit)}</span>
             </div>
             <Progress value={usagePct(usage.mockUsed, usage.mockLimit)} />
           </div>

@@ -12,8 +12,14 @@ import {
   stopAllListeningPlayback,
   unlockListeningAudio,
 } from "@/lib/audio/listening-audio-client";
-import { startAttemptAction, submitAttemptAction, swapPracticeQuestionAction } from "@/lib/actions/exam";
-import { QuestionType } from "@prisma/client";
+import {
+  finalizeAttemptGradingAction,
+  swapPracticeQuestionAction,
+  startAttemptAction,
+  submitAttemptAction,
+} from "@/lib/actions/exam";
+import { supportsQuestionSwap } from "@/lib/exam/swap-practice-question";
+import { QuestionType, PaperKind } from "@prisma/client";
 import { Shuffle } from "lucide-react";
 import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections";
 import { formatDuration } from "@/lib/constants";
@@ -436,6 +442,10 @@ export function PracticeClient({
       }
     }
 
+    if (aiQuestions.length > 0) {
+      await finalizeAttemptGradingAction(attemptId);
+    }
+
     setShowConfetti(true);
     toast.success(
       writingGradeFailed
@@ -617,7 +627,11 @@ export function PracticeClient({
     toast.success("Đã đổi sang câu khác");
   }, [attemptId, current, swappingQuestion, submitting, play]);
 
-  const showSwapQuestionButton = paperKind === "PRACTICE" && !loadingPool && !!current;
+  const showSwapQuestionButton =
+    !loadingPool &&
+    !!current &&
+    !!paperKind &&
+    supportsQuestionSwap(paperKind as PaperKind);
 
   return (
     <div

@@ -4,21 +4,22 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { FacebookIcon, GoogleIcon } from "@/components/auth/oauth-provider-icons";
 import type { OAuthProviderId } from "@/lib/auth/providers";
 
 const PROVIDER_META: Record<
   OAuthProviderId,
-  { label: string; className: string; icon: string }
+  { label: string; className: string; Icon: typeof GoogleIcon }
 > = {
   google: {
     label: "Google",
     className: "border-slate-200 bg-white hover:bg-slate-50 text-slate-800",
-    icon: "G",
+    Icon: GoogleIcon,
   },
   facebook: {
     label: "Facebook",
     className: "border-[#1877F2] bg-[#1877F2] hover:bg-[#166FE0] text-white",
-    icon: "f",
+    Icon: FacebookIcon,
   },
 };
 
@@ -42,10 +43,14 @@ export function OAuthSignInButtons({
     try {
       await signIn(provider, { callbackUrl });
     } catch {
-      toast.error(`Không thể ${mode === "register" ? "đăng ký" : "đăng nhập"} bằng ${PROVIDER_META[provider].label}`);
+      toast.error(
+        `Không thể ${mode === "register" ? "đăng ký" : "đăng nhập"} bằng ${PROVIDER_META[provider].label}`
+      );
       setLoading(null);
     }
   }
+
+  const actionLabel = mode === "register" ? "Đăng ký" : "Đăng nhập";
 
   return (
     <div className="space-y-3">
@@ -62,6 +67,7 @@ export function OAuthSignInButtons({
       <div className="grid gap-2 sm:grid-cols-2">
         {providers.map((provider) => {
           const meta = PROVIDER_META[provider];
+          const { Icon } = meta;
           return (
             <Button
               key={provider}
@@ -71,10 +77,8 @@ export function OAuthSignInButtons({
               disabled={loading !== null}
               onClick={() => handleOAuth(provider)}
             >
-              <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-xs font-extrabold text-inherit">
-                {meta.icon}
-              </span>
-              {loading === provider ? "Đang chuyển..." : meta.label}
+              <Icon className="mr-2 h-5 w-5 shrink-0" />
+              {loading === provider ? "Đang chuyển..." : `${actionLabel} ${meta.label}`}
             </Button>
           );
         })}

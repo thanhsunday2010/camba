@@ -16,6 +16,7 @@ import {
 import {
   generateUniqueReferralCode,
 } from "@/lib/referral/codes";
+import { isFacebookOAuthEnabled } from "@/lib/auth/providers";
 
 ensureAuthPublicUrl();
 
@@ -35,7 +36,7 @@ function buildOAuthProviders() {
       })
     );
   }
-  if (process.env.AUTH_FACEBOOK_ID && process.env.AUTH_FACEBOOK_SECRET) {
+  if (isFacebookOAuthEnabled()) {
     providers.push(
       Facebook({
         clientId: process.env.AUTH_FACEBOOK_ID,

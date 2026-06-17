@@ -5,7 +5,7 @@ import {
   IELTS_SPEAKING_MOCK_POOL_KEY,
   isIeltsSpeakingPracticePoolKey,
 } from "@/lib/exam/ielts-speaking-config";
-import { getPlan, getIeltsSpeakingLimits, type PlanId } from "@/lib/subscription/plans";
+import { getPlan, getIeltsSpeakingLimits, isUnlimitedQuota, computeRemaining, type PlanId } from "@/lib/subscription/plans";
 import { getUserPlanId } from "@/lib/subscription/service";
 
 function startOfToday(): Date {
@@ -79,7 +79,10 @@ export async function getIeltsSpeakingUsageSnapshot(
 
   let mockUsed: number;
   let mockPeriod: "day" | "week";
-  if (limits.mockDaily > 0) {
+  if (isUnlimitedQuota(limits.mockDaily)) {
+    mockUsed = await countIeltsSpeakingMockToday(userId);
+    mockPeriod = "day";
+  } else if (limits.mockDaily > 0) {
     mockUsed = await countIeltsSpeakingMockToday(userId);
     mockPeriod = "day";
   } else {
@@ -87,17 +90,21 @@ export async function getIeltsSpeakingUsageSnapshot(
     mockPeriod = "week";
   }
 
-  const mockLimit = limits.mockDaily > 0 ? limits.mockDaily : limits.mockWeekly;
+  const mockLimit = isUnlimitedQuota(limits.mockDaily)
+    ? limits.mockDaily
+    : limits.mockDaily > 0
+      ? limits.mockDaily
+      : limits.mockWeekly;
 
   return {
     planId,
     planName: plan.name,
     practiceUsed,
     practiceLimit: limits.practiceDaily,
-    practiceRemaining: Math.max(0, limits.practiceDaily - practiceUsed),
+    practiceRemaining: computeRemaining(practiceUsed, limits.practiceDaily),
     mockUsed,
     mockLimit,
-    mockRemaining: Math.max(0, mockLimit - mockUsed),
+    mockRemaining: computeRemaining(mockUsed, mockLimit),
     mockPeriod,
   };
 }
@@ -121,6 +128,8 @@ export async function canStartIeltsSpeakingPractice(userId: string): Promise<{
 
   const planId = await getUserPlanId(userId);
   const limits = getIeltsSpeakingLimits(planId);
+  if (isUnlimitedQuota(limits.practiceDaily)) return { ok: true };
+
   const used = await countIeltsSpeakingPracticeToday(userId);
 
   if (used >= limits.practiceDaily) {
@@ -137,6 +146,10 @@ export async function canStartIeltsSpeakingMock(userId: string): Promise<{
 
   const planId = await getUserPlanId(userId);
   const limits = getIeltsSpeakingLimits(planId);
+
+  if (isUnlimitedQuota(limits.mockDaily) || isUnlimitedQuota(limits.mockWeekly)) {
+    return { ok: true };
+  }
 
   if (limits.mockDaily > 0) {
     const used = await countIeltsSpeakingMockToday(userId);

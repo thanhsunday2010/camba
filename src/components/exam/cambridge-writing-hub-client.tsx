@@ -46,7 +46,7 @@ export function CambridgeWritingHubClient({ usage, practiceParts, mockPaper, moc
     <SpeakingHubClient
       trackLabel={levelLabel}
       skillName="Writing"
-      quotaHint="Free: 3 luyện/ngày · 1 mock/tuần · Pro: 10 luyện + 1 mock/ngày · VIP: 20 luyện + 3 mock/ngày (theo từng level Cambridge)"
+      quotaHint="Luyện tập & mock không giới hạn · giới hạn AI theo gói (Free 3 · Pro 10 · VIP 20 lượt/ngày)"
       usage={usage}
       practiceParts={practiceParts}
       mockPaper={mockPaper}

@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { getSubscriptionSummary } from "@/lib/subscription/service";
+import { formatQuotaRatio, isUnlimitedQuota } from "@/lib/subscription/plans";
 
 interface SubscriptionUsageCardProps {
   userId: string;
 }
 
 function usagePct(count: number, limit: number) {
-  if (limit <= 0) return 0;
+  if (isUnlimitedQuota(limit) || limit <= 0) return 0;
   return Math.min(100, Math.round((count / limit) * 100));
 }
 
@@ -40,7 +41,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
           {expiresAt
             ? `Hết hạn: ${expiresAt.toLocaleDateString("vi-VN")}`
             : plan.id === "FREE"
-              ? "Miễn phí — nâng cấp để mở thêm giới hạn"
+            ? "Miễn phí — nâng cấp để tăng lượt AI chấm"
               : "Đang dùng gói trả phí"}
         </CardDescription>
       </CardHeader>
@@ -48,9 +49,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
         <div>
           <div className="mb-1 flex justify-between text-sm">
             <span>Luyện tập hôm nay</span>
-            <span>
-              {usage.practiceCount}/{usage.practiceLimit} câu
-            </span>
+            <span>{formatQuotaRatio(usage.practiceCount, usage.practiceLimit)} câu</span>
           </div>
           <Progress value={usagePct(usage.practiceCount, usage.practiceLimit)} />
         </div>
@@ -58,9 +57,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
         <div>
           <div className="mb-1 flex justify-between text-sm">
             <span>Mock test hôm nay</span>
-            <span>
-              {usage.mockSkillCount}/{usage.mockTestLimit} lượt
-            </span>
+            <span>{formatQuotaRatio(usage.mockSkillCount, usage.mockTestLimit)} lượt</span>
           </div>
           <Progress value={usagePct(usage.mockSkillCount, usage.mockTestLimit)} />
         </div>
@@ -89,7 +86,7 @@ export async function SubscriptionUsageCard({ userId }: SubscriptionUsageCardPro
           <div className="rounded-lg border border-purple-100 bg-white p-3 text-sm">
             <p className="font-semibold">Camba Pro — từ 30.000₫/tháng</p>
             <p className="text-muted-foreground">
-              30 câu/ngày · 1 mock kỹ năng/ngày · 3 lượt AI/ngày
+              Luyện tập & mock không giới hạn · Pro: 10 lượt AI/ngày · VIP: 20 lượt AI/ngày
             </p>
           </div>
         )}

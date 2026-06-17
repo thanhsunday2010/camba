@@ -120,6 +120,7 @@ model User {
   accounts      Account[]
   attempts      Attempt[]
   aiFeedbacks   AIFeedback[]
+  paperComments PaperComment[]
   assignedBy    Assignment[] @relation("AssignedBy")
   assignments   Assignment[] @relation("AssignedTo")
   bugReports    BugReport[]
@@ -224,6 +225,21 @@ model ExamPaper {
   questions   PaperQuestion[]
   attempts    Attempt[]
   assignments Assignment[]
+  comments    PaperComment[]
+}
+
+model PaperComment {
+  id        String   @id @default(cuid())
+  paperId   String
+  userId    String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  paper ExamPaper @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([paperId, createdAt])
 }
 
 model PaperQuestion {

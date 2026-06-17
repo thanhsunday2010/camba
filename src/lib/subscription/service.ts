@@ -2,6 +2,7 @@ import { BillingCycle, SubscriptionPlan, SubscriptionStatus } from "@prisma/clie
 import { db } from "@/lib/db";
 import {
   getPlan,
+  isUnlimitedQuota,
   type AiGradingSkill,
   type PlanId,
 } from "@/lib/subscription/plans";
@@ -117,16 +118,24 @@ export async function canUsePractice(userId: string, additional = 1): Promise<bo
     getOrCreateDailyUsage(userId),
     getUserPlanLimits(userId),
   ]);
+  if (isUnlimitedQuota(limits.dailyPracticeQuestions)) return true;
   return usage.practiceCount + additional <= limits.dailyPracticeQuestions;
 }
 
 export async function recordPracticeUsage(userId: string, count = 1) {
-  const allowed = await canUsePractice(userId, count);
-  if (!allowed) {
-    return {
-      ok: false as const,
-      error: formatPracticeQuotaExceededMessage(),
-    };
+  const [usage, limits] = await Promise.all([
+    getOrCreateDailyUsage(userId),
+    getUserPlanLimits(userId),
+  ]);
+  const unlimited = isUnlimitedQuota(limits.dailyPracticeQuestions);
+  if (!unlimited) {
+    const allowed = usage.practiceCount + count <= limits.dailyPracticeQuestions;
+    if (!allowed) {
+      return {
+        ok: false as const,
+        error: formatPracticeQuotaExceededMessage(),
+      };
+    }
   }
 
   const date = startOfToday();
@@ -144,6 +153,7 @@ export async function canUseMockTest(userId: string): Promise<boolean> {
     getOrCreateDailyUsage(userId),
     getUserPlanLimits(userId),
   ]);
+  if (isUnlimitedQuota(limits.dailyMockTests)) return true;
   return usage.mockSkillCount < limits.dailyMockTests;
 }
 
@@ -151,8 +161,11 @@ export async function canUseMockTest(userId: string): Promise<boolean> {
 export const canUseSkillMock = canUseMockTest;
 
 export async function recordMockTestUsage(userId: string) {
-  const allowed = await canUseMockTest(userId);
-  if (!allowed) {
+  const [usage, limits] = await Promise.all([
+    getOrCreateDailyUsage(userId),
+    getUserPlanLimits(userId),
+  ]);
+  if (!isUnlimitedQuota(limits.dailyMockTests) && usage.mockSkillCount >= limits.dailyMockTests) {
     const { formatMockTestQuotaExceededMessage } = await import("@/lib/subscription/quota-messages");
     return {
       ok: false as const,

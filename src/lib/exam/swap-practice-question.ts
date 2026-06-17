@@ -1,29 +1,41 @@
-import { PaperKind, PrismaClient } from "@prisma/client";
+import { ExamLevel, PaperKind, PrismaClient, Skill } from "@prisma/client";
+import type { PlacementPool } from "@/lib/placement/placement-config";
 import {
+  isCambridgeSpeakingMockPoolKey,
   isCambridgeSpeakingPracticePoolKey,
+  parseCambridgeSpeakingMockPoolKey,
   parseCambridgeSpeakingPracticePoolKey,
+  type CambridgeSpeakingPart,
 } from "@/lib/exam/cambridge-speaking-config";
 import { getCambridgeSpeakingPoolQuestions } from "@/lib/exam/cambridge-speaking-pool";
 import {
+  isCambridgeWritingMockPoolKey,
   isCambridgeWritingPracticePoolKey,
+  parseCambridgeWritingMockPoolKey,
   parseCambridgeWritingPracticePoolKey,
+  type CambridgeWritingPart,
 } from "@/lib/exam/cambridge-writing-config";
 import { getCambridgeWritingPoolQuestions } from "@/lib/exam/cambridge-writing-pool";
 import {
+  isIeltsSpeakingMockPoolKey,
   isIeltsSpeakingPracticePoolKey,
   parseIeltsSpeakingPracticePoolKey,
+  type IeltsSpeakingPart,
 } from "@/lib/exam/ielts-speaking-config";
 import { getIeltsSpeakingPoolQuestions } from "@/lib/exam/ielts-speaking-pool";
 import {
+  isIeltsWritingMockPoolKey,
   isIeltsWritingPracticePoolKey,
   parseIeltsWritingPracticePoolKey,
+  type IeltsWritingTask,
 } from "@/lib/exam/ielts-writing-config";
 import { getIeltsWritingPoolQuestions } from "@/lib/exam/ielts-writing-pool";
 import {
   getPracticePoolQuestionsForPick,
   loadAttemptPracticeQuestions,
+  parseMockFullPoolKey,
+  parseMockSkillPoolKey,
   parsePracticePoolKey,
-  practiceQuestionSelect,
   shouldIncludeCorrectAnswerForPoolPaper,
   type PracticeQuestionRow,
 } from "@/lib/exam/practice-pool";
@@ -32,19 +44,81 @@ import {
   type QuestionPickMeta,
 } from "@/lib/exam/question-diversity";
 
-async function getPracticeSwapPool(
+const poolQuestionPickSelect = {
+  id: true,
+  type: true,
+  title: true,
+  content: true,
+} as const;
+
+type QuestionPoolContext = {
+  skill: Skill;
+  level: ExamLevel;
+  placementSlug: string | null;
+  placementPool: string | null;
+  content: unknown;
+};
+
+function canSwapPaperKind(paperKind: PaperKind): boolean {
+  return (
+    paperKind === PaperKind.PRACTICE ||
+    paperKind === PaperKind.MOCK_SKILL ||
+    paperKind === PaperKind.MOCK_FULL ||
+    paperKind === PaperKind.PLACEMENT
+  );
+}
+
+function readNumberField(content: unknown, field: string): number | null {
+  if (!content || typeof content !== "object") return null;
+  const value = (content as Record<string, unknown>)[field];
+  return typeof value === "number" ? value : null;
+}
+
+async function getPlacementSwapPool(
+  db: PrismaClient,
+  ctx: QuestionPoolContext
+): Promise<QuestionPickMeta[]> {
+  if (!ctx.placementSlug || !ctx.placementPool) {
+    throw new Error("Câu placement không thuộc ngân hàng — không thể đổi");
+  }
+
+  return db.question.findMany({
+    where: {
+      placementSlug: ctx.placementSlug,
+      placementPool: ctx.placementPool as PlacementPool,
+    },
+    select: poolQuestionPickSelect,
+    orderBy: { id: "asc" },
+  });
+}
+
+async function getSwapPool(
   db: PrismaClient,
   paper: {
-    level: import("@prisma/client").ExamLevel;
-    skill: import("@prisma/client").Skill;
+    level: ExamLevel;
+    skill: Skill;
     practicePoolKey?: string | null;
-  }
+    mockPoolKey?: string | null;
+    paperKind: PaperKind;
+  },
+  ctx: QuestionPoolContext
 ): Promise<QuestionPickMeta[]> {
-  const key = paper.practicePoolKey;
+  if (paper.paperKind === PaperKind.PLACEMENT) {
+    return getPlacementSwapPool(db, ctx);
+  }
+
+  const key = paper.practicePoolKey ?? paper.mockPoolKey;
 
   if (key && isIeltsSpeakingPracticePoolKey(key)) {
     const part = parseIeltsSpeakingPracticePoolKey(key);
     if (part) return getIeltsSpeakingPoolQuestions(db, part);
+  }
+
+  if (key && isIeltsSpeakingMockPoolKey(key)) {
+    const part = readNumberField(ctx.content, "ieltsPart") as IeltsSpeakingPart | null;
+    if (part === 1 || part === 2 || part === 3) {
+      return getIeltsSpeakingPoolQuestions(db, part);
+    }
   }
 
   if (key && isIeltsWritingPracticePoolKey(key)) {
@@ -52,9 +126,24 @@ async function getPracticeSwapPool(
     if (task) return getIeltsWritingPoolQuestions(db, task);
   }
 
+  if (key && isIeltsWritingMockPoolKey(key)) {
+    const task = readNumberField(ctx.content, "ieltsWritingTask") as IeltsWritingTask | null;
+    if (task === 1 || task === 2) {
+      return getIeltsWritingPoolQuestions(db, task);
+    }
+  }
+
   if (key && isCambridgeSpeakingPracticePoolKey(key)) {
     const parsed = parseCambridgeSpeakingPracticePoolKey(key);
     if (parsed) return getCambridgeSpeakingPoolQuestions(db, parsed.level, parsed.part);
+  }
+
+  if (key && isCambridgeSpeakingMockPoolKey(key)) {
+    const level = parseCambridgeSpeakingMockPoolKey(key);
+    const part = readNumberField(ctx.content, "cambridgePart") as CambridgeSpeakingPart | null;
+    if (level && (part === 1 || part === 2 || part === 3)) {
+      return getCambridgeSpeakingPoolQuestions(db, level, part);
+    }
   }
 
   if (key && isCambridgeWritingPracticePoolKey(key)) {
@@ -62,12 +151,30 @@ async function getPracticeSwapPool(
     if (parsed) return getCambridgeWritingPoolQuestions(db, parsed.level, parsed.part);
   }
 
+  if (key && isCambridgeWritingMockPoolKey(key)) {
+    const level = parseCambridgeWritingMockPoolKey(key);
+    const part = readNumberField(ctx.content, "cambridgeWritingPart") as CambridgeWritingPart | null;
+    if (level && (part === 1 || part === 2)) {
+      return getCambridgeWritingPoolQuestions(db, level, part);
+    }
+  }
+
+  if (key?.startsWith("FULL:")) {
+    const level = parseMockFullPoolKey(key);
+    if (level) return getPracticePoolQuestionsForPick(db, level, ctx.skill);
+  }
+
+  const mockSkill = key ? parseMockSkillPoolKey(key) : null;
+  if (mockSkill) {
+    return getPracticePoolQuestionsForPick(db, mockSkill.level, mockSkill.skill);
+  }
+
   if (key) {
     const parsed = parsePracticePoolKey(key);
     if (parsed) return getPracticePoolQuestionsForPick(db, parsed.level, parsed.skill);
   }
 
-  return getPracticePoolQuestionsForPick(db, paper.level, paper.skill);
+  return getPracticePoolQuestionsForPick(db, paper.level, ctx.skill);
 }
 
 async function ensureAttemptQuestionsFromPaper(
@@ -114,14 +221,17 @@ export async function swapPracticeQuestionInAttempt(
     },
   });
 
-  if (!attempt?.userId) {
+  if (!attempt) {
+    throw new Error("Bài làm không hợp lệ");
+  }
+  if (!attempt.userId && attempt.paper.paperKind !== PaperKind.PLACEMENT) {
     throw new Error("Bài làm không hợp lệ");
   }
   if (attempt.status !== "IN_PROGRESS") {
     throw new Error("Chỉ có thể đổi câu khi đang làm bài");
   }
-  if (attempt.paper.paperKind !== PaperKind.PRACTICE) {
-    throw new Error("Chỉ áp dụng cho bài luyện tập");
+  if (!canSwapPaperKind(attempt.paper.paperKind)) {
+    throw new Error("Loại đề này không hỗ trợ đổi câu");
   }
 
   await ensureAttemptQuestionsFromPaper(db, attemptId);
@@ -141,7 +251,22 @@ export async function swapPracticeQuestionInAttempt(
     throw new Error("Không tìm thấy câu hỏi trong bài làm");
   }
 
-  const pool = await getPracticeSwapPool(db, refreshed.paper);
+  const currentQuestion = await db.question.findUnique({
+    where: { id: questionId },
+    select: {
+      skill: true,
+      level: true,
+      placementSlug: true,
+      placementPool: true,
+      content: true,
+    },
+  });
+
+  if (!currentQuestion) {
+    throw new Error("Không tìm thấy câu hỏi");
+  }
+
+  const pool = await getSwapPool(db, refreshed.paper, currentQuestion);
   if (pool.length <= 1) {
     throw new Error("Ngân hàng chỉ có một câu — không thể đổi");
   }
@@ -180,4 +305,8 @@ export function practiceUsesAttemptQuestions(
   attemptQuestionCount: number
 ): boolean {
   return paper.paperKind === PaperKind.PRACTICE && attemptQuestionCount > 0;
+}
+
+export function supportsQuestionSwap(paperKind: PaperKind): boolean {
+  return canSwapPaperKind(paperKind);
 }

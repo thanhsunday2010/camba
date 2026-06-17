@@ -2,6 +2,37 @@ import { BillingCycle, SubscriptionPlan } from "@prisma/client";
 
 export type PlanId = SubscriptionPlan;
 
+/** Giá trị âm = không giới hạn luyện tập / mock */
+export const UNLIMITED_QUOTA = -1;
+
+export function isUnlimitedQuota(value: number): boolean {
+  return value < 0;
+}
+
+export function formatUsageLimitLabel(limit: number): string {
+  return isUnlimitedQuota(limit) ? "Không giới hạn" : String(limit);
+}
+
+export function formatUsageLine(used: number, limit: number, unit: string): string {
+  if (isUnlimitedQuota(limit)) return `${used} · không giới hạn`;
+  return `${used}/${limit} ${unit}`;
+}
+
+export function computeRemaining(used: number, limit: number): number {
+  if (isUnlimitedQuota(limit)) return UNLIMITED_QUOTA;
+  return Math.max(0, limit - used);
+}
+
+export function isQuotaExhausted(used: number, limit: number): boolean {
+  if (isUnlimitedQuota(limit)) return false;
+  return used >= limit;
+}
+
+export function formatQuotaRatio(used: number, limit: number): string {
+  if (isUnlimitedQuota(limit)) return `${used} · không giới hạn`;
+  return `${used}/${limit}`;
+}
+
 export type AiGradingSkill =
   | "writing"
   | "speaking"
@@ -60,29 +91,27 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     name: "Camba Free",
     tagline: "Bắt đầu học miễn phí",
     limits: {
-      dailyPracticeQuestions: 30,
+      dailyPracticeQuestions: UNLIMITED_QUOTA,
       weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
       dailyAiGrading: 3,
-      dailyMockTests: 1,
-      allowFullMock: false,
+      dailyMockTests: UNLIMITED_QUOTA,
+      allowFullMock: true,
       speakingWordLimit: 100,
-      ieltsSpeakingPracticeDaily: 3,
-      ieltsSpeakingMockDaily: 0,
-      ieltsSpeakingMockWeekly: 1,
-      cambridgeSpeakingPracticeDaily: 3,
-      cambridgeSpeakingMockDaily: 0,
-      cambridgeSpeakingMockWeekly: 1,
+      ieltsSpeakingPracticeDaily: UNLIMITED_QUOTA,
+      ieltsSpeakingMockDaily: UNLIMITED_QUOTA,
+      ieltsSpeakingMockWeekly: UNLIMITED_QUOTA,
+      cambridgeSpeakingPracticeDaily: UNLIMITED_QUOTA,
+      cambridgeSpeakingMockDaily: UNLIMITED_QUOTA,
+      cambridgeSpeakingMockWeekly: UNLIMITED_QUOTA,
     },
     pricing: { monthly: 0, yearly: 0 },
     features: [
-      "30 câu luyện tập mỗi ngày",
-      "1 mock kỹ năng/ngày",
+      "Luyện tập không giới hạn",
+      "Mock test không giới hạn (kỹ năng & full mock)",
       "2 lượt placement/tuần (mọi loại đề)",
       "3 lượt AI/ngày (chấm Writing & Speaking, dùng chung)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing theo giới hạn đề thi (+ 20%) · Speaking 100 từ/lần",
-      "Speaking IELTS: 3 lượt luyện/ngày · 1 mock/tuần",
-      "Speaking Cambridge: 3 lượt luyện/ngày/level · 1 mock/tuần",
       "Miễn phí mãi mãi",
     ],
   },
@@ -92,30 +121,28 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     name: "Camba Pro",
     tagline: "Luyện thi hiệu quả hơn",
     limits: {
-      dailyPracticeQuestions: 100,
+      dailyPracticeQuestions: UNLIMITED_QUOTA,
       weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
       dailyAiGrading: 10,
-      dailyMockTests: 5,
+      dailyMockTests: UNLIMITED_QUOTA,
       allowFullMock: true,
       speakingWordLimit: 150,
-      ieltsSpeakingPracticeDaily: 10,
-      ieltsSpeakingMockDaily: 1,
-      ieltsSpeakingMockWeekly: 0,
-      cambridgeSpeakingPracticeDaily: 10,
-      cambridgeSpeakingMockDaily: 1,
-      cambridgeSpeakingMockWeekly: 0,
+      ieltsSpeakingPracticeDaily: UNLIMITED_QUOTA,
+      ieltsSpeakingMockDaily: UNLIMITED_QUOTA,
+      ieltsSpeakingMockWeekly: UNLIMITED_QUOTA,
+      cambridgeSpeakingPracticeDaily: UNLIMITED_QUOTA,
+      cambridgeSpeakingMockDaily: UNLIMITED_QUOTA,
+      cambridgeSpeakingMockWeekly: UNLIMITED_QUOTA,
     },
     pricing: { monthly: 30_000, yearly: 300_000 },
     highlighted: true,
     features: [
-      "100 câu luyện tập mỗi ngày",
-      "5 mock test/ngày (kỹ năng & full mock)",
+      "Luyện tập không giới hạn",
+      "Mock test không giới hạn (kỹ năng & full mock)",
       "2 lượt placement/tuần (mọi loại đề)",
       "10 lượt AI/ngày (chấm Writing & Speaking)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing theo giới hạn đề thi (+ 20%) · Speaking tối đa 150 từ/lần",
-      "Speaking IELTS: 10 lượt luyện/ngày · 1 mock/ngày",
-      "Speaking Cambridge: 10 lượt luyện/ngày/level · 1 mock/ngày",
     ],
   },
   VIP: {
@@ -124,29 +151,27 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     name: "Camba VIP",
     tagline: "Trọn bộ công cụ luyện thi",
     limits: {
-      dailyPracticeQuestions: 200,
+      dailyPracticeQuestions: UNLIMITED_QUOTA,
       weeklyPlacementAttempts: PLACEMENT_WEEKLY_LIMIT,
       dailyAiGrading: 20,
-      dailyMockTests: 10,
+      dailyMockTests: UNLIMITED_QUOTA,
       allowFullMock: true,
       speakingWordLimit: 300,
-      ieltsSpeakingPracticeDaily: 20,
-      ieltsSpeakingMockDaily: 3,
-      ieltsSpeakingMockWeekly: 0,
-      cambridgeSpeakingPracticeDaily: 20,
-      cambridgeSpeakingMockDaily: 3,
-      cambridgeSpeakingMockWeekly: 0,
+      ieltsSpeakingPracticeDaily: UNLIMITED_QUOTA,
+      ieltsSpeakingMockDaily: UNLIMITED_QUOTA,
+      ieltsSpeakingMockWeekly: UNLIMITED_QUOTA,
+      cambridgeSpeakingPracticeDaily: UNLIMITED_QUOTA,
+      cambridgeSpeakingMockDaily: UNLIMITED_QUOTA,
+      cambridgeSpeakingMockWeekly: UNLIMITED_QUOTA,
     },
     pricing: { monthly: 50_000, yearly: 500_000 },
     features: [
-      "200 câu luyện tập mỗi ngày",
-      "10 mock test/ngày (kỹ năng & full mock)",
+      "Luyện tập không giới hạn",
+      "Mock test không giới hạn (kỹ năng & full mock)",
       "2 lượt placement/tuần (mọi loại đề)",
       "20 lượt AI/ngày (chấm Writing & Speaking)",
       "Lời giải Reading/Listening/UoE có sẵn khi luyện tập",
       "Writing theo giới hạn đề thi (+ 20%) · Speaking tối đa 300 từ/lần",
-      "Speaking IELTS: 20 lượt luyện/ngày · 3 mock/ngày",
-      "Speaking Cambridge: 20 lượt luyện/ngày/level · 3 mock/ngày",
       "Hỗ trợ ưu tiên & cập nhật sớm",
     ],
   },
@@ -206,8 +231,8 @@ export function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-export function hasFullMockAccess(planId: PlanId): boolean {
-  return PLANS[planId].limits.allowFullMock;
+export function hasFullMockAccess(_planId: PlanId): boolean {
+  return true;
 }
 
 export function getMockTestDailyLimit(planId: PlanId): number {

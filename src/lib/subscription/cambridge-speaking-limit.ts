@@ -5,7 +5,7 @@ import {
   buildCambridgeSpeakingMockPoolKey,
   isCambridgeSpeakingPracticePoolKey,
 } from "@/lib/exam/cambridge-speaking-config";
-import { getCambridgeSpeakingLimits, getPlan, type PlanId } from "@/lib/subscription/plans";
+import { getCambridgeSpeakingLimits, getPlan, isUnlimitedQuota, computeRemaining, type PlanId } from "@/lib/subscription/plans";
 import { getUserPlanId } from "@/lib/subscription/service";
 
 function startOfToday(): Date {
@@ -91,7 +91,10 @@ export async function getCambridgeSpeakingUsageSnapshot(
 
   let mockUsed: number;
   let mockPeriod: "day" | "week";
-  if (limits.mockDaily > 0) {
+  if (isUnlimitedQuota(limits.mockDaily)) {
+    mockUsed = await countCambridgeSpeakingMockToday(userId, level);
+    mockPeriod = "day";
+  } else if (limits.mockDaily > 0) {
     mockUsed = await countCambridgeSpeakingMockToday(userId, level);
     mockPeriod = "day";
   } else {
@@ -99,7 +102,11 @@ export async function getCambridgeSpeakingUsageSnapshot(
     mockPeriod = "week";
   }
 
-  const mockLimit = limits.mockDaily > 0 ? limits.mockDaily : limits.mockWeekly;
+  const mockLimit = isUnlimitedQuota(limits.mockDaily)
+    ? limits.mockDaily
+    : limits.mockDaily > 0
+      ? limits.mockDaily
+      : limits.mockWeekly;
 
   return {
     planId,
@@ -107,10 +114,10 @@ export async function getCambridgeSpeakingUsageSnapshot(
     level,
     practiceUsed,
     practiceLimit: limits.practiceDaily,
-    practiceRemaining: Math.max(0, limits.practiceDaily - practiceUsed),
+    practiceRemaining: computeRemaining(practiceUsed, limits.practiceDaily),
     mockUsed,
     mockLimit,
-    mockRemaining: Math.max(0, mockLimit - mockUsed),
+    mockRemaining: computeRemaining(mockUsed, mockLimit),
     mockPeriod,
   };
 }
@@ -134,6 +141,8 @@ export async function canStartCambridgeSpeakingPractice(
 
   const planId = await getUserPlanId(userId);
   const limits = getCambridgeSpeakingLimits(planId);
+  if (isUnlimitedQuota(limits.practiceDaily)) return { ok: true };
+
   const used = await countCambridgeSpeakingPracticeToday(userId, level);
 
   if (used >= limits.practiceDaily) {
@@ -150,6 +159,10 @@ export async function canStartCambridgeSpeakingMock(
 
   const planId = await getUserPlanId(userId);
   const limits = getCambridgeSpeakingLimits(planId);
+
+  if (isUnlimitedQuota(limits.mockDaily) || isUnlimitedQuota(limits.mockWeekly)) {
+    return { ok: true };
+  }
 
   if (limits.mockDaily > 0) {
     const used = await countCambridgeSpeakingMockToday(userId, level);

@@ -9,8 +9,7 @@ import { getMockSkillQuestionCount } from "@/lib/exam/mock-config";
 import { PRACTICE_POOL_SIZE } from "@/lib/exam/practice-pool";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 import { getDailyUsageSnapshot } from "@/lib/subscription/service";
-import { getCambridgeSpeakingUsageSnapshot } from "@/lib/subscription/cambridge-speaking-limit";
-import { getCambridgeWritingUsageSnapshot } from "@/lib/subscription/cambridge-writing-limit";
+import { formatQuotaRatio, isUnlimitedQuota } from "@/lib/subscription/plans";
 import { FullMockGrid, SkillPracticeGrid } from "@/components/exam/skill-practice-grid";
 import { Card, CardContent } from "@/components/ui/card";
 import { db } from "@/lib/db";
@@ -63,12 +62,10 @@ export default async function ExamsLevelPage({
   const theme = LEVEL_THEMES[level] ?? LEVEL_THEMES.KET;
   const isYle = YLE_LEVELS.has(level);
 
-  const [papers, completedPaperIds, usage, speakingUsage, writingUsage] = await Promise.all([
+  const [papers, completedPaperIds, usage] = await Promise.all([
     getPublishedPapersByLevel(examLevel),
     getCompletedPaperIdsForUser(session.user.id, examLevel),
     getDailyUsageSnapshot(session.user.id),
-    getCambridgeSpeakingUsageSnapshot(session.user.id, examLevel),
-    getCambridgeWritingUsageSnapshot(session.user.id, examLevel),
   ]);
 
   const fullMocks = papers.filter((p) => p.paperKind === PaperKind.MOCK_FULL);
@@ -80,8 +77,9 @@ export default async function ExamsLevelPage({
   const skillMocks = skillPapers.filter((p) => p.paperKind === PaperKind.MOCK_SKILL);
 
   const mockTestLimit = usage.mockTestLimit;
-  const mockTestUsedUp = usage.mockSkillCount >= mockTestLimit;
-  const fullMockLocked = !usage.allowFullMock || mockTestUsedUp;
+  const mockTestUsedUp =
+    !isUnlimitedQuota(mockTestLimit) && usage.mockSkillCount >= mockTestLimit;
+  const fullMockLocked = mockTestUsedUp;
 
   const fullMockPoolKey = buildMockFullPoolKey(examLevel);
   const fullMockBankStats = fullMocks.length
@@ -167,13 +165,13 @@ export default async function ExamsLevelPage({
         <div>
           <p className="font-extrabold text-violet-900">Luyện tập hôm nay</p>
           <p className="font-semibold text-muted-foreground">
-            {usage.practiceCount}/{usage.practiceLimit} câu
+            {formatQuotaRatio(usage.practiceCount, usage.practiceLimit)} câu
           </p>
         </div>
         <div>
           <p className="font-extrabold text-violet-900">Mock test</p>
           <p className="font-semibold text-muted-foreground">
-            {usage.mockSkillCount}/{mockTestLimit} lượt hôm nay
+            {formatQuotaRatio(usage.mockSkillCount, usage.mockTestLimit)} lượt hôm nay
           </p>
         </div>
         <div>
@@ -184,9 +182,10 @@ export default async function ExamsLevelPage({
         </div>
         {usage.planId === "FREE" && (
           <p className="sm:col-span-3 text-sm font-medium text-violet-800">
-            Free: 30 câu/ngày · 1 mock test/ngày · không full mock. Pro: 5 mock/ngày · VIP: 10 mock/ngày. Hết lượt?{" "}
+            Luyện tập & mock không giới hạn trên mọi gói. Nâng cấp Pro/VIP để tăng lượt AI chấm Writing &
+            Speaking —{" "}
             <Link href="/pricing" className="font-bold underline">
-              nâng cấp Pro chỉ 30.000₫/tháng
+              xem bảng giá
             </Link>
           </p>
         )}
@@ -211,12 +210,8 @@ export default async function ExamsLevelPage({
             completedPaperIds={completedPaperIds}
             bankStats={fullMockBankStats}
             locked={fullMockLocked}
-            lockedHint={
-              fullMockLocked && !usage.allowFullMock
-                ? "Full mock cần gói Pro — nâng cấp tại Bảng giá"
-                : "Đã hết lượt mock test hôm nay — quay lại ngày mai"
-            }
-            lockedHref={fullMockLocked && !usage.allowFullMock ? "/pricing" : undefined}
+            lockedHint="Đã hết lượt mock test hôm nay — quay lại ngày mai"
+            lockedHref={undefined}
           />
         </section>
       )}
@@ -229,10 +224,8 @@ export default async function ExamsLevelPage({
                 🎤 Speaking {formatExamLevel(level)} — Luyện theo Part
               </p>
               <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
-                1 câu ngẫu nhiên/Part · AI chấm ngay · hôm nay còn{" "}
-                {speakingUsage.practiceRemaining}/{speakingUsage.practiceLimit} lượt luyện ·{" "}
-                {speakingUsage.mockRemaining}/{speakingUsage.mockLimit} mock (
-                {speakingUsage.mockPeriod === "week" ? "tuần" : "ngày"})
+                1 câu ngẫu nhiên/Part · AI chấm ngay · luyện tập & mock không giới hạn · AI còn{" "}
+                {usage.aiGradingLimit - usage.aiGradingCount}/{usage.aiGradingLimit} lượt hôm nay
               </p>
             </div>
             <Link
@@ -253,10 +246,8 @@ export default async function ExamsLevelPage({
                 ✏️ Writing {formatExamLevel(level)} — Luyện theo Part
               </p>
               <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
-                1 câu ngẫu nhiên/Part · AI chấm ngay sau nộp · hôm nay còn{" "}
-                {writingUsage.practiceRemaining}/{writingUsage.practiceLimit} lượt luyện ·{" "}
-                {writingUsage.mockRemaining}/{writingUsage.mockLimit} mock (
-                {writingUsage.mockPeriod === "week" ? "tuần" : "ngày"})
+                1 câu ngẫu nhiên/Part · AI chấm ngay sau nộp · luyện tập & mock không giới hạn · AI còn{" "}
+                {usage.aiGradingLimit - usage.aiGradingCount}/{usage.aiGradingLimit} lượt hôm nay
               </p>
             </div>
             <Link

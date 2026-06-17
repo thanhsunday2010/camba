@@ -8,6 +8,7 @@ import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
 import { processAttemptGamification } from "@/lib/gamification/service";
 import { markAssignmentsComplete } from "@/lib/exam/assignments";
+import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
 import {
   assignDynamicExamQuestionsForAttempt,
   isDynamicPoolPaper,
@@ -479,22 +480,71 @@ export async function startAttemptAction(paperId: string) {
   return { attemptId: attempt.id, resumed: false, savedAnswers: {} };
 }
 
+export async function finalizeAttemptGradingAction(attemptId: string) {
+  const session = await auth();
+
+  const attempt = await db.attempt.findUnique({
+    where: { id: attemptId },
+    select: { userId: true, status: true, paper: { select: { paperKind: true } } },
+  });
+
+  if (!attempt) return { error: "Bài làm không hợp lệ" };
+
+  if (attempt.userId) {
+    if (!session || session.user.id !== attempt.userId) {
+      return { error: "Không có quyền" };
+    }
+  } else if (attempt.paper.paperKind !== PaperKind.PLACEMENT) {
+    return { error: "Không có quyền" };
+  }
+
+  if (attempt.status === "IN_PROGRESS") {
+    return { error: "Bài chưa nộp" };
+  }
+
+  await finalizeAttemptGrading(attemptId);
+  revalidatePath(`/results/${attemptId}`);
+  return { success: true as const };
+}
+
 export async function swapPracticeQuestionAction(
   attemptId: string,
   questionId: string,
   excludeQuestionIds: string[] = []
 ) {
   const session = await auth();
-  if (!session) return { error: "Chưa đăng nhập" };
+
+  const attemptMeta = await db.attempt.findUnique({
+    where: { id: attemptId },
+    select: { userId: true, paper: { select: { paperKind: true } } },
+  });
+
+  if (!attemptMeta) return { error: "Không có quyền đổi câu này" };
+
+  const isGuestPlacement =
+    !attemptMeta.userId && attemptMeta.paper.paperKind === PaperKind.PLACEMENT;
+
+  if (!session && !isGuestPlacement) {
+    return { error: "Chưa đăng nhập" };
+  }
 
   const attempt = await db.attempt.findUnique({
     where: { id: attemptId },
-    select: { userId: true, status: true },
+    select: { userId: true, status: true, paper: { select: { paperKind: true } } },
   });
 
-  if (!attempt || attempt.userId !== session.user.id) {
+  if (!attempt) {
     return { error: "Không có quyền đổi câu này" };
   }
+
+  if (attempt.userId) {
+    if (!session || attempt.userId !== session.user.id) {
+      return { error: "Không có quyền đổi câu này" };
+    }
+  } else if (attempt.paper.paperKind !== PaperKind.PLACEMENT) {
+    return { error: "Không có quyền đổi câu này" };
+  }
+
   if (attempt.status !== "IN_PROGRESS") {
     return { error: "Chỉ có thể đổi câu khi đang làm bài" };
   }

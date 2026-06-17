@@ -2,6 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth-session";
 import { getCachedPracticePaper } from "@/lib/exam/cached-practice";
 import { PracticeClient } from "@/components/exam/practice-client";
+import { PaperComments } from "@/components/exam/paper-comments";
+import { getPaperComments } from "@/lib/actions/paper-comments";
 import { parseSections } from "@/lib/exam/paper-sections";
 import { getUserPlanLimits } from "@/lib/subscription/service";
 import { isPartAiPracticePaper } from "@/lib/exam/ai-practice-config";
@@ -16,9 +18,10 @@ export default async function PracticePage({
   const [{ paperId }, session] = await Promise.all([params, getSession()]);
   if (!session) redirect("/login");
 
-  const [paper, planLimits] = await Promise.all([
+  const [paper, planLimits, comments] = await Promise.all([
     getCachedPracticePaper(paperId),
     getUserPlanLimits(session.user.id),
+    getPaperComments(paperId),
   ]);
   if (!paper) notFound();
 
@@ -44,7 +47,14 @@ export default async function PracticePage({
     paper.paperKind === "PLACEMENT";
 
   return (
-    <PracticeClient
+    <>
+      <PaperComments
+        paperId={paper.id}
+        initialComments={comments}
+        currentUserId={session.user.id}
+        currentUserName={session.user.name}
+      />
+      <PracticeClient
       paperId={paper.id}
       paperTitle={paper.title}
       timeLimit={paper.timeLimit}
@@ -58,5 +68,6 @@ export default async function PracticePage({
       mockPoolKey={paper.mockPoolKey}
       partAiPractice={isPartAiPracticePaper(paper)}
     />
+    </>
   );
 }
