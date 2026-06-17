@@ -12,6 +12,7 @@ import {
 import { getMockSkillQuestionCount } from "@/lib/exam/mock-config";
 import {
   pickDiverseQuestionIds,
+  pickReadingPassageQuestionIds,
   type QuestionPickMeta,
 } from "@/lib/exam/question-diversity";
 
@@ -185,7 +186,10 @@ export async function assignPracticeQuestionsForAttempt(
   }
 
   const used = await getUsedPoolQuestionIds(db, attempt.userId, attempt.paperId);
-  const picked = pickDiverseQuestionIds(pool, used, PRACTICE_POOL_SIZE);
+  const picked =
+    parsed.skill === Skill.READING
+      ? pickReadingPassageQuestionIds(pool, used, PRACTICE_POOL_SIZE)
+      : pickDiverseQuestionIds(pool, used, PRACTICE_POOL_SIZE);
 
   return createAttemptQuestions(db, attemptId, picked);
 }

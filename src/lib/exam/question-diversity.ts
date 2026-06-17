@@ -172,6 +172,10 @@ export function getQuestionDiversityKey(q: QuestionPickMeta): string {
   if (contentFp) {
     const content = asRecord(q.content);
     const hasPassageLikeBody = !!textField(content, "passage", "transcript", "taskPrompt", "prompt");
+    if (q.type === QuestionType.MCQ && hasPassageLikeBody) {
+      const question = textField(content, "question");
+      return `content:${contentFp}|q:${fingerprint(question)}`;
+    }
     if (hasPassageLikeBody || q.type === QuestionType.GAP_FILL) {
       return `content:${contentFp}`;
     }
@@ -231,4 +235,62 @@ export function pickDiverseQuestionIds(
   }
 
   return picked.map((q) => q.id);
+}
+
+function extractPassageText(q: QuestionPickMeta): string {
+  const content = asRecord(q.content);
+  return textField(content, "passage");
+}
+
+/** Nhóm câu Reading cùng đoạn văn (Cambridge-style passage set). */
+export function getReadingPassageGroupKey(q: QuestionPickMeta): string {
+  const passage = extractPassageText(q);
+  if (passage) return `passage:${fingerprint(passage)}`;
+  if (q.title?.trim()) return `title:${q.title.trim().toLowerCase()}`;
+  return `solo:${q.id}`;
+}
+
+function groupReadingByPassage(pool: QuestionPickMeta[]): Map<string, QuestionPickMeta[]> {
+  const groups = new Map<string, QuestionPickMeta[]>();
+  for (const q of pool) {
+    if (q.type !== QuestionType.MCQ && q.type !== QuestionType.GAP_FILL) continue;
+    const key = getReadingPassageGroupKey(q);
+    const list = groups.get(key) ?? [];
+    list.push(q);
+    groups.set(key, list);
+  }
+  return groups;
+}
+
+/**
+ * Chọn một đoạn văn và tất cả câu hỏi thuộc đoạn đó (format thi thật).
+ * Ưu tiên bộ có nhiều câu; fallback pickDiverseQuestionIds nếu không có passage.
+ */
+export function pickReadingPassageQuestionIds(
+  pool: QuestionPickMeta[],
+  exclude: Set<string>,
+  maxQuestions: number
+): string[] {
+  const groups = groupReadingByPassage(pool);
+  if (groups.size === 0) {
+    return pickDiverseQuestionIds(pool, exclude, maxQuestions);
+  }
+
+  type GroupEntry = [string, QuestionPickMeta[]];
+  const available: GroupEntry[] = [...groups.entries()].filter(([, qs]) =>
+    qs.some((q) => !exclude.has(q.id))
+  );
+
+  if (available.length === 0) {
+    return pickDiverseQuestionIds(pool, exclude, maxQuestions);
+  }
+
+  available.sort((a, b) => b[1].length - a[1].length);
+  const multi = available.filter(([, qs]) => qs.length >= 2);
+  const candidates = multi.length > 0 ? multi : available;
+  const [, group] = shuffle(candidates)[0]!;
+
+  const unused = group.filter((q) => !exclude.has(q.id));
+  const source = unused.length > 0 ? unused : group;
+  return source.slice(0, maxQuestions).map((q) => q.id);
 }

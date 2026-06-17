@@ -19,6 +19,8 @@ import {
   submitAttemptAction,
 } from "@/lib/actions/exam";
 import { supportsQuestionSwap } from "@/lib/exam/swap-practice-question";
+import { isReadingPassageSession } from "@/lib/exam/reading-passage-ui";
+import { ReadingPassagePractice } from "@/components/exam/reading-passage-practice";
 import { QuestionType, PaperKind } from "@prisma/client";
 import { Shuffle } from "lucide-react";
 import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections";
@@ -197,6 +199,7 @@ export function PracticeClient({
   const [swappingQuestion, setSwappingQuestion] = useState(false);
 
   const readingListeningPractice = isReadingListeningPractice(paperKind, sessionQuestions);
+  const readingPassagePractice = isReadingPassageSession(paperKind, sessionQuestions);
 
   useEffect(() => {
     seenQuestionIdsRef.current = new Set();
@@ -631,6 +634,7 @@ export function PracticeClient({
     !loadingPool &&
     !!current &&
     !!paperKind &&
+    !readingPassagePractice &&
     supportsQuestionSwap(paperKind as PaperKind);
 
   return (
@@ -640,7 +644,13 @@ export function PracticeClient({
     >
       <ConfettiBurst active={showConfetti} />
 
-      {readingListeningPractice && (
+      {readingPassagePractice && (
+        <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-sky-50 px-4 py-3 text-sm font-semibold text-indigo-900">
+          📖 <strong>Reading theo đoạn văn:</strong> Một đoạn văn · nhiều câu hỏi (format đề thi).
+          Chọn đáp án để biết ngay đúng/sai và xem giải thích.
+        </div>
+      )}
+      {readingListeningPractice && !readingPassagePractice && (
         <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-sky-300 bg-gradient-to-r from-sky-50 to-emerald-50 px-4 py-3 text-sm font-semibold text-sky-900">
           ⚡ <strong>Luyện tập tương tác:</strong> Chọn đáp án để biết ngay đúng/sai, nghe âm thanh
           vui nhộn và xem giải thích tại chỗ. Trang kết quả chỉ hiển thị điểm tổng.
@@ -689,12 +699,17 @@ export function PracticeClient({
               ⏱ Phần này: {formatDuration(currentSection.timeLimit)}
             </p>
           )}
-          {!isPartAiPracticeUi && (
+          {!isPartAiPracticeUi && !readingPassagePractice && (
             <p className="text-sm font-semibold text-muted-foreground">
               Câu {currentIndex + 1}/{sessionQuestions.length || "…"} · Đã trả lời {answeredCount} câu
             </p>
           )}
-          {!isPartAiPracticeUi && (
+          {readingPassagePractice && (
+            <p className="text-sm font-semibold text-muted-foreground">
+              {sessionQuestions.length} câu · Đã trả lời {answeredCount} câu
+            </p>
+          )}
+          {!isPartAiPracticeUi && !readingPassagePractice && (
           <div className="mt-2 h-2 w-48 overflow-hidden rounded-full bg-purple-100">
             <div
               className="h-full rounded-full bg-gradient-to-r from-purple-400 to-pink-400 transition-all duration-500"
@@ -711,8 +726,8 @@ export function PracticeClient({
         />
       </div>
 
-      <div className={isPartAiPracticeUi ? "max-w-3xl mx-auto" : "grid gap-6 lg:grid-cols-4"}>
-        {!isPartAiPracticeUi && (
+      <div className={isPartAiPracticeUi || readingPassagePractice ? "max-w-6xl mx-auto" : "grid gap-6 lg:grid-cols-4"}>
+        {!isPartAiPracticeUi && !readingPassagePractice && (
         <aside className="lg:col-span-1">
           <div className="sticky top-20 rounded-2xl border-2 border-purple-200 bg-white/90 p-4 shadow-md backdrop-blur-sm">
             <p className="mb-3 text-sm font-extrabold text-purple-700">🗺️ Bản đồ câu hỏi</p>
@@ -769,11 +784,22 @@ export function PracticeClient({
         </aside>
         )}
 
-        <div className={isPartAiPracticeUi ? "" : "lg:col-span-3"}>
+        <div className={isPartAiPracticeUi || readingPassagePractice ? "" : "lg:col-span-3"}>
           {loadingPool || (dynamicPool && sessionQuestions.length === 0) ? (
             <div className="flex min-h-[240px] items-center justify-center rounded-2xl border-2 border-purple-200 bg-white p-8 text-center">
               <p className="font-semibold text-purple-800">Đang chọn câu hỏi ngẫu nhiên cho bạn…</p>
             </div>
+          ) : readingPassagePractice ? (
+            <ReadingPassagePractice
+              questions={sessionQuestions}
+              answers={answers}
+              objectiveFeedback={objectiveFeedback}
+              onAnswer={(questionId, value, question) => setAnswer(questionId, value, question)}
+              submitting={submitting}
+              attemptReady={!!attemptId}
+              onSubmit={() => void handleSubmit()}
+              minWordsContext={minWordsContext}
+            />
           ) : (
             current && (
             <div className="animate-bounce-in" key={current.id}>
@@ -809,7 +835,7 @@ export function PracticeClient({
             )
           )}
 
-          {!loadingPool && sessionQuestions.length > 0 && (
+          {!loadingPool && sessionQuestions.length > 0 && !readingPassagePractice && (
           <div className="mt-4 flex flex-wrap justify-between gap-2">
             {!isPartAiPracticeUi && (
             <Button

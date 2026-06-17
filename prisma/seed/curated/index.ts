@@ -6,6 +6,7 @@ import { KET_BANK } from "./ket";
 import { PET_BANK } from "./pet";
 import { FCE_BANK } from "./fce";
 import type { LevelBank } from "./types";
+import { enrichCuratedReading } from "../generators/reading-passage-sets";
 import { questionCounts } from "../generators/bulk-data";
 
 const BANKS: Record<ExamLevel, LevelBank> = {
@@ -31,9 +32,8 @@ function trimBank(level: ExamLevel, bank: LevelBank): LevelBank {
 
 export function getCuratedLevelData(level: ExamLevel): LevelBank {
   const bank = BANKS[level];
-  // Use all curated content (often slightly above minimum counts)
   return {
-    reading: bank.reading,
+    reading: enrichCuratedReading(level, bank.reading),
     listening: bank.listening,
     writing: bank.writing,
     speaking: bank.speaking,

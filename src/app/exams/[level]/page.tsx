@@ -35,6 +35,9 @@ const SKILL_EMOJI: Record<string, string> = {
 const YLE_LEVELS = new Set(["STARTERS", "MOVERS", "FLYERS"]);
 
 function practiceInfoText(skill: Skill): string {
+  if (skill === Skill.READING) {
+    return "1 đoạn văn + nhiều câu/lần · lời giải có sẵn ngay";
+  }
   return `${PRACTICE_POOL_SIZE} câu ngẫu nhiên/lần · lời giải có sẵn ngay`;
 }
 

@@ -11,6 +11,10 @@ import {
   extraUoeForLevel,
 } from "./template-factory";
 import type { GapBuilder, ListenBuilder, McqBuilder, SpeakBuilder, WriteBuilder } from "./diverse-templates-types";
+import {
+  buildReadingPassageSetQuestions,
+  READING_QUESTIONS_PER_SET,
+} from "./reading-passage-sets";
 
 function title(tag: string, v: VarContext): string {
   return `${tag}-${v.idx + 1}`;
@@ -1175,8 +1179,8 @@ function buildFromTemplates<T extends { title: string; difficulty?: SeedDifficul
 }
 
 export function buildDiverseReading(level: ExamLevel, count: number, startOffset = 0): McqSeed[] {
-  const templates = READING_BY_LEVEL[level] ?? KET_READING;
-  return buildFromTemplates(templates, level, "R", count, startOffset);
+  const startSet = Math.floor(startOffset / READING_QUESTIONS_PER_SET);
+  return buildReadingPassageSetQuestions(level, count, startSet);
 }
 
 export function buildDiverseListening(level: ExamLevel, count: number, startOffset = 0): ListeningSeed[] {

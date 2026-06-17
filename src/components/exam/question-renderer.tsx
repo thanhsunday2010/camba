@@ -52,6 +52,8 @@ interface QuestionRendererProps {
   objectiveFeedback?: ObjectiveFeedback | null;
   lockObjectiveAnswer?: boolean;
   practiceMinWords?: number | null;
+  /** Reading passage layout — ẩn đoạn văn lặp trong từng câu MCQ */
+  hidePassage?: boolean;
 }
 
 export function QuestionRenderer({
@@ -66,6 +68,7 @@ export function QuestionRenderer({
   objectiveFeedback = null,
   lockObjectiveAnswer = false,
   practiceMinWords = null,
+  hidePassage = false,
 }: QuestionRendererProps) {
   const content = question.content as McqContent | GapFillContent | FreeTextContent | SpeakingContent;
   const mcqContent = content as McqContent;
@@ -92,7 +95,12 @@ export function QuestionRenderer({
     : (media?.question ?? mcqContent.question);
 
   return (
-    <div className="space-y-4 rounded-3xl border-2 border-purple-200 bg-white/95 p-6 shadow-lg">
+    <div
+      className={cn(
+        "space-y-4 rounded-3xl border-2 border-purple-200 bg-white/95 p-6 shadow-lg",
+        hidePassage && "rounded-xl border-purple-100 p-4 shadow-sm"
+      )}
+    >
       <div className="flex items-start justify-between gap-4">
         <h3 className="text-lg font-extrabold text-purple-800">
           ✨ Câu {index + 1}
@@ -129,6 +137,7 @@ export function QuestionRenderer({
           value={value as string}
           onChange={onChange}
           disabled={disabled || lockObjectiveAnswer}
+          hidePassage={hidePassage}
         />
       )}
 
@@ -192,15 +201,17 @@ function McqQuestion({
   value,
   onChange,
   disabled,
+  hidePassage = false,
 }: {
   content: McqContent;
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
+  hidePassage?: boolean;
 }) {
   return (
     <div className="space-y-4">
-      {content.passage && (
+      {content.passage && !hidePassage && (
         <div className="rounded-2xl border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50 p-4 text-sm font-medium leading-relaxed whitespace-pre-wrap">
           📄 {content.passage}
         </div>
