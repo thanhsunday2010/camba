@@ -80,16 +80,6 @@ interface ResultsClientProps {
   partAiPracticeMeta?: PartAiPracticeResultsMeta | null;
 }
 
-function hideObjectiveResultDetails(paper: {
-  paperKind?: string;
-  skill: string;
-}): boolean {
-  return (
-    paper.paperKind === "PRACTICE" &&
-    (paper.skill === "READING" || paper.skill === "LISTENING")
-  );
-}
-
 export function ResultsClient({
   attempt,
   aiFeedbacks,
@@ -103,8 +93,6 @@ export function ResultsClient({
     attempt.score !== null && attempt.maxScore
       ? Math.round((attempt.score / attempt.maxScore) * 100)
       : null;
-
-  const compactResults = hideObjectiveResultDetails(attempt.paper);
 
   useEffect(() => {
     if (mascotShownRef.current) return;
@@ -185,22 +173,6 @@ export function ResultsClient({
         </CardContent>
       </Card>
 
-      {compactResults ? (
-        <Card className="border-2 border-sky-200 bg-gradient-to-br from-sky-50/60 to-white">
-          <CardContent className="space-y-4 pt-6">
-            <p className="text-base font-semibold leading-relaxed text-sky-950">
-              Bạn đã xem đáp án và giải thích ngay khi làm bài. Dưới đây là điểm tổng — quay lại
-              luyện thêm để cải thiện nhé!
-            </p>
-            <Link
-              href="/exams"
-              className="inline-flex font-bold text-purple-600 underline hover:text-purple-800"
-            >
-              ← Chọn level luyện tập
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
       <div className="space-y-6">
         {attempt.answers.map((answer, i) => {
           const aiFb = aiFeedbacks.find((f) => f.questionId === answer.question.id);
@@ -334,7 +306,6 @@ export function ResultsClient({
           );
         })}
       </div>
-      )}
 
       {partAiPracticeMeta && (
         <div className="mt-8">

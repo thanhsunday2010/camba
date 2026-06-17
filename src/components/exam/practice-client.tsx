@@ -27,23 +27,13 @@ import { Shuffle } from "lucide-react";
 import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import {
-  mascotAnswerCorrectMessage,
-  mascotAnswerWrongMessage,
   mascotGradingWaitMessage,
   mascotPlacementSubmitWaitMessage,
   mascotSpeakingDoneMessage,
-  mascotStreakMessage,
   mascotTestCompleteMessage,
 } from "@/lib/kids/mascot-messages";
 import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
 import { notifyFreeLimitHit } from "@/lib/promo/events";
-import { gradeObjectiveAnswer } from "@/lib/exam/scoring";
-import type { GapFillContent } from "@/lib/exam/scoring";
-import {
-  formatCorrectAnswerDisplay,
-  formatExplanationForStudent,
-} from "@/lib/exam/question-explanation";
-import type { ObjectiveFeedback } from "@/components/exam/practice-objective-feedback";
 import {
   getPracticeMinWords,
   meetsPracticeMinWords,
@@ -100,55 +90,6 @@ function isAnswered(value: unknown): boolean {
   return true;
 }
 
-function usesInstantObjectiveFeedback(
-  paperKind: string | undefined,
-  question: PaperQuestion
-): boolean {
-  if (paperKind !== "PRACTICE") return false;
-  if (question.skill !== "READING" && question.skill !== "LISTENING") return false;
-  return question.type === "MCQ" || question.type === "GAP_FILL";
-}
-
-function isGapFillComplete(value: unknown, blanks: number): boolean {
-  if (!Array.isArray(value)) return false;
-  return Array.from({ length: blanks }).every(
-    (_, i) => String(value[i] ?? "").trim() !== ""
-  );
-}
-
-function buildObjectiveFeedback(
-  paperKind: string | undefined,
-  question: PaperQuestion,
-  value: unknown
-): ObjectiveFeedback | null {
-  if (!usesInstantObjectiveFeedback(paperKind, question)) return null;
-  if (question.correctAnswer == null) return null;
-
-  if (question.type === "GAP_FILL") {
-    const blanks = (question.content as GapFillContent).blanks;
-    if (!isGapFillComplete(value, blanks)) return null;
-  } else if (question.type === "MCQ") {
-    if (!isAnswered(value)) return null;
-  }
-
-  const { isCorrect } = gradeObjectiveAnswer(
-    question.type,
-    question.correctAnswer,
-    value
-  );
-
-  return {
-    isCorrect,
-    correctDisplay: formatCorrectAnswerDisplay(question.type, question.correctAnswer),
-    explanation: formatExplanationForStudent(
-      question.content,
-      value,
-      question.correctAnswer
-    ),
-  };
-}
-
-
 export function PracticeClient({
   paperId,
   paperTitle,
@@ -179,15 +120,11 @@ export function PracticeClient({
   const [submitting, setSubmitting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [startedAt] = useState(new Date());
-  const consecutiveCorrectRef = useRef(0);
   const countedPracticeQuestionsRef = useRef<Set<string>>(new Set());
   const speakingGradedIdsRef = useRef<Set<string>>(new Set());
   const seenQuestionIdsRef = useRef<Set<string>>(new Set());
   const [sessionQuestions, setSessionQuestions] = useState<PaperQuestion[]>(questions);
   const [loadingPool, setLoadingPool] = useState(dynamicPool && !initialAttemptId);
-  const [objectiveFeedback, setObjectiveFeedback] = useState<
-    Record<string, ObjectiveFeedback>
-  >({});
   const [swappingQuestion, setSwappingQuestion] = useState(false);
 
   const readingPassagePractice = isReadingPassageSession(paperKind, sessionQuestions);
@@ -242,32 +179,10 @@ export function PracticeClient({
 
   const setAnswer = useCallback(
     (questionId: string, value: unknown, question?: PaperQuestion) => {
-      setAnswers((prev) => {
-        const next = { ...prev, [questionId]: value };
-        return next;
-      });
+      setAnswers((prev) => ({ ...prev, [questionId]: value }));
 
       const q = question ?? sessionQuestions.find((item) => item.id === questionId);
-      const instant = q ? buildObjectiveFeedback(paperKind, q, value) : null;
-
-      if (instant && !objectiveFeedback[questionId]) {
-        setObjectiveFeedback((prev) => ({ ...prev, [questionId]: instant }));
-        if (instant.isCorrect) {
-          consecutiveCorrectRef.current += 1;
-          if (consecutiveCorrectRef.current === 5) {
-            showMascot(mascotStreakMessage(5));
-          } else {
-            showMascot(mascotAnswerCorrectMessage());
-          }
-        } else {
-          consecutiveCorrectRef.current = 0;
-          showMascot(mascotAnswerWrongMessage());
-        }
-      } else if (
-        q &&
-        q.type !== "FREE_TEXT" &&
-        !usesInstantObjectiveFeedback(paperKind, q)
-      ) {
+      if (q && q.type !== "FREE_TEXT" && q.type !== "SPEAKING_PROMPT") {
         play("pop");
       }
 
@@ -292,7 +207,7 @@ export function PracticeClient({
         });
       }
     },
-    [play, paperKind, attemptId, sessionQuestions, showMascot, objectiveFeedback, partAiPractice]
+    [play, paperKind, attemptId, sessionQuestions, partAiPractice]
   );
 
   const validateMinWordsForQuestion = useCallback(
@@ -626,11 +541,6 @@ export function PracticeClient({
       delete next[oldId];
       return next;
     });
-    setObjectiveFeedback((prev) => {
-      const next = { ...prev };
-      delete next[oldId];
-      return next;
-    });
     countedPracticeQuestionsRef.current.delete(oldId);
     speakingGradedIdsRef.current.delete(oldId);
 
@@ -712,7 +622,6 @@ export function PracticeClient({
               {sessionQuestions.map((q, i) => {
                 const sec = sections?.find((s) => i >= s.startIndex && i < s.endIndex);
                 const answered = isAnswered(answers[q.id]);
-                const fb = objectiveFeedback[q.id];
                 return (
                   <button
                     key={q.id}
@@ -725,13 +634,9 @@ export function PracticeClient({
                     className={`h-9 rounded-xl text-sm font-bold transition-all duration-200 ${
                       i === currentIndex
                         ? "scale-110 bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md"
-                        : fb
-                          ? fb.isCorrect
-                            ? "bg-emerald-200 text-emerald-900 ring-2 ring-emerald-400"
-                            : "bg-rose-200 text-rose-900 ring-2 ring-rose-400"
-                          : answered
-                            ? "bg-mint-200 text-mint-900 ring-2 ring-mint-400"
-                            : "bg-amber-50 text-amber-900 ring-2 ring-amber-300 hover:bg-amber-100"
+                        : answered
+                          ? "bg-mint-200 text-mint-900 ring-2 ring-mint-400"
+                          : "bg-amber-50 text-amber-900 ring-2 ring-amber-300 hover:bg-amber-100"
                     } ${strictSequential && i !== currentIndex ? "cursor-not-allowed opacity-50" : "hover:scale-105"}`}
                   >
                     {i + 1}
@@ -759,7 +664,6 @@ export function PracticeClient({
             <ReadingPassagePractice
               questions={sessionQuestions}
               answers={answers}
-              objectiveFeedback={objectiveFeedback}
               onAnswer={(questionId, value, question) => setAnswer(questionId, value, question)}
               submitting={submitting}
               attemptReady={!!attemptId}
@@ -793,8 +697,6 @@ export function PracticeClient({
                 onSpeakingTranscript={(text) => handleSpeakingTranscript(text, current)}
                 disabled={submitting}
                 maxSpeakingWords={maxSpeakingWords}
-                objectiveFeedback={objectiveFeedback[current.id] ?? null}
-                lockObjectiveAnswer={!!objectiveFeedback[current.id]}
                 practiceMinWords={getPracticeMinWords(current.type, current.content, minWordsContext)}
               />
             </div>

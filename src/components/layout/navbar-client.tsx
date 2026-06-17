@@ -174,14 +174,14 @@ function NavbarMascotBubble({
         </button>
         <p
           key={`${active.message}-${active.subtitle ?? ""}`}
-          className="animate-bounce-in text-sm font-normal leading-snug text-purple-900"
+          className="animate-bounce-in text-base font-normal leading-snug text-purple-900"
         >
           {active.message}
         </p>
         {active.subtitle && (
           <p
             key={`sub-${active.subtitle}`}
-            className="animate-bounce-in mt-1 text-xs font-normal text-purple-700/90"
+            className="animate-bounce-in mt-1 text-sm font-normal text-purple-700/90"
           >
             {active.subtitle}
           </p>

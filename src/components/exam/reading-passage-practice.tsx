@@ -6,7 +6,6 @@ import { QuestionRenderer } from "@/components/exam/question-renderer";
 import { QuestionIllustration } from "@/components/exam/question-illustration";
 import { resolveSharedReadingPassage } from "@/lib/exam/reading-passage-ui";
 import { resolveMcqMedia } from "@/lib/exam/question-media";
-import type { ObjectiveFeedback } from "@/components/exam/practice-objective-feedback";
 import type { McqContent } from "@/lib/exam/scoring";
 import type { QuestionType } from "@prisma/client";
 import { getPracticeMinWords, type PracticeMinWordsContext } from "@/lib/exam/practice-min-words";
@@ -25,7 +24,6 @@ export type ReadingPassageQuestion = {
 interface ReadingPassagePracticeProps {
   questions: ReadingPassageQuestion[];
   answers: Record<string, unknown>;
-  objectiveFeedback: Record<string, ObjectiveFeedback>;
   onAnswer: (questionId: string, value: unknown, question: ReadingPassageQuestion) => void;
   submitting: boolean;
   attemptReady: boolean;
@@ -44,7 +42,6 @@ function isAnswered(value: unknown): boolean {
 export function ReadingPassagePractice({
   questions,
   answers,
-  objectiveFeedback,
   onAnswer,
   submitting,
   attemptReady,
@@ -120,8 +117,6 @@ export function ReadingPassagePractice({
                 onChange={(v) => onAnswer(question.id, v, question)}
                 disabled={submitting}
                 hidePassage
-                objectiveFeedback={objectiveFeedback[question.id] ?? null}
-                lockObjectiveAnswer={!!objectiveFeedback[question.id]}
                 practiceMinWords={getPracticeMinWords(
                   question.type,
                   question.content,
