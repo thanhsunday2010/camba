@@ -4,6 +4,7 @@
  */
 import { ExamLevel } from "@prisma/client";
 import { BANKS } from "../prisma/seed/curated";
+import { getCuratedLevelData } from "../prisma/seed/curated/index";
 import { expandLevelBank } from "../prisma/seed/expand-bank";
 import { generateReading } from "../prisma/seed/generators/bulk-data";
 import { buildReadingPassageSet } from "../prisma/seed/generators/reading-passage-sets";
@@ -75,6 +76,9 @@ console.log("=== Reading passage audit ===");
 for (const level of LEVELS) {
   const curated = BANKS[level].reading;
   auditItems("Curated (raw)", level, curated);
+
+  const enriched = getCuratedLevelData(level).reading;
+  auditItems("Curated (enriched)", level, enriched);
 
   const bulkSet = buildReadingPassageSet(level, 0);
   auditItems("Bulk passage set", level, bulkSet);

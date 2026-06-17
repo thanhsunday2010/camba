@@ -33,6 +33,7 @@
     "content:migrate-ielts-speaking": "tsx scripts/migrate-ielts-speaking.ts",
     "content:migrate-cambridge-speaking": "tsx scripts/migrate-cambridge-speaking.ts",
     "content:migrate-cambridge-writing": "tsx scripts/migrate-cambridge-writing.ts",
+    "content:migrate-reading-pools": "tsx scripts/migrate-reading-passage-pools.ts",
     "content:migrate-ielts-writing": "tsx scripts/migrate-ielts-writing.ts",
     "content:seed-promo": "tsx scripts/seed-promo.ts",
     "db:deploy": "node scripts/migrate-deploy.mjs && npm run db:seed",

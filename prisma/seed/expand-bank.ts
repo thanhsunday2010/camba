@@ -15,7 +15,7 @@ import { computeRequiredPoolSizes } from "./seed-targets";
 import type { McqSeed } from "./helpers";
 import { getSeedDiversityKey } from "../../src/lib/exam/question-diversity";
 
-function expandReadingPool(
+export function expandReadingPool(
   base: McqSeed[],
   target: number,
   level: ExamLevel

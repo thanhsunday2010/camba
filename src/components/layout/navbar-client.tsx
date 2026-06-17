@@ -18,17 +18,36 @@ type NavUser = {
   role?: string;
 };
 
+type NavLinksProps = {
+  user?: NavUser;
+  referralCode?: string | null;
+  onNavigate?: () => void;
+  vertical?: boolean;
+  hideLogout?: boolean;
+};
+
+function LogoutForm({ vertical = false }: { vertical?: boolean }) {
+  return (
+    <form action={logoutAction} className={vertical ? "w-full" : undefined}>
+      <Button
+        variant="outline"
+        size={vertical ? "default" : "sm"}
+        type="submit"
+        className={cn("rounded-full border-2", vertical && "w-full")}
+      >
+        Đăng xuất
+      </Button>
+    </form>
+  );
+}
+
 function NavLinks({
   user,
   referralCode,
   onNavigate,
   vertical = false,
-}: {
-  user?: NavUser;
-  referralCode?: string | null;
-  onNavigate?: () => void;
-  vertical?: boolean;
-}) {
+  hideLogout = false,
+}: NavLinksProps) {
   const linkClass = (colors: string) =>
     cn(
       "rounded-full px-3 py-2 text-sm font-bold transition-colors",
@@ -94,16 +113,7 @@ function NavLinks({
               Giáo viên
             </Link>
           )}
-          <form action={logoutAction} className={vertical ? "pt-2" : undefined}>
-            <Button
-              variant="outline"
-              size={vertical ? "default" : "sm"}
-              type="submit"
-              className={cn("rounded-full border-2", vertical && "w-full")}
-            >
-              Đăng xuất
-            </Button>
-          </form>
+          {!hideLogout && <LogoutForm vertical={vertical} />}
         </>
       ) : (
         <>
@@ -207,13 +217,21 @@ export function NavbarClient({
             aria-label="Đóng menu"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute right-0 top-0 flex h-[calc(100vh-4rem)] w-[min(100%,20rem)] flex-col gap-1 overflow-y-auto border-l-2 border-purple-100 bg-white p-4 shadow-xl">
-            <NavLinks
-              user={user}
-              referralCode={referralCode}
-              vertical
-              onNavigate={() => setMobileOpen(false)}
-            />
+          <div className="absolute right-0 top-0 flex h-[calc(100dvh-4rem)] w-[min(100%,20rem)] flex-col border-l-2 border-purple-100 bg-white shadow-xl">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-2">
+              <NavLinks
+                user={user}
+                referralCode={referralCode}
+                vertical
+                hideLogout
+                onNavigate={() => setMobileOpen(false)}
+              />
+            </div>
+            {user ? (
+              <div className="shrink-0 border-t-2 border-purple-100 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <LogoutForm vertical />
+              </div>
+            ) : null}
           </div>
         </div>
       )}
