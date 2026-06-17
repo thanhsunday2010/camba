@@ -59,7 +59,8 @@ export function PaperComments({
   }
 
   return (
-    <section className="mx-auto mb-8 max-w-4xl rounded-2xl border-2 border-purple-100 bg-white p-5 shadow-sm">
+    <section className="container mx-auto mt-10 max-w-4xl px-4 pb-8">
+      <div className="rounded-2xl border-2 border-purple-100 bg-white p-5 shadow-sm">
       <h2 className="mb-1 text-lg font-extrabold text-purple-900">💬 Bình luận về đề</h2>
       <p className="mb-4 text-sm text-muted-foreground">
         Chia sẻ kinh nghiệm, ghi chú hoặc hỏi đáp về đề này
@@ -116,6 +117,7 @@ export function PaperComments({
           })}
         </ul>
       )}
+      </div>
     </section>
   );
 }

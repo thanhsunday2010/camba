@@ -52,12 +52,6 @@ export default async function PracticePage({
 
   return (
     <>
-      <PaperComments
-        paperId={paper.id}
-        initialComments={comments}
-        currentUserId={session.user.id}
-        currentUserName={session.user.name}
-      />
       <PracticeClient
       paperId={paper.id}
       paperTitle={paper.title}
@@ -73,6 +67,12 @@ export default async function PracticePage({
       partAiPractice={isPartAiPracticePaper(paper)}
       ieltsModule={ieltsModule ?? undefined}
     />
+      <PaperComments
+        paperId={paper.id}
+        initialComments={comments}
+        currentUserId={session.user.id}
+        currentUserName={session.user.name}
+      />
     </>
   );
 }

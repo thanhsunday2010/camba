@@ -286,8 +286,9 @@ export function pickReadingPassageQuestionIds(
   }
 
   available.sort((a, b) => b[1].length - a[1].length);
+  const fullSet = available.filter(([, qs]) => qs.length >= 4);
   const multi = available.filter(([, qs]) => qs.length >= 2);
-  const candidates = multi.length > 0 ? multi : available;
+  const candidates = fullSet.length > 0 ? fullSet : multi.length > 0 ? multi : available;
   const [, group] = shuffle(candidates)[0]!;
 
   const unused = group.filter((q) => !exclude.has(q.id));
