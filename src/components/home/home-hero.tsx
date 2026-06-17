@@ -11,8 +11,8 @@ import {
 
 export function HomeHero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white">
-      <div className="absolute inset-0 opacity-20">
+    <section className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-20">
         <div className="absolute left-10 top-10 h-20 w-20 rounded-full bg-yellow-300 blur-xl animate-float" />
         <div
           className="absolute right-20 top-20 h-32 w-32 rounded-full bg-sky-300 blur-xl animate-float"
@@ -25,8 +25,8 @@ export function HomeHero() {
       </div>
       <div className="container relative mx-auto px-4 py-14 md:py-20 lg:py-24">
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="text-center lg:text-left">
-            <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl lg:leading-tight">
+          <div className="min-w-0 w-full text-center lg:text-left">
+            <h1 className="text-2xl font-extrabold tracking-tight md:text-5xl lg:text-6xl lg:leading-tight">
               Giỏi Tiếng Anh cùng Camba!
             </h1>
             <p className="mt-6 max-w-xl text-lg font-semibold text-white/90 md:text-xl lg:mx-0 lg:mt-8">
@@ -53,10 +53,11 @@ export function HomeHero() {
               </Button>
             </div>
           </div>
-          <div className="flex justify-center lg:justify-end">
+          <div className="flex w-full min-w-0 justify-center lg:justify-end">
             <MascotHero
               message="Mình là Camba - Thỏ thông minh sẽ đồng hành cùng Bạn nhé!"
               mood="wave"
+              className="max-w-full"
             />
           </div>
         </div>

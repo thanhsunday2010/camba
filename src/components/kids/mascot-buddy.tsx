@@ -12,11 +12,11 @@ export function MascotHero({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col items-center gap-4 sm:flex-row sm:items-end", className)}>
+    <div className={cn("flex w-full min-w-0 max-w-full flex-col items-center gap-4 sm:flex-row sm:items-end", className)}>
       <CambaMascot size="xl" mood={mood} />
-      <div className="relative max-w-sm rounded-3xl rounded-bl-sm border-2 border-white/40 bg-white/20 px-5 py-4 backdrop-blur-sm">
+      <div className="relative w-full max-w-sm rounded-3xl rounded-bl-sm border-2 border-white/40 bg-white/20 px-5 py-4 backdrop-blur-sm">
         <p className="text-base font-extrabold leading-snug text-white md:text-lg">{message}</p>
-        <div className="absolute -left-2 bottom-6 h-4 w-4 rotate-45 border-b-2 border-l-2 border-white/40 bg-white/20" />
+        <div className="absolute -left-2 bottom-6 hidden h-4 w-4 rotate-45 border-b-2 border-l-2 border-white/40 bg-white/20 sm:block" />
       </div>
     </div>
   );
