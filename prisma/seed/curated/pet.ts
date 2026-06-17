@@ -109,20 +109,109 @@ const reading = fromPassageSets([
       mcq("Podcast", "What was the popular topic last month?", ["Space travel", "Renewable energy in cities", "Ancient history", "Video games"], "Renewable energy in cities"),
     ],
   },
+  {
+    title: "Notices and short texts",
+    passage:
+      "Alex's email: Hi! I'm visiting your city next month. Can you suggest interesting places and local food? — Alex. Job advert: PART-TIME SHOP ASSISTANT — Sat/Sun, must speak English + French, apply online. Film review: The film was so boring that we left before the end. Building notice: Due to repair work, lifts 2 and 3 are out of service until 20 April. Blog: I've been learning guitar for about three years and practise every evening.",
+    questions: [
+      mcq("Notices and short texts", "What does Alex want?", ["Money", "Suggestions for places and food", "A job", "Homework help"], "Suggestions for places and food"),
+      mcq("Notices and short texts", "What language is required besides English?", ["Spanish", "French", "German", "Chinese"], "French"),
+      mcq("Notices and short texts", "How did the writer feel about the film?", ["Excited", "Bored", "Scared", "Confused"], "Bored"),
+      mcq("Notices and short texts", "What is unavailable in the building?", ["Stairs", "Lifts 2 and 3", "The whole building", "Parking"], "Lifts 2 and 3"),
+      mcq("Notices and short texts", "How long has the writer played guitar?", ["One year", "Two years", "Three years", "Five years"], "Three years"),
+    ],
+  },
+  {
+    title: "Travel and announcements",
+    passage:
+      "Travel information: Passengers must check in at least two hours before international flights. School announcement: The debating club has moved to Room 14 on Wednesdays at four. Product label: Keep refrigerated after opening. Use within three days. Internal message: The meeting has been moved to Conference Room B on the third floor. Health article: Experts warn that sitting for long periods can harm your health even if you exercise.",
+    questions: [
+      mcq("Travel and announcements", "When must passengers check in?", ["Thirty minutes before", "At least two hours before", "After boarding", "Next day"], "At least two hours before"),
+      mcq("Travel and announcements", "When is debating club?", ["Tuesday", "Wednesday", "Thursday", "Friday"], "Wednesday"),
+      mcq("Travel and announcements", "What should you do after opening the product?", ["Freeze it", "Keep refrigerated", "Eat immediately", "Throw away"], "Keep refrigerated"),
+      mcq("Travel and announcements", "Where is the meeting?", ["Room A", "Room B, third floor", "Online", "Cancelled"], "Room B, third floor"),
+      mcq("Travel and announcements", "What is the main warning in the health article?", ["Exercise is useless", "Long sitting can harm health", "Stand all day", "Don't go to school"], "Long sitting can harm health"),
+    ],
+  },
+  {
+    title: "Plastic-free month at school",
+    passage:
+      "When geography teacher Ms Ortiz challenged Year 10 to reduce plastic waste, few students expected the idea to spread beyond her classroom. Within a week, the canteen agreed to replace disposable cups with reusable ones, and the art department began collecting bottle tops for a mural about ocean pollution. Students measured how much plastic their families threw away and presented the results in assembly. The most surprising finding was that snack wrappers, not water bottles, made up the largest share. By the end of the month, the school had cut canteen plastic by forty per cent and raised three hundred pounds for a local river-clean charity. Ms Ortiz now plans to invite primary schools to join the project next term.",
+    questions: [
+      mcq("Plastic-free month", "Who started the challenge?", ["The head teacher", "Ms Ortiz", "The canteen staff", "A charity"], "Ms Ortiz"),
+      mcq("Plastic-free month", "What did the canteen change first?", ["The menu", "Disposable cups", "Opening hours", "Prices"], "Disposable cups"),
+      mcq("Plastic-free month", "What did the art department collect?", ["Old books", "Bottle tops", "Glass jars", "Metal cans"], "Bottle tops"),
+      mcq("Plastic-free month", "What caused the most plastic waste at home?", ["Water bottles", "Snack wrappers", "Shopping bags", "Toys"], "Snack wrappers"),
+      mcq("Plastic-free month", "How much did canteen plastic fall by?", ["Ten per cent", "Twenty per cent", "Forty per cent", "Eighty per cent"], "Forty per cent"),
+      mcq("Plastic-free month", "What will happen next term?", ["The project will stop", "Primary schools may join", "Plastic will be banned completely", "The canteen will close"], "Primary schools may join"),
+    ],
+  },
+  {
+    title: "Internship at community radio",
+    passage:
+      "Sixteen-year-old Nina spent two weeks interning at Bridge FM, a small community radio station in her hometown. She arrived expecting to make tea and answer phones, but producer James quickly taught her to edit short interviews and write links between songs. Nina recorded vox pops in the market, asking shoppers about local music events. Her favourite task was preparing a feature on teenage volunteers who teach digital skills to older residents. The piece aired on Thursday evening and received more online comments than any show that week. Nina says the experience confirmed her ambition to study media at university, though she realised that presenters work long hours and must check facts carefully. James offered her a Saturday slot co-hosting a youth programme if she completes a short training course.",
+    questions: [
+      mcq("Radio internship", "How long was Nina's internship?", ["One week", "Two weeks", "One month", "Six months"], "Two weeks"),
+      mcq("Radio internship", "What did Nina originally expect to do?", ["Present live shows", "Make tea and answer phones", "Sell adverts", "Design the website"], "Make tea and answer phones"),
+      mcq("Radio internship", "Where did Nina record vox pops?", ["At school", "In the market", "At the station only", "Online"], "In the market"),
+      mcq("Radio internship", "What was Nina's feature about?", ["Sports results", "Teenage volunteers teaching digital skills", "Holiday travel", "Cooking"], "Teenage volunteers teaching digital skills"),
+      mcq("Radio internship", "When did her piece air?", ["Monday morning", "Thursday evening", "Friday night", "Sunday afternoon"], "Thursday evening"),
+      mcq("Radio internship", "What might Nina do after training?", ["Leave the station", "Co-host a youth programme on Saturdays", "Become station manager", "Stop studying media"], "Co-host a youth programme on Saturdays"),
+    ],
+  },
+  {
+    title: "Restoring a vintage bicycle",
+    passage:
+      "Last winter, Tom found a rusty bicycle frame in his neighbour's shed and asked if he could try to repair it. With help from online videos and his design technology teacher, he cleaned the metal, replaced the brakes and fitted new tyres. The hardest part was aligning the wheels so the bike did not wobble. Tom kept a photo diary and posted updates on the school eco-blog, explaining how repairing old items reduces waste. When the bicycle was finished, he donated it to a refugee support centre that lends bikes to newcomers who cannot afford transport. Tom's teacher entered the project in a regional skills competition, where it won second place. Tom now volunteers at the centre twice a month, teaching others basic maintenance.",
+    questions: [
+      mcq("Vintage bicycle", "Where did Tom find the bicycle frame?", ["In a shop", "In a neighbour's shed", "At the dump", "At school"], "In a neighbour's shed"),
+      mcq("Vintage bicycle", "Who helped Tom besides online videos?", ["His neighbour only", "His design technology teacher", "A professional mechanic", "Nobody"], "His design technology teacher"),
+      mcq("Vintage bicycle", "What was the most difficult task?", ["Painting the frame", "Aligning the wheels", "Buying tyres", "Writing the blog"], "Aligning the wheels"),
+      mcq("Vintage bicycle", "Where did Tom share his progress?", ["On television", "On the school eco-blog", "In a newspaper", "At a market"], "On the school eco-blog"),
+      mcq("Vintage bicycle", "Who received the finished bicycle?", ["Tom's neighbour", "A refugee support centre", "The competition judges", "Tom's teacher"], "A refugee support centre"),
+      mcq("Vintage bicycle", "What does Tom do now at the centre?", ["He sells bikes", "He teaches basic maintenance", "He only rides bikes", "He manages the website"], "He teaches basic maintenance"),
+    ],
+  },
+  {
+    title: "Neighbourhood noise complaint",
+    passage:
+      "Residents on Maple Close have complained for months about noise from a late-night takeaway near the park. Delivery drivers often talk loudly while waiting for orders, and customers sometimes play music in parked cars after midnight. The takeaway owner, Mr Hassan, says most of his staff finish by eleven and that he has asked drivers to turn off engines. However, councillor Patel argues that the business lacks a proper waiting area, so drivers gather on the pavement. At a recent meeting, the council agreed to install better street lighting and move the taxi rank fifty metres away. Mr Hassan will also display a sign asking customers to leave quietly. Two residents said they would prefer stricter closing times, but others worry that tougher rules could hurt a popular local business that employs twelve people from the area.",
+    questions: [
+      mcq("Noise complaint", "What type of business is causing complaints?", ["A gym", "A late-night takeaway", "A factory", "A school"], "A late-night takeaway"),
+      mcq("Noise complaint", "What do customers sometimes do after midnight?", ["Cook at home", "Play music in parked cars", "Close the park", "Call the council"], "Play music in parked cars"),
+      mcq("Noise complaint", "What time do most staff finish according to Mr Hassan?", ["Nine", "Ten", "Eleven", "Midnight"], "Eleven"),
+      mcq("Noise complaint", "Why do drivers gather on the pavement?", ["There is no proper waiting area", "The park is closed", "The street has no lights", "The takeaway is closed"], "There is no proper waiting area"),
+      mcq("Noise complaint", "What will the council install?", ["A new park", "Better street lighting", "A bigger car park", "A police station"], "Better street lighting"),
+      mcq("Noise complaint", "How many local people does the takeaway employ?", ["Two", "Six", "Twelve", "Twenty"], "Twelve"),
+    ],
+  },
+  {
+    title: "Book club interview",
+    passage:
+      "In this month's school magazine, editor Rosa interviews book club leader Mr Finch about reading habits. Mr Finch explains that the club began with six students and now has nearly forty members from three year groups. They meet every second Wednesday to discuss one novel, and members take turns preparing questions. Mr Finch encourages students to choose books from different countries and time periods rather than only popular bestsellers. He believes reading fiction builds empathy because it lets you see life through other characters' eyes. When Rosa asks about screens, Mr Finch agrees that phones compete for attention, but he says even twenty minutes of reading before bed can improve sleep. The club's next title is a mystery set in 1980s Lagos, chosen by vote.",
+    questions: [
+      mcq("Book club", "How often does the club meet?", ["Every week", "Every second Wednesday", "Once a term", "Every day"], "Every second Wednesday"),
+      mcq("Book club", "How many members does the club have now?", ["Six", "Twenty", "Nearly forty", "One hundred"], "Nearly forty"),
+      mcq("Book club", "What does Mr Finch encourage students to read?", ["Only bestsellers", "Books from different countries and periods", "Textbooks only", "Magazines only"], "Books from different countries and periods"),
+      mcq("Book club", "Why does Mr Finch think fiction is valuable?", ["It is always short", "It builds empathy", "It replaces homework", "It is free online"], "It builds empathy"),
+      mcq("Book club", "What reading habit might improve sleep?", ["Reading all night", "Twenty minutes before bed", "Reading only on phones", "Never reading fiction"], "Twenty minutes before bed"),
+      mcq("Book club", "Where is the next book set?", ["1980s Lagos", "Modern London", "Ancient Rome", "Future Mars"], "1980s Lagos"),
+    ],
+  },
+  {
+    title: "Youth sports funding",
+    passage:
+      "A new grant programme aims to support youth sports clubs in rural areas where facilities are limited. Clubs can apply for up to five thousand pounds to repair pitches, buy equipment or train volunteer coaches. Applicants must show how their project will include girls as well as boys and how they will keep costs low for families. Last year a pilot scheme in Devon helped a cricket club install floodlights, allowing evening practice during short winter days. Sports minister Dana Okonkwo said physical activity improves both health and confidence, especially after periods when many teenagers spent less time outdoors. Critics warn that one-off grants cannot replace long-term funding from councils, but supporters hope successful clubs will attract sponsorship from local businesses.",
+    questions: [
+      mcq("Youth sports funding", "Who is the grant programme mainly for?", ["Professional teams", "Youth clubs in rural areas", "University athletes", "International tours"], "Youth clubs in rural areas"),
+      mcq("Youth sports funding", "What is the maximum grant amount?", ["Five hundred pounds", "Five thousand pounds", "Fifty thousand pounds", "One million pounds"], "Five thousand pounds"),
+      mcq("Youth sports funding", "What must applicants demonstrate about girls?", ["That they will not join", "That the project will include them", "That they pay more", "That they train separately only"], "That the project will include them"),
+      mcq("Youth sports funding", "What did the Devon cricket club install?", ["A swimming pool", "Floodlights", "A café", "A hotel"], "Floodlights"),
+      mcq("Youth sports funding", "What benefit does the minister mention?", ["Higher exam grades only", "Better health and confidence", "Free transport", "Shorter school days"], "Better health and confidence"),
+      mcq("Youth sports funding", "What do supporters hope clubs will attract?", ["Government jobs", "Local business sponsorship", "Television contracts", "Foreign players"], "Local business sponsorship"),
+    ],
+  },
 ]);
-
-reading.push(
-  mcq("Email — Alex visit", "What does Alex want?", ["Money", "Suggestions for places and food", "A job", "Homework help"], "Suggestions for places and food", "Hi! I'm visiting your city next month. Can you suggest interesting places and local food? — Alex"),
-  mcq("Job advert", "What language is required besides English?", ["Spanish", "French", "German", "Chinese"], "French", "PART-TIME SHOP ASSISTANT — Sat/Sun, must speak English + French, apply online."),
-  mcq("Review excerpt", "How did the writer feel about the film?", ["Excited", "Bored", "Scared", "Confused"], "Bored", "The film was so boring that we left before the end."),
-  mcq("Notice", "What is unavailable?", ["Stairs", "Lifts 2 and 3", "The whole building", "Parking"], "Lifts 2 and 3", "Due to repair work, lifts 2 and 3 are out of service until 20 April."),
-  mcq("Blog post", "How long has the writer played guitar?", ["One year", "Two years", "Three years", "Five years"], "Three years", "I've been learning guitar for about three years and practise every evening."),
-  mcq("Travel info", "When must passengers check in?", ["Thirty minutes before", "At least two hours before", "After boarding", "Next day"], "At least two hours before", "Passengers must check in at least two hours before international flights."),
-  mcq("School announcement", "When is debating club?", ["Tuesday", "Wednesday", "Thursday", "Friday"], "Wednesday", "The debating club has moved to Room 14 on Wednesdays at four."),
-  mcq("Product label", "What should you do after opening?", ["Freeze it", "Keep refrigerated", "Eat immediately", "Throw away"], "Keep refrigerated", "Keep refrigerated after opening. Use within three days."),
-  mcq("Message", "Where is the meeting?", ["Room A", "Room B, third floor", "Online", "Cancelled"], "Room B, third floor", "The meeting has been moved to Conference Room B on the third floor."),
-  mcq("Article lead", "What is the main warning?", ["Exercise is useless", "Long sitting can harm health", "Stand all day", "Don't go to school"], "Long sitting can harm health", "Experts warn that sitting for long periods can harm your health even if you exercise.")
-);
 
 const listening = [
   listen("Guitar experience", "I've been learning the guitar for about three years now.", "How long has she played guitar?", ["One year", "Two years", "Three years", "Five years"], "Three years"),

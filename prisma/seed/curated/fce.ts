@@ -109,20 +109,96 @@ const reading = fromPassageSets([
       mcq("Antibiotics", "What are researchers developing?", ["New sports", "Rapid tests for GPs", "More antibiotics only", "Mobile games"], "Rapid tests for GPs"),
     ],
   },
+  {
+    title: "Professional notices",
+    passage:
+      "Conference schedule: Registration opens at eight, keynote at nine thirty, workshops from ten. Research summary: Preliminary results suggest the treatment may delay symptoms by several months. Travel notice: Due to engineering works, buses replace trains between Oxford and Didcot. Workplace policy: Flexible working requests must be submitted at least six weeks in advance. Council announcement: The council plans to plant five thousand trees over the next three years.",
+    questions: [
+      mcq("Professional notices", "When is the keynote?", ["8:00", "9:00", "9:30", "10:00"], "9:30"),
+      mcq("Professional notices", "What may the treatment do?", ["Cure completely", "Delay symptoms", "Increase pain", "Reduce cost only"], "Delay symptoms"),
+      mcq("Professional notices", "What replaces trains?", ["Taxis", "Buses", "Nothing", "Planes"], "Buses"),
+      mcq("Professional notices", "How much notice is required for flexible working?", ["Two weeks", "Four weeks", "Six weeks", "Eight weeks"], "Six weeks"),
+      mcq("Professional notices", "How many trees will be planted?", ["500", "5000", "50000", "500000"], "5000"),
+    ],
+  },
+  {
+    title: "Policy and media excerpts",
+    passage:
+      "Medical advice: Patients are advised to avoid caffeine for twenty-four hours before the test. Legal news: The defendant denied all charges and was granted bail until the trial. Editorial opinion: The writer argues that balance, not bans, is the sensible approach to screen use. Job listing: Candidates must demonstrate experience in project management and fluent written English. Theatre review: Although the plot was predictable, the performances were outstanding.",
+    questions: [
+      mcq("Policy and media", "What should patients avoid?", ["Water", "Caffeine", "Food", "Exercise"], "Caffeine"),
+      mcq("Policy and media", "What was granted to the defendant?", ["Prison", "Bail", "Fine only", "Passport"], "Bail"),
+      mcq("Policy and media", "What approach does the writer prefer?", ["Complete bans", "Balance", "Unlimited use", "No rules"], "Balance"),
+      mcq("Policy and media", "What skill is required for the job?", ["Driving", "Project management", "Cooking", "Singing"], "Project management"),
+      mcq("Policy and media", "What was outstanding in the review?", ["The plot", "The performances", "The tickets", "The cinema"], "The performances"),
+    ],
+  },
+  {
+    title: "Autonomous vehicles and urban planning",
+    passage:
+      "Autonomous vehicles have moved from science fiction to pilot schemes on public roads, yet cities remain divided over how to integrate them. Proponents claim self-driving buses could reduce accidents caused by human error and provide transport for elderly residents who no longer drive. Critics counter that the technology is still imperfect in heavy rain and around cyclists, and that massive investment in sensors and mapping could divert funds from affordable tram networks. Urban planner Dr Elena Morales argues that the key question is not whether robots can steer, but whether policymakers will redesign streets for safety rather than speed. In Stockholm, a trial limited autonomous taxis to zones with wide pavements and strict speed limits, reporting fewer near-misses after six months. Meanwhile, trade unions warn that drivers could lose livelihoods unless retraining programmes run alongside automation. Morales suggests a hybrid future: autonomous shuttles on fixed routes, with human drivers remaining on complex intercity services for at least another decade.",
+    questions: [
+      mcq("Autonomous vehicles", "What benefit do proponents mention for elderly residents?", ["Cheaper fuel", "Transport for those who no longer drive", "Free parking", "Faster motorways"], "Transport for those who no longer drive"),
+      mcq("Autonomous vehicles", "What weather condition concerns critics?", ["Heat", "Heavy rain", "Wind only", "Snow only"], "Heavy rain"),
+      mcq("Autonomous vehicles", "What does Dr Morales say is the key question?", ["Whether robots can steer", "Whether streets will be redesigned for safety", "Whether taxis should be banned", "Whether buses are popular"], "Whether streets will be redesigned for safety"),
+      mcq("Autonomous vehicles", "What happened in Stockholm after six months?", ["Accidents increased", "Fewer near-misses were reported", "The trial ended", "Drivers were replaced immediately"], "Fewer near-misses were reported"),
+      mcq("Autonomous vehicles", "What do trade unions warn about?", ["Higher ticket prices", "Drivers losing livelihoods", "More traffic jams", "Fewer tourists"], "Drivers losing livelihoods"),
+      mcq("Autonomous vehicles", "What kind of future does Morales suggest?", ["No human drivers anywhere", "Autonomous shuttles on fixed routes plus human drivers on complex services", "Only bicycles in cities", "Unlimited autonomous taxis"], "Autonomous shuttles on fixed routes plus human drivers on complex services"),
+    ],
+  },
+  {
+    title: "Archaeological discovery at coastal site",
+    passage:
+      "Archaeologists excavating a cliff-side site in Norfolk have uncovered evidence of a trading settlement dating to the seventh century, earlier than records suggested for the region. Among the finds are fragments of pottery from the Mediterranean, iron tools and preserved seeds that indicate cultivated barley. Team leader Professor James Holt said the discovery challenges assumptions that small coastal communities were isolated after the Roman withdrawal from Britain. Volunteers from local schools helped sieve soil and catalogue items, while marine erosion forced the team to work within strict seasonal windows. Some residents initially feared the dig would delay plans for a coastal path, but the council agreed to reroute the walkway to protect the trench. Holt emphasises that publication of results will take two years because samples must undergo radiocarbon dating and pollen analysis. Heritage groups hope the site will eventually become an open-air exhibit with guided tours, though funding remains uncertain.",
+    questions: [
+      mcq("Archaeological discovery", "How old is the settlement thought to be?", ["Third century", "Seventh century", "Twelfth century", "Nineteenth century"], "Seventh century"),
+      mcq("Archaeological discovery", "What type of crop seed was found?", ["Rice", "Barley", "Maize", "Coffee"], "Barley"),
+      mcq("Archaeological discovery", "What assumption does the find challenge?", ["That Romans never left Britain", "That coastal communities were isolated", "That pottery was not traded", "That cliffs erode quickly"], "That coastal communities were isolated"),
+      mcq("Archaeological discovery", "Why was work limited to certain seasons?", ["School holidays only", "Marine erosion", "Lack of volunteers", "Winter festivals"], "Marine erosion"),
+      mcq("Archaeological discovery", "What did the council agree to do about the coastal path?", ["Cancel it", "Reroute it to protect the trench", "Build a tunnel", "Close the beach"], "Reroute it to protect the trench"),
+      mcq("Archaeological discovery", "Why will publication take two years?", ["Writers are busy", "Samples need scientific analysis", "The council refused access", "No pottery was found"], "Samples need scientific analysis"),
+    ],
+  },
+  {
+    title: "Gig economy workers seek recognition",
+    passage:
+      "Delivery couriers and ride-hail drivers in several European cities staged coordinated protests last month, demanding clearer employment status and access to sick pay. Many platforms classify workers as independent contractors, meaning they must cover vehicle maintenance and insurance themselves while algorithms assign shifts with little notice. Union organiser Fatima Rahman argues that flexibility suits some students, but that full-time couriers face unstable income and pressure to accept unsafe routes in bad weather. One company responded by introducing a minimum earnings guarantee during peak hours, though critics say the guarantee applies only in selected zones. Economists note that courts in Spain and Italy have recently ruled that some riders were employees entitled to backdated benefits. Rahman wants legislation that presumes worker status unless firms prove genuine self-employment. Business groups warn that higher labour costs could raise consumer prices and reduce the number of available jobs. For now, policymakers appear torn between protecting workers and preserving services that many households rely on for cheap transport and groceries.",
+    questions: [
+      mcq("Gig economy", "What did workers demand?", ["Free vehicles", "Clearer employment status and sick pay", "Shorter working hours only", "An end to apps"], "Clearer employment status and sick pay"),
+      mcq("Gig economy", "How are many platform workers classified?", ["As government staff", "As independent contractors", "As volunteers", "As apprentices"], "As independent contractors"),
+      mcq("Gig economy", "Who does Rahman say flexibility suits?", ["Retired drivers only", "Some students", "All full-time couriers", "Company managers"], "Some students"),
+      mcq("Gig economy", "What did one company introduce?", ["Free insurance for all", "A minimum earnings guarantee in peak hours", "Permanent contracts for everyone", "A ban on bicycles"], "A minimum earnings guarantee in peak hours"),
+      mcq("Gig economy", "What have courts in Spain and Italy recently ruled?", ["That all apps must close", "That some riders were employees", "That couriers cannot protest", "That algorithms are illegal"], "That some riders were employees"),
+      mcq("Gig economy", "What do business groups warn could happen?", ["Lower prices", "Higher consumer prices and fewer jobs", "More public transport", "Free deliveries"], "Higher consumer prices and fewer jobs"),
+    ],
+  },
+  {
+    title: "Rewilding on former farmland",
+    passage:
+      "The Meadowbrook rewilding project has transformed three hundred hectares of exhausted farmland into wetland, scrub and native woodland over fifteen years. Conservation charity WildReturn removed drainage channels to allow seasonal flooding, which attracted herons, otters and rare dragonflies documented by volunteer surveyors. Neighbouring farmers initially opposed the scheme, fearing crop damage from wildlife and falling property values. Project director Hannah Okoye held monthly meetings to explain buffer zones and compensation for any proven losses. Visitor numbers rose after a boardwalk opened, bringing income to a village shop that had struggled since the post office closed. Scientists monitoring soil carbon report modest improvements, though Okoye cautions that rewilding is not a quick fix for climate targets. National policymakers cite Meadowbrook as evidence that large-scale restoration can coexist with agriculture when boundaries are negotiated carefully. Critics still question whether public money should fund projects that produce no food, while supporters argue that flood prevention and biodiversity have economic value too.",
+    questions: [
+      mcq("Rewilding project", "What was the land used for before rewilding?", ["Industry", "Exhausted farmland", "A motorway", "Housing"], "Exhausted farmland"),
+      mcq("Rewilding project", "What did WildReturn remove to allow flooding?", ["Trees", "Drainage channels", "Footpaths", "Fences only"], "Drainage channels"),
+      mcq("Rewilding project", "Why did neighbouring farmers initially oppose the scheme?", ["They wanted more shops", "They feared crop damage and falling property values", "They disliked otters", "They preferred mining"], "They feared crop damage and falling property values"),
+      mcq("Rewilding project", "What helped a village shop financially?", ["A new factory", "Visitors after a boardwalk opened", "Higher taxes", "Selling farmland"], "Visitors after a boardwalk opened"),
+      mcq("Rewilding project", "What do scientists report about soil carbon?", ["No change at all", "Modest improvements", "Complete elimination of carbon", "Data was not collected"], "Modest improvements"),
+      mcq("Rewilding project", "What do supporters say rewilding provides besides biodiversity?", ["Free food for all visitors", "Flood prevention with economic value", "Unlimited building land", "Cheaper petrol"], "Flood prevention with economic value"),
+    ],
+  },
+  {
+    title: "Digital privacy and biometric data",
+    passage:
+      "Governments and technology firms are expanding the use of biometric data — fingerprints, facial scans and voice prints — to verify identity at borders, banks and even school canteens. Privacy advocates warn that once collected, such data can be stored indefinitely and potentially breached by hackers, unlike passwords that can be changed. Legal scholar Dr Priya Nair argues that consent forms are often too long for users to read, meaning people approve surveillance without understanding risks. Proponents claim biometrics reduce fraud and speed up services, citing airports where automated gates cut queue times. In one country, a court ruled that a police database of faces collected from protests violated constitutional rights, forcing authorities to delete millions of images. Nair recommends strict time limits on retention and independent audits of who accesses records. Companies respond that encryption and on-device processing minimise exposure, though researchers have shown some systems can be fooled by photographs or synthetic voices. The debate suggests that convenience will continue to clash with civil liberties until laws catch up with innovation.",
+    questions: [
+      mcq("Biometric data", "What types of biometric data are mentioned?", ["Fingerprints, facial scans and voice prints", "Only passwords", "Handwriting samples only", "Shoe sizes"], "Fingerprints, facial scans and voice prints"),
+      mcq("Biometric data", "Why are privacy advocates concerned?", ["Biometrics are too cheap", "Data can be stored indefinitely and breached", "People prefer passwords", "Airports are too small"], "Data can be stored indefinitely and breached"),
+      mcq("Biometric data", "What does Dr Nair say about consent forms?", ["They are always one sentence", "They are often too long to read properly", "They are illegal", "They are only for children"], "They are often too long to read properly"),
+      mcq("Biometric data", "What benefit do proponents mention at airports?", ["More staff jobs", "Automated gates cutting queue times", "Free flights", "Longer security checks"], "Automated gates cutting queue times"),
+      mcq("Biometric data", "What did a court force authorities to do?", ["Collect more images", "Delete millions of facial images", "Ban all cameras", "Close airports"], "Delete millions of facial images"),
+      mcq("Biometric data", "What does Nair recommend?", ["Unlimited storage", "Strict time limits on retention and independent audits", "No encryption", "Sharing data with advertisers"], "Strict time limits on retention and independent audits"),
+    ],
+  },
 ]);
-
-reading.push(
-  mcq("Conference email", "When is the keynote?", ["8:00", "9:00", "9:30", "10:00"], "9:30", "Registration opens at eight, keynote at nine thirty, workshops from ten."),
-  mcq("Research summary", "What may the treatment do?", ["Cure completely", "Delay symptoms", "Increase pain", "Reduce cost only"], "Delay symptoms", "Preliminary results suggest the treatment may delay symptoms by several months."),
-  mcq("Travel notice", "What replaces trains?", ["Taxis", "Buses", "Nothing", "Planes"], "Buses", "Due to engineering works, buses replace trains between Oxford and Didcot."),
-  mcq("Workplace policy", "How much notice is required?", ["Two weeks", "Four weeks", "Six weeks", "Eight weeks"], "Six weeks", "Flexible working requests must be submitted at least six weeks in advance."),
-  mcq("Council plan", "How many trees?", ["500", "5000", "50000", "500000"], "5000", "The council plans to plant five thousand trees over the next three years."),
-  mcq("Medical advice", "What should patients avoid?", ["Water", "Caffeine", "Food", "Exercise"], "Caffeine", "Patients are advised to avoid caffeine for twenty-four hours before the test."),
-  mcq("Legal news", "What was granted?", ["Prison", "Bail", "Fine only", "Passport"], "Bail", "The defendant denied all charges and was granted bail until the trial."),
-  mcq("Editorial", "What approach does the writer prefer?", ["Complete bans", "Balance", "Unlimited use", "No rules"], "Balance", "The writer argues that balance, not bans, is the sensible approach to screen use."),
-  mcq("Job listing", "What skill is required?", ["Driving", "Project management", "Cooking", "Singing"], "Project management", "Candidates must demonstrate experience in project management and fluent written English."),
-  mcq("Review", "What was outstanding?", ["The plot", "The performances", "The tickets", "The cinema"], "The performances", "Although the plot was predictable, the performances were outstanding.")
-);
 
 const listening = [
   listen("Renaissance", "The Renaissance began in Italy in the fourteenth century before spreading north.", "Where did the Renaissance begin?", ["France", "Italy", "England", "Germany"], "Italy"),
