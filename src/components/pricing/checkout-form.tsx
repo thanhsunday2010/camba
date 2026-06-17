@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,13 @@ import {
   getPaymentRedirectUrlAction,
 } from "@/lib/actions/subscription";
 import { validatePromoCodeAction } from "@/lib/actions/promo";
-import { formatVnd, getPlan, getPlanPrice, type PlanId } from "@/lib/subscription/plans";
+import { formatVnd, getPlan, getPlanPrice, yearlySavingsPercent, type PlanId } from "@/lib/subscription/plans";
 import { BillingCycle, PaymentMethod } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
 interface CheckoutFormProps {
   planId: PlanId;
-  billingCycle: BillingCycle;
+  initialBillingCycle?: BillingCycle;
   paymentGroups: PaymentMethodGroup[];
   initialPromoCode?: string;
 }
@@ -36,11 +36,12 @@ interface AppliedPromo {
 
 export function CheckoutForm({
   planId,
-  billingCycle,
+  initialBillingCycle = "MONTHLY",
   paymentGroups,
   initialPromoCode = "",
 }: CheckoutFormProps) {
   const router = useRouter();
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>(initialBillingCycle);
   const defaultMethod =
     paymentGroups.flatMap((g) => g.methods).find((m) => m === "BANK_TRANSFER") ??
     paymentGroups[0]?.methods[0] ??
@@ -53,33 +54,14 @@ export function CheckoutForm({
   const plan = getPlan(planId);
   const listAmount = getPlanPrice(planId, billingCycle);
   const displayAmount = appliedPromo?.finalAmount ?? listAmount;
+  const yearlySavings = yearlySavingsPercent(planId);
 
-  useEffect(() => {
-    if (initialPromoCode.trim()) {
-      startValidatePromo(async () => {
-        const res = await validatePromoCodeAction({
-          code: initialPromoCode,
-          plan: planId,
-          billingCycle,
-        });
-        if ("valid" in res && res.valid) {
-          setAppliedPromo({
-            code: res.code!,
-            benefit: res.benefit!,
-            originalAmount: res.originalAmount!,
-            finalAmount: res.finalAmount!,
-            discountAmount: res.discountAmount!,
-            isFree: res.isFree!,
-          });
-        }
-      });
-    }
-  }, [initialPromoCode, planId, billingCycle]);
-
-  const handleApplyPromo = () => {
+  const applyPromo = (code: string) => {
     startValidatePromo(async () => {
+      const trimmed = code.trim();
+      if (!trimmed) return;
       const res = await validatePromoCodeAction({
-        code: promoInput,
+        code: trimmed,
         plan: planId,
         billingCycle,
       });
@@ -100,6 +82,50 @@ export function CheckoutForm({
         toast.success(`Đã áp mã ${res.code}`);
       }
     });
+  };
+
+  useEffect(() => {
+    if (initialPromoCode.trim()) {
+      applyPromo(initialPromoCode);
+    }
+  }, []);
+
+  const appliedPromoRef = useRef(appliedPromo);
+  appliedPromoRef.current = appliedPromo;
+
+  const billingCycleInitialized = useRef(false);
+  useEffect(() => {
+    if (!billingCycleInitialized.current) {
+      billingCycleInitialized.current = true;
+      return;
+    }
+    const promo = appliedPromoRef.current;
+    if (!promo) return;
+
+    startValidatePromo(async () => {
+      const res = await validatePromoCodeAction({
+        code: promo.code,
+        plan: planId,
+        billingCycle,
+      });
+      if ("valid" in res && res.valid) {
+        setAppliedPromo({
+          code: res.code!,
+          benefit: res.benefit!,
+          originalAmount: res.originalAmount!,
+          finalAmount: res.finalAmount!,
+          discountAmount: res.discountAmount!,
+          isFree: res.isFree!,
+        });
+      } else {
+        setAppliedPromo(null);
+        toast.error("Mã ưu đãi không áp dụng cho chu kỳ này");
+      }
+    });
+  }, [billingCycle, planId]);
+
+  const handleApplyPromo = () => {
+    applyPromo(promoInput);
   };
 
   const handlePay = () => {
@@ -155,7 +181,37 @@ export function CheckoutForm({
           <CardTitle>Thông tin gói</CardTitle>
           <CardDescription>Xác nhận trước khi thanh toán</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
+        <CardContent className="space-y-4 text-sm">
+          <div>
+            <p className="mb-2 text-sm font-bold text-purple-800">Chu kỳ thanh toán</p>
+            <div className="inline-flex rounded-full border-2 border-purple-200 bg-white p-1 shadow-sm">
+              <button
+                type="button"
+                className={cn(
+                  "rounded-full px-4 py-1.5 text-sm font-bold transition-colors",
+                  billingCycle === "MONTHLY" ? "bg-purple-600 text-white" : "text-purple-700"
+                )}
+                onClick={() => setBillingCycle("MONTHLY")}
+              >
+                Theo tháng
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  "rounded-full px-4 py-1.5 text-sm font-bold transition-colors",
+                  billingCycle === "YEARLY" ? "bg-purple-600 text-white" : "text-purple-700"
+                )}
+                onClick={() => setBillingCycle("YEARLY")}
+              >
+                Theo năm
+              </button>
+            </div>
+            {billingCycle === "YEARLY" && yearlySavings > 0 && (
+              <p className="mt-2 text-xs font-semibold text-emerald-700 sm:text-sm">
+                Tiết kiệm {yearlySavings}% so với trả 12 tháng
+              </p>
+            )}
+          </div>
           <p>
             <strong>Gói:</strong> {plan.name}
           </p>

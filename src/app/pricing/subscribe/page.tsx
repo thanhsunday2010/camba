@@ -40,7 +40,7 @@ export default async function SubscribePage({
       </div>
       <CheckoutForm
         planId={planId}
-        billingCycle={cycle}
+        initialBillingCycle={cycle}
         paymentGroups={paymentGroups}
         initialPromoCode={params.promo ?? ""}
       />

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatQuotaRatio, isQuotaExhausted, isUnlimitedQuota } from "@/lib/subscription/plans";
-import type { BankStats } from "@/lib/exam/bank-stats";
+import { formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
 import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
 import type { IeltsModule } from "@/lib/exam/ielts-module";
 
@@ -69,7 +69,7 @@ export function SpeakingHubClient({
   mockPaper,
   mockTitle,
   mockDescription: _mockDescription,
-  mockBankStats: _mockBankStats,
+  mockBankStats,
   migrateHint = "Chưa có đề — chạy migrate Speaking",
 }: Props) {
   const practiceLocked = isQuotaExhausted(usage.practiceUsed, usage.practiceLimit);
@@ -128,6 +128,11 @@ export function SpeakingHubClient({
                     </Badge>
                   )}
                 </div>
+                {part.bankStats && part.bankStats.questionCount > 0 && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formatBankStatsLine(part.bankStats)}
+                  </p>
+                )}
               </CardHeader>
               <CardContent>
                 {part.paper ? (
@@ -157,6 +162,11 @@ export function SpeakingHubClient({
               <CardTitle className="text-lg font-extrabold">{mockTitle}</CardTitle>
               {mockPaper?.done && <Badge variant="secondary">Đã làm</Badge>}
             </div>
+            {mockBankStats && mockBankStats.questionCount > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                {formatBankStatsLine(mockBankStats)}
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             {mockPaper ? (

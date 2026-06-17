@@ -10,7 +10,6 @@ import {
   PLAN_ORDER,
   PLANS,
   formatVnd,
-  yearlySavingsPercent,
   type PlanId,
 } from "@/lib/subscription/plans";
 import { cn } from "@/lib/utils";
@@ -22,7 +21,6 @@ interface PricingTableProps {
 
 export function PricingTable({ currentPlanId: currentPlanIdProp }: PricingTableProps) {
   const { data: session } = useSession();
-  const [yearly, setYearly] = useState(true);
   const [currentPlanId, setCurrentPlanId] = useState<PlanId>(currentPlanIdProp ?? "FREE");
 
   useEffect(() => {
@@ -51,51 +49,15 @@ export function PricingTable({ currentPlanId: currentPlanIdProp }: PricingTableP
       cancelled = true;
     };
   }, [session?.user, currentPlanIdProp]);
-  const maxYearlySavings = Math.max(
-    ...PLAN_ORDER.filter((id) => id !== "FREE").map((id) => yearlySavingsPercent(id))
-  );
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col items-center gap-3">
-        <div className="inline-flex rounded-full border-2 border-purple-200 bg-white p-1 shadow-sm">
-          <button
-            type="button"
-            className={cn(
-              "rounded-full px-5 py-2 text-sm font-bold transition-colors",
-              !yearly ? "bg-purple-600 text-white" : "text-purple-700"
-            )}
-            onClick={() => setYearly(false)}
-          >
-            Theo tháng
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "rounded-full px-5 py-2 text-sm font-bold transition-colors",
-              yearly ? "bg-purple-600 text-white" : "text-purple-700"
-            )}
-            onClick={() => setYearly(true)}
-          >
-            Theo năm
-          </button>
-        </div>
-        {yearly && maxYearlySavings > 0 && (
-          <p className="text-sm font-semibold text-emerald-700">
-            Tiết kiệm đến {maxYearlySavings}% khi trả theo năm 🎉
-          </p>
-        )}
-      </div>
+    <div className="grid gap-6 lg:grid-cols-3">
+      {PLAN_ORDER.map((planId) => {
+        const plan = PLANS[planId];
+        const isCurrent = currentPlanId === planId;
+        const price = plan.pricing.monthly;
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {PLAN_ORDER.map((planId) => {
-          const plan = PLANS[planId];
-          const isCurrent = currentPlanId === planId;
-          const price = yearly ? plan.pricing.yearly : plan.pricing.monthly;
-          const savings = yearly ? yearlySavingsPercent(planId) : 0;
-          const cycle = yearly ? "yearly" : "monthly";
-
-          return (
+        return (
             <Card
               key={planId}
               className={cn(
@@ -121,14 +83,9 @@ export function PricingTable({ currentPlanId: currentPlanIdProp }: PricingTableP
                       <p className="page-stat-value text-purple-700">
                         {formatVnd(price)}
                         <span className="text-sm font-semibold text-muted-foreground sm:text-base">
-                          /{yearly ? "năm" : "tháng"}
+                          /tháng
                         </span>
                       </p>
-                      {yearly && savings > 0 && (
-                        <p className="mt-1 text-sm font-semibold text-emerald-600">
-                          Tiết kiệm {savings}% so với trả 12 tháng
-                        </p>
-                      )}
                     </>
                   )}
                 </div>
@@ -156,7 +113,13 @@ export function PricingTable({ currentPlanId: currentPlanIdProp }: PricingTableP
                   </Button>
                 ) : (
                   <Button asChild className="w-full kid-btn-fun rounded-full">
-                    <Link href={session ? `/pricing/subscribe?plan=${plan.slug}&cycle=${cycle}` : `/login?callbackUrl=/pricing/subscribe?plan=${plan.slug}%26cycle=${cycle}`}>
+                    <Link
+                      href={
+                        session
+                          ? `/pricing/subscribe?plan=${plan.slug}`
+                          : `/login?callbackUrl=/pricing/subscribe?plan=${plan.slug}`
+                      }
+                    >
                       Nâng cấp {plan.name}
                     </Link>
                   </Button>
@@ -165,7 +128,6 @@ export function PricingTable({ currentPlanId: currentPlanIdProp }: PricingTableP
             </Card>
           );
         })}
-      </div>
     </div>
   );
 }

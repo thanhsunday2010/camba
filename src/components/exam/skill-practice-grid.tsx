@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, Clock, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { type BankStats } from "@/lib/exam/bank-stats";
+import { formatBankQuestionCount, formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
 
 export type SkillGridPaper = {
   id: string;
@@ -43,6 +43,7 @@ function PaperLink({
   label,
   locked,
   lockedHint,
+  bankStats,
 }: {
   paper: SkillGridPaper;
   done: boolean;
@@ -50,6 +51,7 @@ function PaperLink({
   label: string;
   locked?: boolean;
   lockedHint?: string;
+  bankStats?: BankStats;
 }) {
   const minutes = formatMinutes(paper.timeLimit);
   const isPractice = variant === "practice";
@@ -85,10 +87,13 @@ function PaperLink({
         )}
       </div>
       {minutes && (
-        <p className="flex items-center gap-1.5 text-base font-semibold text-muted-foreground">
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
           <Clock className="h-4 w-4" />
           {minutes}
         </p>
+      )}
+      {bankStats && bankStats.questionCount > 0 && (
+        <p className="text-xs text-muted-foreground">{formatBankStatsLine(bankStats)}</p>
       )}
       {locked && lockedHint && (
         <p className="text-xs font-semibold leading-snug text-amber-900">{lockedHint}</p>
@@ -138,6 +143,11 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
               </span>
               <div className="min-w-0 flex-1">
                 <h3 className="text-base font-extrabold text-purple-900 sm:text-lg">{skill.skillLabel}</h3>
+                {skill.practiceBankStats && skill.practiceBankStats.questionCount > 0 && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {formatBankQuestionCount(skill.practiceBankStats.questionCount)}
+                  </p>
+                )}
               </div>
               {hasNew && (
                 <Sparkles className="h-4 w-4 shrink-0 text-sky-500" aria-label="Có bài mới" />
@@ -151,6 +161,7 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
                   done={!!skill.practiceDone}
                   variant="practice"
                   label="Luyện tập"
+                  bankStats={skill.practiceBankStats}
                 />
               )}
               {skill.mock && (
@@ -161,6 +172,7 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
                   label="Mock test"
                   locked={skill.mockLocked}
                   lockedHint={skill.mockLocked ? mockLockedHint : undefined}
+                  bankStats={skill.mockBankStats}
                 />
               )}
             </div>
@@ -177,17 +189,25 @@ export function FullMockGrid({
   locked = false,
   lockedHint,
   lockedHref,
+  bankStats,
 }: {
   papers: SkillGridPaper[];
   completedPaperIds: ReadonlySet<string>;
   locked?: boolean;
   lockedHint?: string;
   lockedHref?: string;
+  bankStats?: BankStats;
 }) {
   if (papers.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="space-y-3">
+      {bankStats && bankStats.questionCount > 0 && (
+        <p className="text-xs text-muted-foreground sm:text-sm">
+          {formatBankStatsLine(bankStats)}
+        </p>
+      )}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {papers.map((paper) => {
         const done = completedPaperIds.has(paper.id);
         const minutes = formatMinutes(paper.timeLimit);
@@ -246,6 +266,7 @@ export function FullMockGrid({
           </Link>
         );
       })}
+      </div>
     </div>
   );
 }

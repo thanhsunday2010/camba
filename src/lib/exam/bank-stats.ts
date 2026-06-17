@@ -30,6 +30,10 @@ export function formatBankStatsLine(stats: BankStats): string {
   return `${stats.questionCount} câu · ${stats.paperCount} ${paperWord} trong ngân hàng`;
 }
 
+export function formatBankQuestionCount(count: number): string {
+  return `${count} câu trong ngân hàng`;
+}
+
 async function countPublishedPapers(
   db: PrismaClient,
   where: {
