@@ -9,9 +9,10 @@ interface ExamTimerProps {
   timeLimit?: number | null;
   onTimeUp?: () => void;
   startedAt?: Date;
+  className?: string;
 }
 
-export function ExamTimer({ timeLimit, onTimeUp, startedAt }: ExamTimerProps) {
+export function ExamTimer({ timeLimit, onTimeUp, startedAt, className }: ExamTimerProps) {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -34,7 +35,8 @@ export function ExamTimer({ timeLimit, onTimeUp, startedAt }: ExamTimerProps) {
     <div
       className={cn(
         "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium",
-        isLow ? "border-red-300 bg-red-50 text-red-700" : "border-cambridge-200 bg-cambridge-50 text-cambridge-800"
+        isLow ? "border-red-300 bg-red-50 text-red-700" : "border-cambridge-200 bg-cambridge-50 text-cambridge-800",
+        className
       )}
     >
       <Clock className="h-4 w-4" />

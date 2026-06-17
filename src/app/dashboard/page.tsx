@@ -23,6 +23,7 @@ import { SubscriptionUsageCard } from "@/components/pricing/subscription-usage-c
 import { ReferralWelcomeToast } from "@/components/referral/referral-welcome-toast";
 import { ensureUserReferralCode } from "@/lib/referral/codes";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
+import { DashboardPlacementCta } from "@/components/placement/dashboard-placement-cta";
 import { DashboardGreeting } from "@/components/inline-edit/page-editable-sections";
 import type { UserProfileData } from "@/lib/actions/profile";
 
@@ -318,9 +319,7 @@ export default async function DashboardPage({
           <Button asChild className="w-full kid-btn-fun" size="lg">
             <Link href="/exams">🚀 Chọn level & luyện tập</Link>
           </Button>
-          <Button asChild className="w-full" size="lg" variant="outline">
-            <Link href="/placement">🎯 Test trình độ</Link>
-          </Button>
+          <DashboardPlacementCta />
         </div>
       </div>
     </>

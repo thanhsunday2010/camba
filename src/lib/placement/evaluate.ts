@@ -278,10 +278,22 @@ export function evaluatePlacement(
       ? `Trình độ CEFR: ${mapCefr(overallPercent)} (${cefrSubLabel}). Điểm trung bình các kỹ năng khách quan: ${overallPercent}%.`
       : track === "IELTS"
         ? `Band IELTS ước lượng: ${ieltsBand} (CEFR ${cefrLevel}). Dựa trên 4 kỹ năng: Listening, Reading, Writing & Speaking — ${overallPercent}% trung bình.`
-        : (() => {
-            const shields = computePlacementShields(skillResults);
-            return `Trình độ tổng thể: ${cefrLevel} (CEFR) — tương đương ${cambridge.level}. Tương đương khoảng ${shields.total}/${shields.max} khiên Cambridge. Điểm trung bình các kỹ năng khách quan: ${overallPercent}%.`;
-          })();
+        : track === "YLE" || track === "SECONDARY"
+          ? (() => {
+              const shields = computePlacementShields(skillResults);
+              const hasAiSkills = skillResults.some(
+                (s) =>
+                  (s.skill === "WRITING" || s.skill === "SPEAKING") && s.total > 0
+              );
+              const aiNote = hasAiSkills
+                ? " Writing & Speaking được chấm bằng AI."
+                : "";
+              return `Trình độ tổng thể: ${cefrLevel} (CEFR) — tương đương ${cambridge.level}. Tương đương khoảng ${shields.total}/${shields.max} khiên Cambridge. Điểm trung bình các kỹ năng khách quan: ${overallPercent}%.${aiNote}`;
+            })()
+          : (() => {
+              const shields = computePlacementShields(skillResults);
+              return `Trình độ tổng thể: ${cefrLevel} (CEFR) — tương đương ${cambridge.level}. Tương đương khoảng ${shields.total}/${shields.max} khiên Cambridge. Điểm trung bình các kỹ năng khách quan: ${overallPercent}%.`;
+            })();
 
   const shields =
     track === "YLE" || track === "SECONDARY"

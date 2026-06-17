@@ -11,7 +11,7 @@ export const PLACEMENT_PAPER_TITLES = {
   ADULT: `${PLACEMENT_TITLE_PREFIX} Adult (Giao tiếp hàng ngày & Công sở)`,
 } as const;
 
-/** Cambridge placement cố định 50 câu · 30 phút */
+/** Cambridge placement (Secondary/Adult) cố định 50 câu · 30 phút */
 export const PLACEMENT_TOTAL_QUESTIONS = 50;
 export const PLACEMENT_TIME_SECONDS = 30 * 60;
 export const PLACEMENT_SECTION_COUNTS = {
@@ -20,6 +20,52 @@ export const PLACEMENT_SECTION_COUNTS = {
   grammar: 16,
 } as const;
 export const PLACEMENT_CAMBRIDGE_SECTION_SECONDS = PLACEMENT_TIME_SECONDS / 3;
+
+/** YLE placement: 33 câu khách quan + 1 Writing + 1 Speaking */
+export const PLACEMENT_YLE_TOTAL_QUESTIONS = 35;
+export const PLACEMENT_YLE_SECTION_COUNTS = {
+  reading: 11,
+  listening: 11,
+  grammar: 11,
+  writing: 1,
+  speaking: 1,
+} as const;
+export const PLACEMENT_YLE_SECTION_SECONDS = {
+  reading: 420,
+  listening: 420,
+  grammar: 420,
+  writing: 480,
+  speaking: 120,
+} as const;
+export const PLACEMENT_YLE_TIME_SECONDS =
+  PLACEMENT_YLE_SECTION_SECONDS.reading +
+  PLACEMENT_YLE_SECTION_SECONDS.listening +
+  PLACEMENT_YLE_SECTION_SECONDS.grammar +
+  PLACEMENT_YLE_SECTION_SECONDS.writing +
+  PLACEMENT_YLE_SECTION_SECONDS.speaking;
+
+/** Secondary placement: 37 câu khách quan + 1 Writing + 2 Speaking */
+export const PLACEMENT_SECONDARY_TOTAL_QUESTIONS = 40;
+export const PLACEMENT_SECONDARY_SECTION_COUNTS = {
+  reading: 13,
+  listening: 12,
+  grammar: 12,
+  writing: 1,
+  speaking: 2,
+} as const;
+export const PLACEMENT_SECONDARY_SECTION_SECONDS = {
+  reading: 480,
+  listening: 480,
+  grammar: 480,
+  writing: 600,
+  speaking: 300,
+} as const;
+export const PLACEMENT_SECONDARY_TIME_SECONDS =
+  PLACEMENT_SECONDARY_SECTION_SECONDS.reading +
+  PLACEMENT_SECONDARY_SECTION_SECONDS.listening +
+  PLACEMENT_SECONDARY_SECTION_SECONDS.grammar +
+  PLACEMENT_SECONDARY_SECTION_SECONDS.writing +
+  PLACEMENT_SECONDARY_SECTION_SECONDS.speaking;
 
 export type PlacementTrack = "YLE" | "SECONDARY" | "ADULT" | "IELTS";
 
@@ -169,48 +215,6 @@ function buildYleReading(): McqSeed[] {
       "a kite",
       "Noah has five dollars. He wants to buy a kite at the toy shop."
     ),
-    mcq(
-      "YLE R12",
-      "How does Olivia go to school?",
-      ["by bus", "by car", "on foot", "by train"],
-      "by bus",
-      "Olivia takes the bus to school every day. The bus stop is near her house."
-    ),
-    mcq(
-      "YLE R13",
-      "What is Mia doing now?",
-      ["sleeping", "doing homework", "cooking", "swimming"],
-      "doing homework",
-      "It is 5 p.m. Mia is doing her homework at the desk in her bedroom."
-    ),
-    mcq(
-      "YLE R14",
-      "Which day is the school trip?",
-      ["Monday", "Wednesday", "Friday", "Sunday"],
-      "Friday",
-      "Notice: The Class 4 school trip to the museum is on Friday. Please bring a packed lunch."
-    ),
-    mcq(
-      "YLE R15",
-      "What can you find in Lucy's bag?",
-      ["a phone", "a pencil case", "a football", "a coat"],
-      "a pencil case",
-      "Lucy opens her bag. There is a pencil case, a water bottle, and a notebook inside."
-    ),
-    mcq(
-      "YLE R16",
-      "Who is younger?",
-      ["Dan", "his brother", "they are the same age", "their cousin"],
-      "his brother",
-      "Dan is ten years old. His brother is eight, so his brother is younger."
-    ),
-    mcq(
-      "YLE R17",
-      "What is the weather like today?",
-      ["rainy", "snowy", "sunny", "windy"],
-      "sunny",
-      "The sky is blue and the sun is shining. It is a sunny day, so we can play outside."
-    ),
   ];
   return items;
 }
@@ -294,48 +298,6 @@ function buildYleListening(): ListeningSeed[] {
       ["a bag", "a cap", "a book", "a phone"],
       "a cap"
     ),
-    listen(
-      "YLE L12",
-      "Woman: The supermarket closes at eight tonight. Man: Let's go before seven.",
-      "When does the supermarket close?",
-      ["six", "seven", "eight", "nine"],
-      "eight"
-    ),
-    listen(
-      "YLE L13",
-      "Girl: My favourite subject is science. We do fun experiments.",
-      "What is the girl's favourite subject?",
-      ["maths", "science", "history", "music"],
-      "science"
-    ),
-    listen(
-      "YLE L14",
-      "Man: Turn left at the bank, then the post office is on the right.",
-      "Where is the post office?",
-      ["on the left", "on the right", "behind the bank", "inside the bank"],
-      "on the right"
-    ),
-    listen(
-      "YLE L15",
-      "Boy: Can we have pasta for dinner? Mum: Yes, and salad too.",
-      "What will they have for dinner?",
-      ["pasta and salad", "rice only", "pizza", "soup only"],
-      "pasta and salad"
-    ),
-    listen(
-      "YLE L16",
-      "Teacher: Remember to bring your swimming things on Thursday.",
-      "What should students bring on Thursday?",
-      ["football boots", "swimming things", "a guitar", "a laptop"],
-      "swimming things"
-    ),
-    listen(
-      "YLE L17",
-      "Girl: Happy birthday, Tom! Here's your present. Boy: Thank you! I love this game.",
-      "What is Tom getting?",
-      ["a game", "a coat", "a bike", "a book about fish"],
-      "a game"
-    ),
   ];
 }
 
@@ -352,11 +314,30 @@ function buildYleGrammar(): GapSeed[] {
     grammar("YLE G9", "There ___ (be) a library near my house.", "is"),
     grammar("YLE G10", "She is ___ (tall) than her cousin.", "taller"),
     grammar("YLE G11", "This is the ___ (good) book in the shop.", "best"),
-    grammar("YLE G12", "We ___ (not eat) meat on Mondays.", "don't eat"),
-    grammar("YLE G13", "I ___ (can) swim very well.", "can"),
-    grammar("YLE G14", "He can ___ (ride) a bike very well.", "ride"),
-    grammar("YLE G15", "They are ___ (read) a story now.", "reading"),
-    grammar("YLE G16", "I ___ (visit) my grandma last weekend.", "visited"),
+  ];
+}
+
+function buildYleWriting(): WritingSeed[] {
+  return [
+    {
+      title: "YLE W1",
+      taskPrompt:
+        "Write about your best friend. Say their name, what they look like, and what you like to do together.",
+      wordLimit: 35,
+      instructions: "Write 3–5 sentences in English.",
+    },
+  ];
+}
+
+function buildYleSpeaking(): SpeakingSeed[] {
+  return [
+    {
+      title: "YLE S1",
+      prompt:
+        "Tell me about your favourite animal. What does it look like? What does it like to eat?",
+      preparationTime: 15,
+      speakingTime: 45,
+    },
   ];
 }
 
@@ -453,34 +434,6 @@ function buildSecondaryReading(): McqSeed[] {
       "using phones in class",
       "Should students use mobile phones during lessons? Some teachers say phones distract learners, while others use apps for quick vocabulary practice. The school will decide after a student survey."
     ),
-    mcq(
-      "SEC R14",
-      "What will happen next?",
-      ["Phones will be banned immediately", "A student survey will be held", "Teachers will buy new apps", "Lessons will be shorter"],
-      "A student survey will be held",
-      "Should students use mobile phones during lessons? Some teachers say phones distract learners, while others use apps for quick vocabulary practice. The school will decide after a student survey."
-    ),
-    mcq(
-      "SEC R15",
-      "Where is the lost item?",
-      ["in the library", "in the gym changing room", "on the bus", "in the canteen"],
-      "in the gym changing room",
-      "Lost property: A blue water bottle with the name 'Huy' was found in the gym changing room. Collect it from the school office before Friday."
-    ),
-    mcq(
-      "SEC R16",
-      "By when must Huy collect the bottle?",
-      ["Wednesday", "Thursday", "Friday", "Monday"],
-      "Friday",
-      "Lost property: A blue water bottle with the name 'Huy' was found in the gym changing room. Collect it from the school office before Friday."
-    ),
-    mcq(
-      "SEC R17",
-      "What is true about the workshop?",
-      ["It is only for teachers", "It teaches presentation skills", "It lasts one hour", "It is on Sunday"],
-      "It teaches presentation skills",
-      "Career Skills Workshop — Saturday 9 a.m.–12 p.m. in Room 12. Learn how to prepare CVs and give short presentations in English. Open to students aged 15–18."
-    ),
   ];
 }
 
@@ -570,41 +523,6 @@ function buildSecondaryListening(): ListeningSeed[] {
       ["the tenth", "the fifteenth", "the twentieth", "the thirtieth"],
       "the twentieth"
     ),
-    listen(
-      "SEC L13",
-      "Reporter: Local students planted two hundred trees near the river to protect wildlife habitats.",
-      "Why did students plant trees?",
-      ["to sell fruit", "to protect wildlife habitats", "to build houses", "to make paper"],
-      "to protect wildlife habitats"
-    ),
-    listen(
-      "SEC L14",
-      "Tour guide: The boat trip lasts ninety minutes. Life jackets are under your seats.",
-      "How long is the boat trip?",
-      ["sixty minutes", "seventy-five minutes", "ninety minutes", "two hours"],
-      "ninety minutes"
-    ),
-    listen(
-      "SEC L15",
-      "HR officer: Please email your CV before Friday. Interviews will be online next week.",
-      "How will interviews be held?",
-      ["in person only", "online", "by phone only", "by post"],
-      "online"
-    ),
-    listen(
-      "SEC L16",
-      "Organiser: The charity run begins at eight a.m. Registration closes at seven forty-five.",
-      "When does registration close?",
-      ["7:15", "7:30", "7:45", "8:00"],
-      "7:45"
-    ),
-    listen(
-      "SEC L17",
-      "Technician: Your laptop is ready. The new battery costs thirty dollars including installation.",
-      "What was replaced?",
-      ["the screen", "the battery", "the keyboard", "the camera"],
-      "the battery"
-    ),
   ];
 }
 
@@ -622,10 +540,37 @@ function buildSecondaryGrammar(): GapSeed[] {
     grammar("SEC G10", "She asked me where I ___ (buy) the dictionary.", "bought"),
     grammar("SEC G11", "There isn't ___ sugar left in the jar.", "much"),
     grammar("SEC G12", "By next June, they ___ (complete) the course.", "will have completed"),
-    grammar("SEC G13", "He is keen ___ learning new languages.", "on"),
-    grammar("SEC G14", "The manager made us ___ (work) late last night.", "work"),
-    grammar("SEC G15", "Hardly ___ I arrived when the meeting started.", "had"),
-    grammar("SEC G16", "Not only did she pass, but she also ___ (win) a prize.", "won"),
+  ];
+}
+
+function buildSecondaryWriting(): WritingSeed[] {
+  return [
+    {
+      title: "SEC W1",
+      taskPrompt:
+        "Write an email to your English friend Sam about a party last weekend.\n\n• where it was\n• what you did\n• why you enjoyed it\n\nWrite 25–35 words.",
+      wordLimit: 35,
+      instructions: "Informal email in past tense.",
+    },
+  ];
+}
+
+function buildSecondarySpeaking(): SpeakingSeed[] {
+  return [
+    {
+      title: "SEC S1",
+      prompt:
+        "Describe your favourite place to study. Say where it is, what you do there, and why you like it.",
+      preparationTime: 15,
+      speakingTime: 60,
+    },
+    {
+      title: "SEC S2",
+      prompt:
+        "Talk about a hobby you enjoy. When did you start? How often do you do it? Why do you like it?",
+      preparationTime: 15,
+      speakingTime: 60,
+    },
   ];
 }
 
@@ -987,6 +932,70 @@ function buildAdultGrammarMcq(): McqSeed[] {
   ];
 }
 
+function secondarySectionOrder(): PlacementSectionOrder[] {
+  const t = PLACEMENT_SECONDARY_SECTION_SECONDS;
+  return [
+    { pool: "reading", label: "Reading", timeLimitSeconds: t.reading },
+    { pool: "listening", label: "Listening", timeLimitSeconds: t.listening },
+    { pool: "grammar", label: "Grammar", timeLimitSeconds: t.grammar },
+    { pool: "writing", label: "Writing", timeLimitSeconds: t.writing },
+    { pool: "speaking", label: "Speaking", timeLimitSeconds: t.speaking },
+  ];
+}
+
+function secondarySections(): PlacementSectionDef[] {
+  const t = PLACEMENT_SECONDARY_SECTION_SECONDS;
+  return [
+    { skill: Skill.READING, label: "Reading", timeLimitSeconds: t.reading, pool: "reading" },
+    {
+      skill: Skill.LISTENING,
+      label: "Listening",
+      timeLimitSeconds: t.listening,
+      pool: "listening",
+    },
+    {
+      skill: Skill.USE_OF_ENGLISH,
+      label: "Grammar",
+      timeLimitSeconds: t.grammar,
+      pool: "grammar",
+    },
+    { skill: Skill.WRITING, label: "Writing", timeLimitSeconds: t.writing, pool: "writing" },
+    { skill: Skill.SPEAKING, label: "Speaking", timeLimitSeconds: t.speaking, pool: "speaking" },
+  ];
+}
+
+function yleSectionOrder(): PlacementSectionOrder[] {
+  const t = PLACEMENT_YLE_SECTION_SECONDS;
+  return [
+    { pool: "reading", label: "Reading", timeLimitSeconds: t.reading },
+    { pool: "listening", label: "Listening", timeLimitSeconds: t.listening },
+    { pool: "grammar", label: "Grammar", timeLimitSeconds: t.grammar },
+    { pool: "writing", label: "Writing", timeLimitSeconds: t.writing },
+    { pool: "speaking", label: "Speaking", timeLimitSeconds: t.speaking },
+  ];
+}
+
+function yleSections(): PlacementSectionDef[] {
+  const t = PLACEMENT_YLE_SECTION_SECONDS;
+  return [
+    { skill: Skill.READING, label: "Reading", timeLimitSeconds: t.reading, pool: "reading" },
+    {
+      skill: Skill.LISTENING,
+      label: "Listening",
+      timeLimitSeconds: t.listening,
+      pool: "listening",
+    },
+    {
+      skill: Skill.USE_OF_ENGLISH,
+      label: "Grammar",
+      timeLimitSeconds: t.grammar,
+      pool: "grammar",
+    },
+    { skill: Skill.WRITING, label: "Writing", timeLimitSeconds: t.writing, pool: "writing" },
+    { skill: Skill.SPEAKING, label: "Speaking", timeLimitSeconds: t.speaking, pool: "speaking" },
+  ];
+}
+
 function cambridgeSectionOrder(useGrammarMcq = false): PlacementSectionOrder[] {
   const t = PLACEMENT_CAMBRIDGE_SECTION_SECONDS;
   return [
@@ -1054,27 +1063,31 @@ export function getPlacementTests(): PlacementTestContent[] {
       track: "YLE",
       title: PLACEMENT_PAPER_TITLES.YLE,
       description:
-        "50 câu · 30 phút · Reading, Listening & Grammar — đánh giá trình độ YLE theo CEFR",
+        "35 câu · 31 phút · Reading, Listening, Grammar, Writing & Speaking — đánh giá trình độ YLE theo CEFR",
       level: ExamLevel.MOVERS,
       reading: buildYleReading(),
       listening: buildYleListening(),
       grammar: buildYleGrammar(),
-      sections: cambridgeSections(false),
-      totalTimeSeconds: PLACEMENT_TIME_SECONDS,
-      sectionOrder: cambridgeOrder,
+      writing: buildYleWriting(),
+      speaking: buildYleSpeaking(),
+      sections: yleSections(),
+      totalTimeSeconds: PLACEMENT_YLE_TIME_SECONDS,
+      sectionOrder: yleSectionOrder(),
     },
     {
       track: "SECONDARY",
       title: PLACEMENT_PAPER_TITLES.SECONDARY,
       description:
-        "50 câu · 30 phút · Reading, Listening & Grammar — đánh giá trình độ Cambridge THCS–THPT",
+        "40 câu · 39 phút · Reading, Listening, Grammar, Writing & Speaking — đánh giá trình độ Cambridge THCS–THPT",
       level: ExamLevel.KET,
       reading: buildSecondaryReading(),
       listening: buildSecondaryListening(),
       grammar: buildSecondaryGrammar(),
-      sections: cambridgeSections(false),
-      totalTimeSeconds: PLACEMENT_TIME_SECONDS,
-      sectionOrder: cambridgeOrder,
+      writing: buildSecondaryWriting(),
+      speaking: buildSecondarySpeaking(),
+      sections: secondarySections(),
+      totalTimeSeconds: PLACEMENT_SECONDARY_TIME_SECONDS,
+      sectionOrder: secondarySectionOrder(),
     },
     {
       track: "ADULT",

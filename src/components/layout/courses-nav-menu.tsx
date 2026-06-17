@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PlacementOpenLink } from "@/components/placement/placement-open-button";
 import { COURSES_NAV } from "@/lib/site/courses-nav";
 
 type CoursesNavMenuProps = {
@@ -11,6 +12,32 @@ type CoursesNavMenuProps = {
   onNavigate?: () => void;
   linkClass?: (colors: string) => string;
 };
+
+function CourseNavHref({
+  href,
+  className,
+  children,
+  onNavigate,
+}: {
+  href: string;
+  className?: string;
+  children: React.ReactNode;
+  onNavigate?: () => void;
+}) {
+  if (href === "/placement") {
+    return (
+      <PlacementOpenLink className={className} onNavigate={onNavigate}>
+        {children}
+      </PlacementOpenLink>
+    );
+  }
+
+  return (
+    <Link href={href} className={className} onClick={onNavigate}>
+      {children}
+    </Link>
+  );
+}
 
 export function CoursesNavMenu({ vertical = false, onNavigate, linkClass }: CoursesNavMenuProps) {
   const [open, setOpen] = useState(false);
@@ -31,6 +58,11 @@ export function CoursesNavMenu({ vertical = false, onNavigate, linkClass }: Cour
   const itemClass =
     linkClass?.("text-emerald-700 hover:bg-emerald-100") ??
     "rounded-full px-3 py-2 text-sm font-bold text-emerald-700 transition-colors hover:bg-emerald-100";
+
+  const handleNavigate = () => {
+    onNavigate?.();
+    setOpen(false);
+  };
 
   if (vertical) {
     return (
@@ -58,23 +90,23 @@ export function CoursesNavMenu({ vertical = false, onNavigate, linkClass }: Cour
             {expandedGroup === group.id && (
               <div className="mb-2 ml-2 space-y-0.5 border-l-2 border-emerald-100 pl-3">
                 {group.href && (
-                  <Link
+                  <CourseNavHref
                     href={group.href}
                     className="block rounded-lg px-2 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
-                    onClick={onNavigate}
+                    onNavigate={onNavigate}
                   >
                     Tổng quan
-                  </Link>
+                  </CourseNavHref>
                 )}
                 {group.children.map((child) => (
-                  <Link
+                  <CourseNavHref
                     key={child.href + child.label}
                     href={child.href}
                     className="block rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-emerald-50 hover:text-emerald-800"
-                    onClick={onNavigate}
+                    onNavigate={onNavigate}
                   >
                     {child.label}
-                  </Link>
+                  </CourseNavHref>
                 ))}
               </div>
             )}
@@ -101,32 +133,26 @@ export function CoursesNavMenu({ vertical = false, onNavigate, linkClass }: Cour
           {COURSES_NAV.map((group) => (
             <div key={group.id} className="rounded-xl p-1">
               {group.href ? (
-                <Link
+                <CourseNavHref
                   href={group.href}
                   className="block rounded-lg px-3 py-2 text-sm font-extrabold text-emerald-800 hover:bg-emerald-50"
-                  onClick={() => {
-                    setOpen(false);
-                    onNavigate?.();
-                  }}
+                  onNavigate={handleNavigate}
                 >
                   {group.label}
-                </Link>
+                </CourseNavHref>
               ) : (
                 <p className="px-3 py-2 text-sm font-extrabold text-emerald-800">{group.label}</p>
               )}
               <div className="ml-1 space-y-0.5 border-l-2 border-emerald-100 pl-2">
                 {group.children.map((child) => (
-                  <Link
+                  <CourseNavHref
                     key={child.href + child.label}
                     href={child.href}
                     className="block rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-emerald-50 hover:text-emerald-900"
-                    onClick={() => {
-                      setOpen(false);
-                      onNavigate?.();
-                    }}
+                    onNavigate={handleNavigate}
                   >
                     {child.label}
-                  </Link>
+                  </CourseNavHref>
                 ))}
               </div>
             </div>

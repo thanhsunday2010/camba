@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MascotHero } from "@/components/kids/mascot-buddy";
 import { EditableText } from "@/components/inline-edit/editable-text";
 import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
+import { PlacementOpenButton } from "@/components/placement/placement-open-button";
 import {
   CAMBRIDGE_COURSES_CTA_LABEL,
   CAMBRIDGE_COURSES_URL,
@@ -43,9 +44,9 @@ export function HomeHero() {
               className="mt-6 max-w-xl text-lg font-semibold text-white/90 md:text-xl lg:mx-0 lg:mt-8"
             />
             <div className="mt-10 flex flex-wrap justify-center gap-4 lg:justify-start">
-              <Button asChild size="lg" variant="fun" className="rounded-full">
-                <Link href="/placement">🎯 Test trình độ</Link>
-              </Button>
+              <PlacementOpenButton size="lg" variant="fun" className="rounded-full">
+                🎯 Test trình độ
+              </PlacementOpenButton>
               <Button asChild size="lg" className="rounded-full bg-rose-600 font-bold hover:bg-rose-700">
                 <Link href={IELTS_SPEAKING_URL}>🎤 {IELTS_SPEAKING_CTA_LABEL}</Link>
               </Button>

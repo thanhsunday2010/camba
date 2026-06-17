@@ -98,14 +98,24 @@ export function QuestionRenderer({
     <div
       className={cn(
         "space-y-4 rounded-3xl border-2 border-purple-200 bg-white/95 p-6 shadow-lg",
-        hidePassage && "rounded-xl border-purple-100 p-4 shadow-sm"
+        hidePassage && "space-y-3 rounded-xl border-purple-100 p-3 shadow-sm"
       )}
     >
-      <div className="flex items-start justify-between gap-4">
-        <h3 className="text-lg font-extrabold text-purple-800">
+      <div className="flex items-start justify-between gap-3">
+        <h3
+          className={cn(
+            "font-extrabold text-purple-800",
+            hidePassage ? "text-sm" : "text-lg"
+          )}
+        >
           ✨ Câu {index + 1}
         </h3>
-        <span className="rounded-full bg-sunshine-200 px-3 py-1 text-xs font-bold text-sunshine-900">
+        <span
+          className={cn(
+            "shrink-0 rounded-full bg-sunshine-200 font-bold text-sunshine-900",
+            hidePassage ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs"
+          )}
+        >
           ⭐ {question.points} điểm
         </span>
       </div>
@@ -212,12 +222,19 @@ function McqQuestion({
   return (
     <div className="space-y-4">
       {content.passage && !hidePassage && (
-        <div className="rounded-2xl border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50 p-4 text-sm font-medium leading-relaxed whitespace-pre-wrap">
+        <div className="rounded-2xl border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50 p-4 text-base font-medium leading-relaxed whitespace-pre-wrap md:text-lg">
           📄 {content.passage}
         </div>
       )}
-      <p className="text-lg font-bold text-purple-900">{content.question}</p>
-      <div className="space-y-3">
+      <p
+        className={cn(
+          "font-bold leading-snug text-purple-900",
+          hidePassage ? "text-lg md:text-xl" : "text-xl md:text-2xl"
+        )}
+      >
+        {content.question}
+      </p>
+      <div className={cn("space-y-2", !hidePassage && "space-y-2.5")}>
         {content.options.map((opt, i) => (
           <label
             key={i}
@@ -225,11 +242,11 @@ function McqQuestion({
             className={cn(
               "mcq-option-kid border-2",
               MCQ_COLORS[i % MCQ_COLORS.length],
-              value === opt && "scale-[1.02] shadow-md ring-2 ring-purple-300",
+              value === opt && "shadow-sm ring-2 ring-purple-300",
               disabled && "pointer-events-none opacity-60"
             )}
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-pink-400 text-sm font-extrabold text-white shadow-sm">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-400 to-pink-400 text-[11px] font-extrabold text-white shadow-sm">
               {MCQ_LABELS[i]}
             </span>
             <input
@@ -240,7 +257,7 @@ function McqQuestion({
               disabled={disabled}
               className="sr-only"
             />
-            <span className="font-semibold">{opt}</span>
+            <span className="text-sm font-medium leading-snug">{opt}</span>
           </label>
         ))}
       </div>
@@ -263,15 +280,15 @@ function GapFillQuestion({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4 text-sm font-medium leading-relaxed whitespace-pre-wrap">
+      <div className="rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 p-4 text-base font-medium leading-relaxed whitespace-pre-wrap md:text-lg">
         {content.passage}
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         {Array.from({ length: content.blanks }).map((_, i) => (
           <div key={i}>
-            <Label className="font-bold text-purple-700">Chỗ trống {i + 1}</Label>
+            <Label className="text-xs font-bold text-purple-700">Chỗ trống {i + 1}</Label>
             <input
-              className="mt-1 flex h-12 w-full rounded-xl border-2 border-purple-200 px-4 text-sm font-semibold focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200"
+              className="mt-1 flex h-9 w-full rounded-lg border-2 border-purple-200 px-3 text-sm font-medium focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-200"
               value={answers[i] ?? ""}
               onChange={(e) => {
                 const next = [...answers];
@@ -322,7 +339,9 @@ function FreeTextQuestion({
         <p className="text-sm text-muted-foreground">{content.instructions}</p>
       )}
       <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 p-4">
-        <p className="font-bold text-amber-900 whitespace-pre-wrap">✏️ {content.taskPrompt}</p>
+        <p className="text-base font-bold leading-relaxed text-amber-900 whitespace-pre-wrap md:text-lg">
+          ✏️ {content.taskPrompt}
+        </p>
       </div>
       <Textarea
         rows={10}

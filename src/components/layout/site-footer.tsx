@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth } from "@/auth";
+import { FooterNavLink } from "@/components/placement/footer-nav-link";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { ReferralShareInline } from "@/components/referral/referral-share-block";
 import { ensureUserReferralCode } from "@/lib/referral/codes";
@@ -74,12 +75,12 @@ export async function SiteFooter() {
                           {link.label}
                         </a>
                       ) : (
-                        <Link
+                        <FooterNavLink
                           href={link.href}
                           className="text-sm font-medium text-muted-foreground transition-colors hover:text-purple-700"
                         >
                           {link.label}
-                        </Link>
+                        </FooterNavLink>
                       )}
                     </li>
                   ))}

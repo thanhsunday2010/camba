@@ -28,6 +28,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { EditableText } from "@/components/inline-edit/editable-text";
+import { PlacementOpenButton } from "@/components/placement/placement-open-button";
 
 const PRACTICE_HIGHLIGHTS = [
   {
@@ -462,15 +463,13 @@ export function HomeMainContent() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button asChild variant="fun" className="w-full rounded-full">
-                  <Link href="/placement">
-                    <EditableText
-                      contentKey="home.sidebar.placement.cta"
-                      defaultValue="Làm test ngay"
-                      as="span"
-                    />
-                  </Link>
-                </Button>
+                <PlacementOpenButton variant="fun" className="w-full rounded-full">
+                  <EditableText
+                    contentKey="home.sidebar.placement.cta"
+                    defaultValue="Làm test ngay"
+                    as="span"
+                  />
+                </PlacementOpenButton>
               </CardContent>
             </Card>
 

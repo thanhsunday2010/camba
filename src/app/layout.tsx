@@ -10,6 +10,7 @@ import { PromoOfferProvider } from "@/components/promo/promo-offer-provider";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { SoundProvider } from "@/components/kids/sound-provider";
 import { InlineEditBootstrap } from "@/components/inline-edit/inline-edit-bootstrap";
+import { PlacementPickerBootstrap } from "@/components/placement/placement-picker-bootstrap";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -40,11 +41,13 @@ export default function RootLayout({
             <MascotProviderWrapper>
               <FloatingDecor />
               <div className="relative z-10 flex min-h-screen flex-col">
-                <Navbar />
-                <InlineEditBootstrap>
-                  <main className="flex-1">{children}</main>
-                </InlineEditBootstrap>
-                <SiteFooter />
+                <PlacementPickerBootstrap>
+                  <Navbar />
+                  <InlineEditBootstrap>
+                    <main className="flex-1">{children}</main>
+                  </InlineEditBootstrap>
+                  <SiteFooter />
+                </PlacementPickerBootstrap>
               </div>
               <BugReportButton />
               <PromoOfferProvider />

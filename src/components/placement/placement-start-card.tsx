@@ -1,23 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
-import { startPlacementAttemptAction } from "@/lib/actions/placement";
 import { notifyGuestPlacementLimitHit } from "@/lib/promo/events";
-import { useMascotToast } from "@/components/kids/mascot-toast-provider";
-import { mascotPlacementOpeningWaitMessage } from "@/lib/kids/mascot-messages";
 import {
   PLACEMENT_CARD_THEMES,
   type PlacementCategoryTheme,
 } from "@/lib/placement/categories";
+import { usePlacementStart } from "@/components/placement/use-placement-start";
 
 interface PlacementStartCardProps {
   paper: {
@@ -38,42 +33,15 @@ export function PlacementStartCard({
   placementLimit,
 }: PlacementStartCardProps) {
   const cardTheme = PLACEMENT_CARD_THEMES[theme];
-  const router = useRouter();
-  const { data: session } = useSession();
-  const { showMascot, hideMascot } = useMascotToast();
-  const isLoggedIn = !!session?.user;
+  const { startPlacement, loading, isLoggedIn } = usePlacementStart();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showGuestForm, setShowGuestForm] = useState(false);
 
   async function begin(guest?: { fullName: string; phone: string }) {
-    setLoading(true);
-    showMascot(mascotPlacementOpeningWaitMessage());
-    try {
-      const res = await startPlacementAttemptAction(paper.id, guest);
-
-      if (res.error || !res.attemptId) {
-        hideMascot();
-        if (!isLoggedIn && res.error?.includes("trong tháng")) {
-          notifyGuestPlacementLimitHit();
-          return;
-        }
-        toast.error(res.error ?? "Không thể bắt đầu bài test");
-        return;
-      }
-
-      if (res.resumed) {
-        toast.info("Tiếp tục bài placement đang dở");
-      }
-
-      hideMascot();
-      router.push(`/placement/take/${paper.id}?attemptId=${res.attemptId}`);
-    } catch {
-      hideMascot();
-      toast.error("Không thể bắt đầu bài test");
-    } finally {
-      setLoading(false);
+    const res = await startPlacement(paper.id, guest);
+    if (!res.ok && !isLoggedIn && res.error?.includes("trong tháng")) {
+      notifyGuestPlacementLimitHit();
     }
   }
 

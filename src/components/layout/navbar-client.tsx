@@ -13,6 +13,7 @@ import { ReferralShareNavItem } from "@/components/referral/referral-share-block
 import { CoursesNavMenu } from "@/components/layout/courses-nav-menu";
 import { Menu, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PlacementOpenLink } from "@/components/placement/placement-open-button";
 
 type NavUser = {
   role?: string;
@@ -66,13 +67,12 @@ function NavLinks({
           🏠 Trang chủ
         </Link>
       )}
-      <Link
-        href="/placement"
+      <PlacementOpenLink
         className={linkClass("text-sky-700 hover:bg-sky-100")}
-        onClick={onNavigate}
+        onNavigate={onNavigate}
       >
         🎯 Test trình độ
-      </Link>
+      </PlacementOpenLink>
       <CoursesNavMenu vertical={vertical} onNavigate={onNavigate} linkClass={linkClass} />
       <Link
         href="/pricing"

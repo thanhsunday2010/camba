@@ -66,7 +66,7 @@
     @apply text-2xl font-extrabold tracking-tight md:text-3xl;
   }
   .mcq-option-kid {
-    @apply flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-4 transition-all duration-200 hover:scale-[1.02] hover:shadow-md active:scale-[0.98];
+    @apply flex cursor-pointer items-center gap-2.5 rounded-xl border-2 p-2.5 text-sm transition-all duration-200 hover:shadow-sm active:scale-[0.99];
   }
 }
 

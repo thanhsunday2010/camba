@@ -18,6 +18,7 @@ import {
   startAttemptAction,
   submitAttemptAction,
 } from "@/lib/actions/exam";
+import { gradePlacementAiAction } from "@/lib/actions/placement";
 import { supportsQuestionSwap } from "@/lib/exam/swap-practice-question";
 import { isReadingPassageSession } from "@/lib/exam/reading-passage-ui";
 import { ReadingPassagePractice } from "@/components/exam/reading-passage-practice";
@@ -393,63 +394,77 @@ export function PracticeClient({
 
     let writingGradeFailed = false;
 
-    for (const q of aiQuestions) {
-      const ans = mergedAnswers[q.id];
-      if (
-        q.type === "FREE_TEXT" &&
-        typeof ans === "string" &&
-        meetsPracticeMinWords(q.type, q.content, ans, minWordsContext)
-      ) {
-        try {
-          const res = await fetch("/api/ai/grade-writing", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              questionId: q.id,
-              attemptId,
-              studentAnswer: ans,
-            }),
-          });
-          if (!res.ok) {
-            writingGradeFailed = true;
-            const err = (await res.json().catch(() => ({}))) as { error?: string };
-            const msg = err.error ?? "Không thể chấm AI cho writing";
-            if (String(msg).toLowerCase().includes("hết")) notifyFreeLimitHit();
-            toast.error(msg);
-          }
-        } catch {
-          writingGradeFailed = true;
-          toast.error("Không thể chấm AI cho writing");
-        }
+    if (paperKind === "PLACEMENT" && aiQuestions.length > 0) {
+      const gradeRes = await gradePlacementAiAction(attemptId, mergedAnswers);
+      if ("error" in gradeRes && gradeRes.error) {
+        writingGradeFailed = true;
+        toast.error(gradeRes.error);
+      } else if ("failed" in gradeRes && gradeRes.failed > 0) {
+        writingGradeFailed = true;
+        toast.error(
+          gradeRes.errors[0] ??
+            "Một số câu Writing/Speaking chưa chấm được — xem chi tiết trên trang kết quả."
+        );
       }
-      if (
-        !isGuestAttempt &&
-        q.type === "SPEAKING_PROMPT" &&
-        typeof ans === "string" &&
-        meetsPracticeMinWords(q.type, q.content, ans, minWordsContext) &&
-        !speakingGradedIdsRef.current.has(q.id)
-      ) {
-        try {
-          const res = await fetch("/api/ai/grade-speaking", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              questionId: q.id,
-              attemptId,
-              transcript: ans,
-            }),
-          });
-          if (!res.ok) {
-            const err = (await res.json().catch(() => ({}))) as { error?: string };
-            toast.error(err.error ?? "Không thể chấm AI cho speaking");
+    } else {
+      for (const q of aiQuestions) {
+        const ans = mergedAnswers[q.id];
+        if (
+          q.type === "FREE_TEXT" &&
+          typeof ans === "string" &&
+          meetsPracticeMinWords(q.type, q.content, ans, minWordsContext)
+        ) {
+          try {
+            const res = await fetch("/api/ai/grade-writing", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                questionId: q.id,
+                attemptId,
+                studentAnswer: ans,
+              }),
+            });
+            if (!res.ok) {
+              writingGradeFailed = true;
+              const err = (await res.json().catch(() => ({}))) as { error?: string };
+              const msg = err.error ?? "Không thể chấm AI cho writing";
+              if (String(msg).toLowerCase().includes("hết")) notifyFreeLimitHit();
+              toast.error(msg);
+            }
+          } catch {
+            writingGradeFailed = true;
+            toast.error("Không thể chấm AI cho writing");
           }
-        } catch {
-          toast.error("Không thể chấm AI cho speaking");
+        }
+        if (
+          !isGuestAttempt &&
+          q.type === "SPEAKING_PROMPT" &&
+          typeof ans === "string" &&
+          meetsPracticeMinWords(q.type, q.content, ans, minWordsContext) &&
+          !speakingGradedIdsRef.current.has(q.id)
+        ) {
+          try {
+            const res = await fetch("/api/ai/grade-speaking", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                questionId: q.id,
+                attemptId,
+                transcript: ans,
+              }),
+            });
+            if (!res.ok) {
+              const err = (await res.json().catch(() => ({}))) as { error?: string };
+              toast.error(err.error ?? "Không thể chấm AI cho speaking");
+            }
+          } catch {
+            toast.error("Không thể chấm AI cho speaking");
+          }
         }
       }
     }
 
-    if (aiQuestions.length > 0) {
+    if (aiQuestions.length > 0 && paperKind !== "PLACEMENT") {
       await finalizeAttemptGradingAction(attemptId);
     }
 
@@ -641,6 +656,18 @@ export function PracticeClient({
     !readingPassagePractice &&
     supportsQuestionSwap(paperKind as PaperKind);
 
+  const showTimerInSidebar = !isPartAiPracticeUi && !readingPassagePractice;
+
+  const examTimer = (
+    <ExamTimer
+      key={useSectionTimer ? `sec-${currentSection?.startIndex ?? 0}` : "global"}
+      timeLimit={useSectionTimer ? currentSection?.timeLimit : timeLimit}
+      onTimeUp={useSectionTimer ? handleSectionTimeUp : () => void handleSubmit()}
+      startedAt={useSectionTimer ? undefined : startedAt}
+      className={showTimerInSidebar ? "w-full justify-center font-bold" : undefined}
+    />
+  );
+
   return (
     <div
       className="container mx-auto px-4 py-6"
@@ -725,18 +752,14 @@ export function PracticeClient({
           </div>
           )}
         </div>
-        <ExamTimer
-          key={useSectionTimer ? `sec-${currentSection?.startIndex ?? 0}` : "global"}
-          timeLimit={useSectionTimer ? currentSection?.timeLimit : timeLimit}
-          onTimeUp={useSectionTimer ? handleSectionTimeUp : () => void handleSubmit()}
-          startedAt={useSectionTimer ? undefined : startedAt}
-        />
+        {!showTimerInSidebar && examTimer}
       </div>
 
       <div className={isPartAiPracticeUi || readingPassagePractice ? "max-w-6xl mx-auto" : "grid gap-6 lg:grid-cols-4"}>
         {!isPartAiPracticeUi && !readingPassagePractice && (
         <aside className="lg:col-span-1">
           <div className="sticky top-20 rounded-2xl border-2 border-purple-200 bg-white/90 p-4 shadow-md backdrop-blur-sm">
+            {showTimerInSidebar && <div className="mb-4">{examTimer}</div>}
             <p className="mb-3 text-sm font-extrabold text-purple-700">🗺️ Bản đồ câu hỏi</p>
             {paperKind === "PLACEMENT" && firstUnansweredIndex >= 0 && (
               <Button

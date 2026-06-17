@@ -9,13 +9,18 @@ import { Progress } from "@/components/ui/progress";
 import type { PlacementReport } from "@/lib/placement/evaluate";
 import { computePlacementShields, resolveRecommendedExamLevel } from "@/lib/placement/evaluate";
 import { formatExamLevel, formatSkill } from "@/lib/constants";
-import { Award, BookOpen, Target } from "lucide-react";
+import { Award, BookOpen, MessageSquare, Target } from "lucide-react";
+import { PlacementOpenButton } from "@/components/placement/placement-open-button";
 import { PlacementShields } from "@/components/placement/placement-shields";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotPlacementResultMessage, mascotPlacementWeeklyRemainingMessage } from "@/lib/kids/mascot-messages";
 import { mascotGamificationCelebration } from "@/lib/gamification/mascot-messages";
 import { GamificationCelebrationCard } from "@/components/gamification/gamification-celebration-card";
 import type { GamificationSnapshot } from "@/lib/gamification/types";
+import { WritingFeedbackView } from "@/components/ai/writing-feedback";
+import { SpeakingFeedbackView } from "@/components/ai/speaking-feedback";
+import type { WritingFeedback, SpeakingFeedback } from "@/lib/ai/schemas";
+import { QuestionType } from "@prisma/client";
 
 const SKILL_LABELS: Record<string, string> = {
   READING: "Reading",
@@ -24,6 +29,37 @@ const SKILL_LABELS: Record<string, string> = {
   WRITING: "Writing",
   SPEAKING: "Speaking",
 };
+
+interface PlacementAiAnswer {
+  id: string;
+  answer: unknown;
+  isCorrect: boolean | null;
+  score: number | null;
+  question: {
+    id: string;
+    type: QuestionType;
+    content: unknown;
+    correctAnswer: unknown;
+    points: number;
+    skill: string;
+    title: string | null;
+  };
+}
+
+interface PlacementAiFeedback {
+  id: string;
+  feedbackType: string;
+  inputText: string;
+  transcript: string | null;
+  overallScore: number | null;
+  cambridgeBand: string | null;
+  criteria: unknown;
+  errors: unknown;
+  suggestions: unknown;
+  improvedVersion: string | null;
+  questionId: string | null;
+  rawResponse: unknown;
+}
 
 interface PlacementResultsClientProps {
   attempt: {
@@ -37,6 +73,8 @@ interface PlacementResultsClientProps {
     guestPhone?: string | null;
     displayName?: string;
   };
+  aiAnswers?: PlacementAiAnswer[];
+  aiFeedbacks?: PlacementAiFeedback[];
   isGuest?: boolean;
   placementWeekly?: {
     used: number;
@@ -49,6 +87,8 @@ interface PlacementResultsClientProps {
 
 export function PlacementResultsClient({
   attempt,
+  aiAnswers = [],
+  aiFeedbacks = [],
   isGuest = false,
   placementWeekly,
   gamification,
@@ -139,9 +179,7 @@ export function PlacementResultsClient({
         <p className="text-muted-foreground">
           Không thể tạo báo cáo placement. Vui lòng thử lại hoặc liên hệ hỗ trợ.
         </p>
-        <Button asChild className="mt-4">
-          <Link href="/placement">Quay lại</Link>
-        </Button>
+        <PlacementOpenButton className="mt-4">Quay lại</PlacementOpenButton>
       </div>
     );
   }
@@ -253,7 +291,17 @@ export function PlacementResultsClient({
               <div className="mb-1 flex justify-between text-sm font-bold">
                 <span>{SKILL_LABELS[s.skill] ?? formatSkill(s.skill)}</span>
                 <span>
-                  {s.correct}/{s.total} ({s.percent}%)
+                  {s.skill === "WRITING" || s.skill === "SPEAKING" ? (
+                    s.total > 0 ? (
+                      <>{s.percent}% (AI chấm)</>
+                    ) : (
+                      "—"
+                    )
+                  ) : (
+                    <>
+                      {s.correct}/{s.total} ({s.percent}%)
+                    </>
+                  )}
                 </span>
               </div>
               <Progress value={s.percent} className="h-2" />
@@ -261,6 +309,85 @@ export function PlacementResultsClient({
           ))}
         </CardContent>
       </Card>
+
+      {aiAnswers.length > 0 && (
+        <Card className="mb-6 border-2 border-sky-100">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg font-extrabold">
+              <MessageSquare className="h-5 w-5" />
+              Writing & Speaking — AI chấm & gợi ý
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {aiAnswers.map((answer, i) => {
+              const aiFb = aiFeedbacks.find((f) => f.questionId === answer.question.id);
+              const content = answer.question.content as {
+                question?: string;
+                taskPrompt?: string;
+                prompt?: string;
+              };
+              const promptText =
+                content.taskPrompt ?? content.prompt ?? content.question ?? answer.question.title;
+
+              return (
+                <div key={answer.question.id} className="space-y-3 rounded-xl border bg-white p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-bold text-purple-900">
+                      {answer.question.type === QuestionType.FREE_TEXT ? "Writing" : "Speaking"} — Câu{" "}
+                      {i + 1}
+                    </p>
+                    {aiFb?.overallScore != null && (
+                      <Badge variant="secondary">{Math.round(aiFb.overallScore)}%</Badge>
+                    )}
+                  </div>
+                  {promptText && (
+                    <p className="text-sm font-medium text-muted-foreground">{promptText}</p>
+                  )}
+
+                  {answer.question.type === QuestionType.FREE_TEXT && aiFb?.criteria ? (
+                    <WritingFeedbackView
+                      feedback={{
+                        overallScore: aiFb.overallScore ?? 0,
+                        cambridgeBand: aiFb.cambridgeBand ?? "",
+                        criteria: aiFb.criteria as WritingFeedback["criteria"],
+                        errors: (aiFb.errors as WritingFeedback["errors"]) ?? [],
+                        improvedVersion: aiFb.improvedVersion ?? "",
+                        tips_vi: (aiFb.suggestions as string[]) ?? [],
+                        summary_vi:
+                          (aiFb.rawResponse as { summary_vi?: string })?.summary_vi ?? "",
+                      }}
+                      studentAnswer={aiFb.inputText}
+                    />
+                  ) : answer.question.type === QuestionType.SPEAKING_PROMPT && aiFb?.criteria ? (
+                    <SpeakingFeedbackView
+                      feedback={{
+                        overallScore: aiFb.overallScore ?? 0,
+                        cambridgeBand: aiFb.cambridgeBand ?? "",
+                        criteria: aiFb.criteria as SpeakingFeedback["criteria"],
+                        errors: (aiFb.errors as SpeakingFeedback["errors"]) ?? [],
+                        tips_vi: (aiFb.suggestions as string[]) ?? [],
+                        summary_vi:
+                          (aiFb.rawResponse as { summary_vi?: string; weakPartPractice?: string })
+                            ?.summary_vi ?? "",
+                        weakPartPractice: (
+                          aiFb.rawResponse as { weakPartPractice?: string }
+                        )?.weakPartPractice,
+                      }}
+                      transcript={aiFb.transcript ?? aiFb.inputText}
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {typeof answer.answer === "string" && answer.answer.trim()
+                        ? "Đang chờ AI chấm hoặc chưa đủ nội dung để chấm."
+                        : "Chưa có bài làm cho câu này."}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       {(report.strengths.length > 0 || report.weaknesses.length > 0) && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2">
@@ -339,18 +466,14 @@ export function PlacementResultsClient({
             <Button asChild className="kid-btn-fun">
               <Link href="/register">Đăng ký để luyện tập</Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link href="/placement">Làm lại placement</Link>
-            </Button>
+            <PlacementOpenButton variant="outline">Làm lại placement</PlacementOpenButton>
           </>
         ) : (
           <>
             <Button asChild className="kid-btn-fun">
               <Link href="/exams">Bắt đầu luyện thi</Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link href="/placement">Làm lại placement</Link>
-            </Button>
+            <PlacementOpenButton variant="outline">Làm lại placement</PlacementOpenButton>
             <Button asChild variant="ghost">
               <Link href="/dashboard">Dashboard</Link>
             </Button>

@@ -93,7 +93,7 @@ export async function ensurePlacementReport(
       ? (existing as PlacementReport)
       : null;
 
-  if (track !== "IELTS" && cached) {
+  if (track !== "IELTS" && track !== "YLE" && track !== "SECONDARY" && cached) {
     return cached;
   }
 

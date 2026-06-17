@@ -188,9 +188,113 @@ function ieltsShortSpec(slug: PlacementSlug, title: string, readingLabel: string
   };
 }
 
+function yleSpec(): PlacementSpec {
+  const t = {
+    reading: 420,
+    listening: 420,
+    grammar: 420,
+    writing: 480,
+    speaking: 120,
+  };
+  return {
+    slug: "yle",
+    title: PLACEMENT_PAPER_TITLES.YLE,
+    totalTimeSeconds: t.reading + t.listening + t.grammar + t.writing + t.speaking,
+    sectionOrder: [
+      {
+        pool: "reading",
+        label: "Reading",
+        timeLimitSeconds: t.reading,
+        skill: Skill.READING,
+        count: 11,
+      },
+      {
+        pool: "listening",
+        label: "Listening",
+        timeLimitSeconds: t.listening,
+        skill: Skill.LISTENING,
+        count: 11,
+      },
+      {
+        pool: "grammar",
+        label: "Grammar & Vocabulary",
+        timeLimitSeconds: t.grammar,
+        skill: Skill.USE_OF_ENGLISH,
+        count: 11,
+      },
+      {
+        pool: "writing",
+        label: "Writing",
+        timeLimitSeconds: t.writing,
+        skill: Skill.WRITING,
+        count: 1,
+      },
+      {
+        pool: "speaking",
+        label: "Speaking",
+        timeLimitSeconds: t.speaking,
+        skill: Skill.SPEAKING,
+        count: 1,
+      },
+    ],
+  };
+}
+
+function secondarySpec(): PlacementSpec {
+  const t = {
+    reading: 480,
+    listening: 480,
+    grammar: 480,
+    writing: 600,
+    speaking: 300,
+  };
+  return {
+    slug: "secondary",
+    title: PLACEMENT_PAPER_TITLES.SECONDARY,
+    totalTimeSeconds: t.reading + t.listening + t.grammar + t.writing + t.speaking,
+    sectionOrder: [
+      {
+        pool: "reading",
+        label: "Reading",
+        timeLimitSeconds: t.reading,
+        skill: Skill.READING,
+        count: 13,
+      },
+      {
+        pool: "listening",
+        label: "Listening",
+        timeLimitSeconds: t.listening,
+        skill: Skill.LISTENING,
+        count: 12,
+      },
+      {
+        pool: "grammar",
+        label: "Grammar & Vocabulary",
+        timeLimitSeconds: t.grammar,
+        skill: Skill.USE_OF_ENGLISH,
+        count: 12,
+      },
+      {
+        pool: "writing",
+        label: "Writing",
+        timeLimitSeconds: t.writing,
+        skill: Skill.WRITING,
+        count: 1,
+      },
+      {
+        pool: "speaking",
+        label: "Speaking",
+        timeLimitSeconds: t.speaking,
+        skill: Skill.SPEAKING,
+        count: 2,
+      },
+    ],
+  };
+}
+
 export const PLACEMENT_SPECS: Record<PlacementSlug, PlacementSpec> = {
-  yle: cambridgeSpec("yle", PLACEMENT_PAPER_TITLES.YLE, "grammar"),
-  secondary: cambridgeSpec("secondary", PLACEMENT_PAPER_TITLES.SECONDARY, "grammar"),
+  yle: yleSpec(),
+  secondary: secondarySpec(),
   adult: cambridgeSpec("adult", PLACEMENT_PAPER_TITLES.ADULT, "grammarMcq"),
   "ielts-academic-full": ieltsFullSpec(
     "ielts-academic-full",

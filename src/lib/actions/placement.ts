@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { updateUserStreak } from "@/lib/ai/rate-limit";
 import { assignPlacementQuestionsForAttempt } from "@/lib/placement/select-questions";
 import { canGuestStartPlacementAttempt, canStartPlacementAttempt } from "@/lib/subscription/placement-limit";
+import { gradePlacementAiQuestions } from "@/lib/placement/grade-placement-ai";
 import { PaperKind } from "@prisma/client";
 
 const guestSchema = z.object({
@@ -212,4 +213,39 @@ export async function savePlacementAnswerAction(
   });
 
   return { ok: true };
+}
+
+export async function gradePlacementAiAction(
+  attemptId: string,
+  answers: Record<string, unknown>
+) {
+  const session = await auth();
+
+  const attempt = await db.attempt.findUnique({
+    where: { id: attemptId },
+    include: { paper: true },
+  });
+
+  if (!attempt || attempt.paper.paperKind !== PaperKind.PLACEMENT) {
+    return { error: "Bài làm không hợp lệ" };
+  }
+
+  if (attempt.userId) {
+    if (!session || session.user.id !== attempt.userId) {
+      return { error: "Không có quyền" };
+    }
+  }
+
+  if (attempt.status === "IN_PROGRESS") {
+    return { error: "Bài chưa nộp" };
+  }
+
+  try {
+    const result = await gradePlacementAiQuestions(db, attemptId, answers);
+    revalidatePath(`/placement/results/${attemptId}`);
+    return { success: true as const, ...result };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Không thể chấm AI";
+    return { error: message };
+  }
 }

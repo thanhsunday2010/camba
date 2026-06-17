@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PlacementOpenLink } from "@/components/placement/placement-open-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
 import {
@@ -135,13 +136,13 @@ export function ExamsHubIeltsSection({
           defaultValue="Muốn biết trình độ?"
           as="span"
         />{" "}
-        <Link href="/placement" className="font-bold text-purple-600 underline">
+        <PlacementOpenLink className="font-bold text-purple-600 underline">
           <EditableText
             contentKey="exams.footer.placementLink"
             defaultValue="Làm bài test trình độ"
             as="span"
           />
-        </Link>
+        </PlacementOpenLink>
       </p>
     </>
   );
