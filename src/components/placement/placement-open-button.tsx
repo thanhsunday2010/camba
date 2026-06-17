@@ -3,16 +3,19 @@
 import type { ComponentProps, MouseEvent, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { PlacementPickerPreset } from "@/lib/placement/picker-url";
 import { usePlacementPicker } from "@/components/placement/placement-picker-provider";
 
 type PlacementOpenButtonProps = Omit<ComponentProps<typeof Button>, "onClick"> & {
   children: ReactNode;
+  preset?: PlacementPickerPreset;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
 export function PlacementOpenButton({
   children,
   className,
+  preset,
   onClick,
   ...props
 }: PlacementOpenButtonProps) {
@@ -24,7 +27,7 @@ export function PlacementOpenButton({
       className={cn(className)}
       onClick={(event) => {
         onClick?.(event);
-        openPlacementPicker();
+        openPlacementPicker(preset);
       }}
       {...props}
     >
@@ -36,10 +39,16 @@ export function PlacementOpenButton({
 type PlacementOpenLinkProps = {
   children: ReactNode;
   className?: string;
+  preset?: PlacementPickerPreset;
   onNavigate?: () => void;
 };
 
-export function PlacementOpenLink({ children, className, onNavigate }: PlacementOpenLinkProps) {
+export function PlacementOpenLink({
+  children,
+  className,
+  preset,
+  onNavigate,
+}: PlacementOpenLinkProps) {
   const { openPlacementPicker } = usePlacementPicker();
 
   return (
@@ -47,7 +56,7 @@ export function PlacementOpenLink({ children, className, onNavigate }: Placement
       type="button"
       className={className}
       onClick={() => {
-        openPlacementPicker();
+        openPlacementPicker(preset);
         onNavigate?.();
       }}
     >

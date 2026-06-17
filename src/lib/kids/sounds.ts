@@ -8,7 +8,12 @@ export type KidSound =
   | "answerCorrect"
   | "answerWrong";
 
+/** Pixabay / freesound_community — "yeah" SFX for correct practice answers */
+export const ANSWER_CORRECT_SFX_URL = "/audio/sfx/freesound_community-yeah-96783.mp3";
+
 let audioCtx: AudioContext | null = null;
+let answerCorrectAudio: HTMLAudioElement | null = null;
+let answerCorrectReady = false;
 
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -36,6 +41,60 @@ function tone(
   g.connect(ctx.destination);
   osc.start(start);
   osc.stop(start + duration);
+}
+
+function playSynthAnswerCorrect(ctx: AudioContext, t: number) {
+  [523, 659, 784, 988, 1175].forEach((f, i) => {
+    tone(ctx, f, t + i * 0.06, 0.14, "triangle", 0.14);
+  });
+  tone(ctx, 1568, t + 0.35, 0.2, "sine", 0.12);
+}
+
+function getAnswerCorrectAudio(): HTMLAudioElement | null {
+  if (typeof window === "undefined") return null;
+  if (!answerCorrectAudio) {
+    const audio = new Audio(ANSWER_CORRECT_SFX_URL);
+    audio.preload = "auto";
+    audio.volume = 0.85;
+    audio.addEventListener(
+      "canplaythrough",
+      () => {
+        answerCorrectReady = true;
+      },
+      { once: true }
+    );
+    answerCorrectAudio = audio;
+  }
+  return answerCorrectAudio;
+}
+
+function playAnswerCorrect() {
+  const audio = getAnswerCorrectAudio();
+  if (!audio) return;
+
+  const playClip = () => {
+    audio.currentTime = 0;
+    void audio.play().catch(() => {
+      const ctx = getCtx();
+      if (ctx) playSynthAnswerCorrect(ctx, ctx.currentTime);
+    });
+  };
+
+  if (answerCorrectReady || audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+    playClip();
+    return;
+  }
+
+  audio.addEventListener("canplaythrough", playClip, { once: true });
+  audio.addEventListener(
+    "error",
+    () => {
+      const ctx = getCtx();
+      if (ctx) playSynthAnswerCorrect(ctx, ctx.currentTime);
+    },
+    { once: true }
+  );
+  audio.load();
 }
 
 export function playKidSound(sound: KidSound) {
@@ -72,10 +131,7 @@ export function playKidSound(sound: KidSound) {
       });
       break;
     case "answerCorrect":
-      [523, 659, 784, 988, 1175].forEach((f, i) => {
-        tone(ctx, f, t + i * 0.06, 0.14, "triangle", 0.14);
-      });
-      tone(ctx, 1568, t + 0.35, 0.2, "sine", 0.12);
+      playAnswerCorrect();
       break;
     case "answerWrong":
       tone(ctx, 220, t, 0.12, "sawtooth", 0.1);
@@ -83,4 +139,9 @@ export function playKidSound(sound: KidSound) {
       tone(ctx, 110, t + 0.22, 0.28, "square", 0.06);
       break;
   }
+}
+
+/** Preload correct-answer clip after first user gesture (optional). */
+export function preloadAnswerCorrectSfx() {
+  getAnswerCorrectAudio()?.load();
 }

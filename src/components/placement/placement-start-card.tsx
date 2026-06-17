@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import {
   PLACEMENT_CARD_THEMES,
   type PlacementCategoryTheme,
 } from "@/lib/placement/categories";
+import { buildPlacementAuthCallbackUrl } from "@/lib/placement/picker-url";
 import { usePlacementStart } from "@/components/placement/use-placement-start";
 
 interface PlacementStartCardProps {
@@ -33,7 +35,7 @@ export function PlacementStartCard({
   placementLimit,
 }: PlacementStartCardProps) {
   const cardTheme = PLACEMENT_CARD_THEMES[theme];
-  const { startPlacement, loading, isLoggedIn } = usePlacementStart();
+  const { startPlacement, loading, isLoggedIn, sessionPending } = usePlacementStart();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [showGuestForm, setShowGuestForm] = useState(false);
@@ -64,7 +66,9 @@ export function PlacementStartCard({
           </p>
         )}
 
-        {isLoggedIn ? (
+        {sessionPending ? (
+          <p className="text-sm font-medium text-muted-foreground">Đang kiểm tra phiên đăng nhập…</p>
+        ) : isLoggedIn ? (
           <>
             {placementRemaining != null && placementLimit != null && (
               <p className="text-sm font-semibold text-muted-foreground">
@@ -137,12 +141,15 @@ export function PlacementStartCard({
           </Button>
         )}
 
-        {!isLoggedIn && !showGuestForm && (
+        {!sessionPending && !isLoggedIn && !showGuestForm && (
           <p className="text-center text-xs font-medium text-muted-foreground">
             Khách: 1 lượt placement/tháng (theo SĐT).{" "}
-            <a href="/login" className="font-bold text-purple-600 underline">
+            <Link
+              href={`/login?callbackUrl=${encodeURIComponent(buildPlacementAuthCallbackUrl({ paperId: paper.id }))}`}
+              className="font-bold text-purple-600 underline"
+            >
               Đăng nhập
-            </a>{" "}
+            </Link>{" "}
             để làm thêm (2 lượt/tuần).
           </p>
         )}

@@ -60,7 +60,7 @@ function NavLinks({
     <>
       {user && (
         <Link
-          href="/dashboard"
+          href="/"
           className={linkClass("text-purple-700 hover:bg-purple-100")}
           onClick={onNavigate}
         >

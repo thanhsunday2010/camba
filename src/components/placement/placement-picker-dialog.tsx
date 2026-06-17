@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,8 @@ import {
   type PlacementPaperListItem,
 } from "@/lib/placement/categories";
 import { getPlacementPaperLabel } from "@/lib/placement/picker-options";
+import { buildPlacementAuthCallbackUrl, type PlacementPickerPreset } from "@/lib/placement/picker-url";
+import { resolvePresetSelection } from "@/lib/placement/resolve-preset-selection";
 import { usePlacementStart } from "@/components/placement/use-placement-start";
 import type { PlacementUsageSnapshot } from "@/components/placement/placement-picker-provider";
 
@@ -35,6 +38,8 @@ interface PlacementPickerDialogProps {
   onOpenChange: (open: boolean) => void;
   papers: PlacementPaperListItem[];
   placementUsage: PlacementUsageSnapshot;
+  pendingPreset?: PlacementPickerPreset;
+  initialIsLoggedIn: boolean;
 }
 
 export function PlacementPickerDialog({
@@ -42,8 +47,11 @@ export function PlacementPickerDialog({
   onOpenChange,
   papers,
   placementUsage,
+  pendingPreset,
+  initialIsLoggedIn,
 }: PlacementPickerDialogProps) {
-  const { startPlacement, loading, isLoggedIn } = usePlacementStart();
+  const { startPlacement, loading, isLoggedIn, sessionPending } =
+    usePlacementStart(initialIsLoggedIn);
   const [categoryId, setCategoryId] = useState<PlacementCategoryId | "">("");
   const [paperId, setPaperId] = useState("");
   const [fullName, setFullName] = useState("");
@@ -57,18 +65,37 @@ export function PlacementPickerDialog({
   );
 
   const categoryPapers = categoryId ? grouped[categoryId] : [];
-
   const selectedPaper = categoryPapers.find((p) => p.id === paperId);
 
   useEffect(() => {
     if (!open) return;
-    setCategoryId(availableCategories[0] ?? "");
-    setPaperId("");
-    setFullName("");
-    setPhone("");
-    // Reset form only when dialog opens
+
+    const resolved = resolvePresetSelection(papers, pendingPreset);
+    const defaultCategory = availableCategories[0] ?? "";
+
+    if (resolved.categoryId && availableCategories.includes(resolved.categoryId)) {
+      setCategoryId(resolved.categoryId);
+      const list = grouped[resolved.categoryId];
+      if (resolved.paperId && list.some((p) => p.id === resolved.paperId)) {
+        setPaperId(resolved.paperId);
+      } else if (list.length === 1) {
+        setPaperId(list[0].id);
+      } else {
+        setPaperId("");
+      }
+    } else {
+      setCategoryId(defaultCategory);
+      const list = defaultCategory ? grouped[defaultCategory] : [];
+      setPaperId(list.length === 1 ? list[0].id : "");
+    }
+
+    if (!initialIsLoggedIn) {
+      setFullName("");
+      setPhone("");
+    }
+    // Chỉ reset form khi mở dialog — không phụ thuộc grouped/isLoggedIn để tránh ghi đè lựa chọn user
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, pendingPreset, papers]);
 
   useEffect(() => {
     if (!categoryId) {
@@ -76,11 +103,11 @@ export function PlacementPickerDialog({
       return;
     }
     const list = grouped[categoryId];
-    if (list.length === 1) {
-      setPaperId(list[0].id);
-    } else {
-      setPaperId("");
-    }
+    setPaperId((current) => {
+      if (current && list.some((p) => p.id === current)) return current;
+      if (list.length === 1) return list[0].id;
+      return "";
+    });
   }, [categoryId, grouped]);
 
   const guestValid = fullName.trim().length >= 2 && phone.length === 10;
@@ -90,7 +117,21 @@ export function PlacementPickerDialog({
     !placementUsage.unlimited &&
     placementUsage.remaining === 0;
 
-  const canStart = !!paperId && (isLoggedIn ? !outOfQuota : guestValid);
+  const canStart =
+    !!paperId &&
+    !sessionPending &&
+    (isLoggedIn ? !outOfQuota : guestValid);
+
+  const authCallbackUrl = buildPlacementAuthCallbackUrl(
+    paperId
+      ? {
+          paperId,
+          categoryId: categoryId || undefined,
+        }
+      : categoryId
+        ? { categoryId }
+        : undefined
+  );
 
   async function handleStart() {
     if (!paperId || !canStart) return;
@@ -166,7 +207,11 @@ export function PlacementPickerDialog({
               </p>
             )}
 
-            {isLoggedIn ? (
+            {sessionPending ? (
+              <p className="rounded-xl border-2 border-purple-100 bg-purple-50/50 px-3 py-2 text-sm font-medium text-muted-foreground">
+                Đang kiểm tra phiên đăng nhập…
+              </p>
+            ) : isLoggedIn ? (
               <>
                 {placementUsage && !placementUsage.unlimited && placementUsage.limit != null && (
                   <p className="rounded-xl border-2 border-sky-100 bg-sky-50/80 px-3 py-2 text-sm font-semibold text-sky-900">
@@ -189,7 +234,8 @@ export function PlacementPickerDialog({
                   Thông tin khách (không cần đăng ký)
                 </p>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Khách: <strong>1 lượt placement/tháng</strong> theo SĐT (mọi loại đề).
+                  Khách: <strong>1 lượt placement/tháng</strong> theo SĐT (mọi loại đề). Bài đang
+                  dở sẽ được tiếp tục khi nhập lại cùng SĐT.
                 </p>
                 <div>
                   <Label htmlFor="placement-guest-name">Họ tên *</Label>
@@ -216,10 +262,20 @@ export function PlacementPickerDialog({
                   <p className="mt-1 text-xs text-muted-foreground">Đúng 10 chữ số</p>
                 </div>
                 <p className="text-center text-xs font-medium text-muted-foreground">
-                  <a href="/login" className="font-bold text-purple-600 underline">
+                  <Link
+                    href={`/login?callbackUrl=${encodeURIComponent(authCallbackUrl)}`}
+                    className="font-bold text-purple-600 underline"
+                  >
                     Đăng nhập
-                  </a>{" "}
-                  để làm thêm (2 lượt/tuần).
+                  </Link>{" "}
+                  hoặc{" "}
+                  <Link
+                    href={`/register?callbackUrl=${encodeURIComponent(authCallbackUrl)}`}
+                    className="font-bold text-purple-600 underline"
+                  >
+                    đăng ký miễn phí
+                  </Link>{" "}
+                  để làm thêm (2 lượt/tuần) — giữ nguyên đề đã chọn.
                 </p>
               </div>
             )}
@@ -229,7 +285,11 @@ export function PlacementPickerDialog({
               disabled={!canStart || loading}
               onClick={() => void handleStart()}
             >
-              {loading ? "Đang mở..." : "Bắt đầu làm bài"}
+              {loading
+                ? "Đang mở..."
+                : sessionPending
+                  ? "Đang kiểm tra..."
+                  : "Bắt đầu làm bài"}
             </Button>
           </div>
         )}

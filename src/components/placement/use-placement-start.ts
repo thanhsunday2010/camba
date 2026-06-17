@@ -2,22 +2,26 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { startPlacementAttemptAction } from "@/lib/actions/placement";
 import { notifyGuestPlacementLimitHit } from "@/lib/promo/events";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotPlacementOpeningWaitMessage } from "@/lib/kids/mascot-messages";
+import { usePlacementSession } from "@/components/placement/use-placement-session";
 
-export function usePlacementStart() {
+export function usePlacementStart(initialIsLoggedIn = false) {
   const router = useRouter();
-  const { data: session } = useSession();
   const { showMascot, hideMascot } = useMascotToast();
   const [loading, setLoading] = useState(false);
-  const isLoggedIn = !!session?.user;
+  const { isLoggedIn, sessionPending } = usePlacementSession(initialIsLoggedIn);
 
   const startPlacement = useCallback(
     async (paperId: string, guest?: { fullName: string; phone: string }) => {
+      if (sessionPending) {
+        toast.message("Đang kiểm tra phiên đăng nhập…");
+        return { ok: false as const };
+      }
+
       setLoading(true);
       showMascot(mascotPlacementOpeningWaitMessage());
       try {
@@ -48,8 +52,8 @@ export function usePlacementStart() {
         setLoading(false);
       }
     },
-    [hideMascot, isLoggedIn, router, showMascot]
+    [hideMascot, isLoggedIn, router, sessionPending, showMascot]
   );
 
-  return { startPlacement, loading, isLoggedIn };
+  return { startPlacement, loading, isLoggedIn, sessionPending };
 }

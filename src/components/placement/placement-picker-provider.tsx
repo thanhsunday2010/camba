@@ -10,14 +10,16 @@ import {
 } from "react";
 import type { PlacementPaperListItem } from "@/lib/placement/categories";
 import type { PlacementWeeklySnapshot } from "@/lib/subscription/placement-limit";
+import type { PlacementPickerPreset } from "@/lib/placement/picker-url";
 import { PlacementPickerDialog } from "@/components/placement/placement-picker-dialog";
 
 export type PlacementUsageSnapshot = PlacementWeeklySnapshot | null;
 
 type PlacementPickerContextValue = {
-  openPlacementPicker: () => void;
+  openPlacementPicker: (preset?: PlacementPickerPreset) => void;
   papers: PlacementPaperListItem[];
   placementUsage: PlacementUsageSnapshot;
+  initialIsLoggedIn: boolean;
 };
 
 const PlacementPickerContext = createContext<PlacementPickerContextValue | null>(null);
@@ -34,18 +36,31 @@ export function PlacementPickerProvider({
   children,
   papers,
   placementUsage,
+  initialIsLoggedIn,
 }: {
   children: ReactNode;
   papers: PlacementPaperListItem[];
   placementUsage: PlacementUsageSnapshot;
+  initialIsLoggedIn: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [pendingPreset, setPendingPreset] = useState<PlacementPickerPreset | undefined>();
 
-  const openPlacementPicker = useCallback(() => setOpen(true), []);
+  const openPlacementPicker = useCallback((preset?: PlacementPickerPreset) => {
+    setPendingPreset(preset);
+    setOpen(true);
+  }, []);
+
+  const handleOpenChange = useCallback((next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setPendingPreset(undefined);
+    }
+  }, []);
 
   const value = useMemo(
-    () => ({ openPlacementPicker, papers, placementUsage }),
-    [openPlacementPicker, papers, placementUsage]
+    () => ({ openPlacementPicker, papers, placementUsage, initialIsLoggedIn }),
+    [openPlacementPicker, papers, placementUsage, initialIsLoggedIn]
   );
 
   return (
@@ -53,9 +68,11 @@ export function PlacementPickerProvider({
       {children}
       <PlacementPickerDialog
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={handleOpenChange}
         papers={papers}
         placementUsage={placementUsage}
+        pendingPreset={pendingPreset}
+        initialIsLoggedIn={initialIsLoggedIn}
       />
     </PlacementPickerContext.Provider>
   );

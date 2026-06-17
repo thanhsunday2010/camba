@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { playKidSound, type KidSound } from "@/lib/kids/sounds";
+import { playKidSound, preloadAnswerCorrectSfx, type KidSound } from "@/lib/kids/sounds";
 
 interface SoundContextValue {
   enabled: boolean;
@@ -34,7 +34,10 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     setEnabled((prev) => {
       const next = !prev;
       localStorage.setItem("camba-sound", next ? "on" : "off");
-      if (next) playKidSound("pop");
+      if (next) {
+        playKidSound("pop");
+        preloadAnswerCorrectSfx();
+      }
       return next;
     });
   }, []);

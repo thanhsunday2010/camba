@@ -18,7 +18,11 @@ export async function PlacementPickerBootstrap({
     : null;
 
   return (
-    <PlacementPickerProvider papers={papers} placementUsage={placementUsage}>
+    <PlacementPickerProvider
+      papers={papers}
+      placementUsage={placementUsage}
+      initialIsLoggedIn={!!session?.user?.id}
+    >
       {children}
     </PlacementPickerProvider>
   );

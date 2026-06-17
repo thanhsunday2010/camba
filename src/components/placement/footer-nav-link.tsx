@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { PlacementOpenLink } from "@/components/placement/placement-open-button";
+import { parsePlacementHref } from "@/lib/placement/picker-url";
 
 export function FooterNavLink({
   href,
@@ -12,9 +13,12 @@ export function FooterNavLink({
   className?: string;
   children: React.ReactNode;
 }) {
-  if (href === "/placement") {
+  const placementPreset = parsePlacementHref(href);
+  if (placementPreset !== null) {
     return (
-      <PlacementOpenLink className={className}>{children}</PlacementOpenLink>
+      <PlacementOpenLink className={className} preset={placementPreset}>
+        {children}
+      </PlacementOpenLink>
     );
   }
 

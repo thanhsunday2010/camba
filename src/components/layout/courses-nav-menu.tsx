@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlacementOpenLink } from "@/components/placement/placement-open-button";
+import { parsePlacementHref } from "@/lib/placement/picker-url";
 import { COURSES_NAV } from "@/lib/site/courses-nav";
 
 type CoursesNavMenuProps = {
@@ -24,9 +25,14 @@ function CourseNavHref({
   children: React.ReactNode;
   onNavigate?: () => void;
 }) {
-  if (href === "/placement") {
+  const placementPreset = parsePlacementHref(href);
+  if (placementPreset !== null) {
     return (
-      <PlacementOpenLink className={className} onNavigate={onNavigate}>
+      <PlacementOpenLink
+        className={className}
+        preset={placementPreset}
+        onNavigate={onNavigate}
+      >
         {children}
       </PlacementOpenLink>
     );
