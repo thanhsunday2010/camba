@@ -114,6 +114,95 @@ export function getIeltsSpeakingBankSeeds(): IeltsSpeakingSeed[] {
   return [...part1, ...part2, ...part3];
 }
 
+const EXTRA_P1_TOPICS = [
+  "transport", "neighbours", "gifts", "photography", "shopping", "weekends",
+  "seasons", "languages", "films", "sports", "pets", "sleep", "news",
+  "advertising", "celebrations", "teachers", "friends", "rain", "noise",
+  "handwriting", "collecting", "dancing", "singing", "drawing", "cycling",
+];
+
+const EXTRA_P2_THEMES = [
+  "a useful object you own", "a goal you achieved", "a place you would like to visit again",
+  "a time you felt proud", "a difficult decision you made", "a person who made you laugh",
+  "a tradition in your family", "a time you were late", "a book that changed your view",
+  "a piece of advice you received", "a skill you taught someone", "a noisy place you visited",
+  "a time you saved money", "a project you completed", "a neighbour who helped you",
+  "a website that helped you learn", "a time you worked in a team", "a gift you gave someone",
+  "a public place you enjoy", "a time you tried new food", "a hobby you would like to start",
+  "a time you felt bored", "a person you admire at work", "a journey that took longer than expected",
+  "a rule you disagree with", "a time you apologised", "a photo that reminds you of home",
+  "a time you helped a stranger", "a festival you would like to attend", "a time you lost something important",
+];
+
+const EXTRA_P3_THEMES = [
+  { theme: "family", questions: ["How are family roles changing?", "Should grandparents live with younger relatives?", "What support do families need today?", "How does family size affect children?", "Will family structures change in future?"] },
+  { theme: "media", questions: ["How has news consumption changed?", "Should celebrities be role models?", "Is traditional media still important?", "How does advertising affect children?", "Will newspapers disappear?"] },
+  { theme: "society", questions: ["What makes a community strong?", "Should volunteering be compulsory?", "How can cities become more liveable?", "Is inequality increasing?", "What role should charities play?"] },
+  { theme: "culture", questions: ["Why preserve traditional crafts?", "How does globalisation affect culture?", "Should museums be free?", "Is learning history still useful?", "How can cultures coexist peacefully?"] },
+  { theme: "science", questions: ["Should science be taught differently?", "How can research benefit ordinary people?", "Are scientific discoveries always positive?", "Should governments fund basic research?", "How can the public understand science better?"] },
+];
+
+/** Sinh thêm câu IELTS Speaking cho một Part (offset tránh trùng title/prompt cơ bản). */
+export function buildIeltsSpeakingSeeds(
+  part: 1 | 2 | 3,
+  count: number,
+  startOffset = 0
+): IeltsSpeakingSeed[] {
+  const seeds: IeltsSpeakingSeed[] = [];
+
+  if (part === 1) {
+    for (let i = 0; i < count; i++) {
+      const idx = startOffset + i;
+      const topic = EXTRA_P1_TOPICS[idx % EXTRA_P1_TOPICS.length]!;
+      const qIdx = Math.floor(idx / EXTRA_P1_TOPICS.length) % 5;
+      const questions = [
+        `Do you like ${topic}? Why or why not?`,
+        `How often do you think about ${topic}?`,
+        `Has your interest in ${topic} changed over time?`,
+        `Would you recommend ${topic} to a friend?`,
+        `What do people in your country think about ${topic}?`,
+      ];
+      seeds.push({
+        title: `IELTS SP1 ${idx + 41}`,
+        prompt: `[${topic}] ${questions[qIdx]!}`,
+        preparationTime: 0,
+        speakingTime: 45,
+        ieltsPart: 1,
+      });
+    }
+    return seeds;
+  }
+
+  if (part === 2) {
+    for (let i = 0; i < count; i++) {
+      const idx = startOffset + i;
+      const theme = EXTRA_P2_THEMES[idx % EXTRA_P2_THEMES.length]!;
+      seeds.push({
+        title: `IELTS SP2 ${idx + 31}`,
+        prompt: `Describe ${theme}. You should say: what it was, when it happened, who was involved, and explain why it was memorable or important to you.`,
+        preparationTime: 60,
+        speakingTime: 120,
+        ieltsPart: 2,
+      });
+    }
+    return seeds;
+  }
+
+  for (let i = 0; i < count; i++) {
+    const idx = startOffset + i;
+    const block = EXTRA_P3_THEMES[idx % EXTRA_P3_THEMES.length]!;
+    const q = block.questions[Math.floor(idx / EXTRA_P3_THEMES.length) % block.questions.length]!;
+    seeds.push({
+      title: `IELTS SP3 ${idx + 31}`,
+      prompt: `[${block.theme}] ${q}`,
+      preparationTime: 0,
+      speakingTime: 90,
+      ieltsPart: 3,
+    });
+  }
+  return seeds;
+}
+
 export const IELTS_SPEAKING_BANK_COUNTS = {
   part1: buildPart1Seeds().length,
   part2: buildPart2Seeds().length,

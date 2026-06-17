@@ -23,6 +23,8 @@
     "content:audit-images": "tsx scripts/audit-question-images.ts",
     "content:audit-pools": "tsx scripts/audit-pool-counts.ts",
     "content:supplement-bank": "tsx scripts/supplement-question-bank.ts",
+    "content:supplement-to-100": "tsx scripts/supplement-pools-to-100.ts",
+    "content:audit-below-100": "tsx scripts/audit-pools-below-100.ts",
     "content:prune-replenish-bank": "tsx scripts/prune-and-replenish-bank.ts",
     "content:stats-pools": "tsx scripts/stats-pool-counts.ts",
     "content:prune-broken-questions": "tsx scripts/prune-broken-questions.ts",

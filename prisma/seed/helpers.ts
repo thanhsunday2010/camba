@@ -157,11 +157,19 @@ export async function createGaps(
   return ids;
 }
 
+export type WritingCreateMeta = {
+  examTrack?: "CAMBRIDGE" | "IELTS";
+  cambridgeWritingPart?: 1 | 2;
+  ieltsWritingTask?: 1 | 2;
+  startOrderIndex?: number;
+};
+
 export async function createWritings(
   db: PrismaClient,
   level: ExamLevel,
   items: WritingSeed[],
-  bank?: QuestionBankMeta
+  bank?: QuestionBankMeta,
+  meta?: WritingCreateMeta
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -176,10 +184,17 @@ export async function createWritings(
           taskPrompt: item.taskPrompt,
           wordLimit: item.wordLimit,
           instructions: item.instructions,
+          ...(meta?.examTrack ? { examTrack: meta.examTrack } : {}),
+          ...(meta?.cambridgeWritingPart != null
+            ? { cambridgeWritingPart: meta.cambridgeWritingPart }
+            : {}),
+          ...(meta?.ieltsWritingTask != null
+            ? { ieltsWritingTask: meta.ieltsWritingTask }
+            : {}),
           ...(item.difficulty ? { difficulty: item.difficulty } : {}),
         },
         points: 10,
-        orderIndex: i,
+        orderIndex: (meta?.startOrderIndex ?? 0) + i,
         placementSlug: bank?.placementSlug,
         placementPool: bank?.placementPool,
       },
@@ -230,14 +245,23 @@ export async function createListenings(
   return ids;
 }
 
+export type SpeakingCreateMeta = {
+  examTrack?: "CAMBRIDGE" | "IELTS";
+  cambridgePart?: 1 | 2 | 3;
+  ieltsPart?: 1 | 2 | 3;
+  startOrderIndex?: number;
+};
+
 export async function createSpeakings(
   db: PrismaClient,
   level: ExamLevel,
   items: SpeakingSeed[],
-  bank?: QuestionBankMeta
+  bank?: QuestionBankMeta,
+  meta?: SpeakingCreateMeta
 ) {
   const yle = level === "STARTERS" || level === "MOVERS" || level === "FLYERS";
   const partCycle: (1 | 2 | 3)[] = yle ? [1, 2] : [1, 2, 3];
+  const examTrack = meta?.examTrack ?? "CAMBRIDGE";
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -251,12 +275,17 @@ export async function createSpeakings(
           prompt: item.prompt,
           preparationTime: item.preparationTime ?? 15,
           speakingTime: item.speakingTime ?? 60,
-          examTrack: "CAMBRIDGE",
-          cambridgePart: partCycle[i % partCycle.length],
+          examTrack,
+          ...(examTrack === "CAMBRIDGE"
+            ? { cambridgePart: meta?.cambridgePart ?? partCycle[i % partCycle.length] }
+            : {}),
+          ...(examTrack === "IELTS" && meta?.ieltsPart != null
+            ? { ieltsPart: meta.ieltsPart }
+            : {}),
           ...(item.difficulty ? { difficulty: item.difficulty } : {}),
         },
         points: 10,
-        orderIndex: i,
+        orderIndex: (meta?.startOrderIndex ?? 0) + i,
         placementSlug: bank?.placementSlug,
         placementPool: bank?.placementPool,
       },
