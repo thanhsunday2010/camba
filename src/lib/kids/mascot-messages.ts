@@ -17,6 +17,8 @@ export type MascotToastPayload = {
   durationMs?: number;
   /** Keep visible until hideMascot() or navigation */
   persist?: boolean;
+  /** After initial message, cycle random EN–VI phrases (requires persist) */
+  cycleLoadingPhrases?: boolean;
   /** Trigger confetti burst */
   confetti?: boolean;
   /** Optional CTA buttons (e.g. đăng ký) */
@@ -143,34 +145,21 @@ export function mascotSpeakingDoneMessage(): MascotToastPayload {
 
 export function mascotGradingWaitMessage(): MascotToastPayload {
   return {
-    message: "Bạn chờ chút để mình chấm và nhận xét nhé. Chỉ 30 giây thôi!",
+    message: "Chờ AI Camba chấm một lúc nhé",
     mood: "think",
+    activity: "think",
     persist: true,
+    cycleLoadingPhrases: true,
   };
 }
 
-const PLACEMENT_GRADING_WAIT_LINES: { en: string; vi: string }[] = [
-  { en: "Checking your answers…", vi: "Đang kiểm tra câu trả lời của bạn…" },
-  { en: "Finding your best level…", vi: "Đang tìm trình độ phù hợp nhất…" },
-  { en: "Almost done — hang on!", vi: "Sắp xong rồi — chờ chút nhé!" },
-  { en: "Smart Camba Rabbit is thinking…", vi: "Thỏ thông minh Camba đang phân tích…" },
-  { en: "Reviewing each skill…", vi: "Đang xem từng kỹ năng của bạn…" },
-  { en: "Building your learning path…", vi: "Đang dựng lộ trình học cho bạn…" },
-  { en: "Just a few more seconds!", vi: "Chỉ vài giây nữa thôi!" },
-  { en: "Preparing detailed feedback…", vi: "Đang chuẩn bị nhận xét chi tiết…" },
-];
-
 export function mascotPlacementSubmitWaitMessage(): MascotToastPayload {
-  const line =
-    PLACEMENT_GRADING_WAIT_LINES[
-      Math.floor(Math.random() * PLACEMENT_GRADING_WAIT_LINES.length)
-    ]!;
   return {
-    message:
-      "Bạn chờ khoảng 30s để Thỏ thông minh Camba chấm và nhận xét chi tiết nhé!",
-    subtitle: `${line.en} — ${line.vi}`,
+    message: "Chờ AI Camba chấm một lúc nhé",
     mood: "think",
+    activity: "think",
     persist: true,
+    cycleLoadingPhrases: true,
   };
 }
 

@@ -9,13 +9,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import Link from "next/link";
-import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { CambaMascot, type MascotActivity, type MascotMood } from "./camba-mascot";
+import type { MascotActivity, MascotMood } from "./camba-mascot";
 import { useKidSound } from "./sound-provider";
 import { ConfettiBurst } from "./confetti-burst";
-import { Button } from "@/components/ui/button";
 import {
   MASCOT_DEFAULT_DURATION_MS,
   mascotGuestPlacementLimitMessage,
@@ -24,12 +21,13 @@ import {
 } from "@/lib/kids/mascot-messages";
 import type { KidSound } from "@/lib/kids/sounds";
 import { GUEST_PLACEMENT_LIMIT_HIT_EVENT } from "@/lib/promo/events";
-import { cn } from "@/lib/utils";
+import { pickLoadingPhrase } from "@/lib/kids/loading-phrases";
 
 const HIDDEN_PREFIXES = ["/admin", "/login", "/register", "/teacher"];
-const COMPANION_HIDDEN_KEY = "camba-mascot-companion-hidden";
+const GRADING_PHRASE_INITIAL_MS = 1800;
+const GRADING_PHRASE_CYCLE_MS = 2800;
 
-type ActiveMascotState = {
+export type ActiveMascotState = {
   message: string;
   subtitle?: string;
   mood: MascotMood;
@@ -37,16 +35,19 @@ type ActiveMascotState = {
   confetti?: boolean;
   actions?: MascotToastAction[];
   talking: boolean;
+  cycleLoadingPhrases?: boolean;
 };
 
 type MascotToastContextValue = {
   showMascot: (payload: MascotToastPayload | string) => void;
   hideMascot: () => void;
+  active: ActiveMascotState | null;
 };
 
 const MascotToastContext = createContext<MascotToastContextValue>({
   showMascot: () => {},
   hideMascot: () => {},
+  active: null,
 });
 
 export function useMascotToast() {
@@ -84,15 +85,10 @@ export function MascotToastProvider({
   const pathname = usePathname();
   const { play } = useKidSound();
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [companionOpen, setCompanionOpen] = useState(true);
   const [active, setActive] = useState<ActiveMascotState | null>(null);
+  const [phraseCycleSession, setPhraseCycleSession] = useState(0);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setCompanionOpen(localStorage.getItem(COMPANION_HIDDEN_KEY) !== "1");
-  }, []);
 
   const clearMessageTimer = useCallback(() => {
     if (hideTimerRef.current) {
@@ -106,17 +102,6 @@ export function MascotToastProvider({
     setActive(null);
   }, [clearMessageTimer]);
 
-  const dismissCompanion = useCallback(() => {
-    hideMascot();
-    setCompanionOpen(false);
-    localStorage.setItem(COMPANION_HIDDEN_KEY, "1");
-  }, [hideMascot]);
-
-  const reopenCompanion = useCallback(() => {
-    setCompanionOpen(true);
-    localStorage.removeItem(COMPANION_HIDDEN_KEY);
-  }, []);
-
   const showMascot = useCallback(
     (payload: MascotToastPayload | string) => {
       if (hidden) return;
@@ -129,8 +114,6 @@ export function MascotToastProvider({
       const mood = normalized.mood ?? "happy";
 
       clearMessageTimer();
-      setCompanionOpen(true);
-      localStorage.removeItem(COMPANION_HIDDEN_KEY);
 
       setActive({
         message,
@@ -140,7 +123,12 @@ export function MascotToastProvider({
         confetti: normalized.confetti,
         actions: normalized.actions,
         talking: true,
+        cycleLoadingPhrases: normalized.cycleLoadingPhrases,
       });
+
+      if (normalized.cycleLoadingPhrases) {
+        setPhraseCycleSession((s) => s + 1);
+      }
 
       play(resolveMascotSound(normalized));
 
@@ -163,6 +151,27 @@ export function MascotToastProvider({
   }, [pathname, hideMascot]);
 
   useEffect(() => {
+    if (!active?.cycleLoadingPhrases) return;
+
+    const applyPhrase = () => {
+      const { en, vi } = pickLoadingPhrase();
+      setActive((prev) =>
+        prev?.cycleLoadingPhrases
+          ? { ...prev, message: en, subtitle: vi, talking: true }
+          : prev
+      );
+    };
+
+    const delayId = window.setTimeout(applyPhrase, GRADING_PHRASE_INITIAL_MS);
+    const intervalId = window.setInterval(applyPhrase, GRADING_PHRASE_CYCLE_MS);
+
+    return () => {
+      window.clearTimeout(delayId);
+      window.clearInterval(intervalId);
+    };
+  }, [phraseCycleSession, active?.cycleLoadingPhrases]);
+
+  useEffect(() => {
     const onGuestPlacementLimit = () => {
       showMascot(mascotGuestPlacementLimitMessage());
     };
@@ -172,100 +181,10 @@ export function MascotToastProvider({
       window.removeEventListener(GUEST_PLACEMENT_LIMIT_HIT_EVENT, onGuestPlacementLimit);
   }, [showMascot]);
 
-  const hasActions = Boolean(active?.actions?.length);
-
   return (
-    <MascotToastContext.Provider value={{ showMascot, hideMascot }}>
+    <MascotToastContext.Provider value={{ showMascot, hideMascot, active: hidden ? null : active }}>
       {children}
-
-      {!hidden && !companionOpen && (
-        <button
-          type="button"
-          onClick={reopenCompanion}
-          className="fixed bottom-4 right-4 z-[85] flex h-12 w-12 items-center justify-center rounded-full border-2 border-purple-200 bg-white text-xl shadow-lg transition-transform hover:scale-105"
-          aria-label="Mở Thỏ Camba"
-        >
-          🐰
-        </button>
-      )}
-
-      {!hidden && companionOpen && (
-        <>
-          <ConfettiBurst active={Boolean(active?.confetti)} />
-          <div
-            className="fixed bottom-4 right-4 z-[85] flex max-w-[min(100vw-1.5rem,20rem)] flex-col items-end gap-2"
-            role="complementary"
-            aria-label="Thỏ Camba — trợ lý học tập"
-          >
-            {active && (
-              <div
-                className="relative w-full animate-bounce-in rounded-2xl border-2 border-purple-200 bg-white px-3 py-2.5 pr-8 shadow-lg"
-                role="status"
-                aria-live="polite"
-              >
-                <button
-                  type="button"
-                  onClick={hideMascot}
-                  className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full text-purple-600 transition-colors hover:bg-purple-50"
-                  aria-label="Đóng tin nhắn"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-                <p className="text-sm font-extrabold leading-snug text-purple-900">{active.message}</p>
-                {active.subtitle && (
-                  <p className="mt-1 text-xs font-semibold text-purple-700/90">{active.subtitle}</p>
-                )}
-                {active.actions && active.actions.length > 0 && (
-                  <div className="mt-2 flex flex-col gap-1.5">
-                    {active.actions.map((action) => (
-                      <Button
-                        key={action.href}
-                        asChild
-                        size="sm"
-                        variant={action.primary ? "default" : "outline"}
-                        className={cn("h-8 rounded-full text-xs font-bold", action.primary && "kid-btn-fun")}
-                        onClick={hideMascot}
-                      >
-                        <Link href={action.href}>{action.label}</Link>
-                      </Button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={hideMascot}
-                      className="text-xs font-semibold text-muted-foreground underline-offset-2 hover:underline"
-                    >
-                      Để sau
-                    </button>
-                  </div>
-                )}
-                {hasActions && (
-                  <span className="absolute -bottom-1.5 right-8 h-3 w-3 rotate-45 border-b-2 border-r-2 border-purple-200 bg-white" />
-                )}
-              </div>
-            )}
-
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={dismissCompanion}
-                className="absolute -left-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-purple-200 bg-white text-purple-700 shadow-md transition-colors hover:bg-purple-50"
-                aria-label="Ẩn Thỏ Camba"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-              <div className="rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-1 shadow-md ring-2 ring-white/80">
-                <CambaMascot
-                  size="sm"
-                  mood={active?.mood ?? "happy"}
-                  activity={active?.activity ?? "idle"}
-                  talking={Boolean(active?.talking)}
-                  animate
-                />
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      {!hidden && <ConfettiBurst active={Boolean(active?.confetti)} />}
     </MascotToastContext.Provider>
   );
 }
