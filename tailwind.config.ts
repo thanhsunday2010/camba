@@ -102,6 +102,12 @@ const config: Config = {
       fontFamily: {
         kid: ["var(--font-nunito)", "system-ui", "sans-serif"],
       },
+      /* Body copy +1 size; text-lg and above (titles/headings) stay at Tailwind defaults */
+      fontSize: {
+        xs: ["0.875rem", { lineHeight: "1.25rem" }],
+        sm: ["1rem", { lineHeight: "1.5rem" }],
+        base: ["1.125rem", { lineHeight: "1.75rem" }],
+      },
       animation: {
         float: "float 4s ease-in-out infinite",
         wiggle: "wiggle 0.5s ease-in-out",

@@ -32,13 +32,8 @@
     @apply border-border;
   }
   html {
-    font-size: 100%; /* desktop: 16px chuẩn */
+    font-size: 100%;
     overflow-x: clip;
-  }
-  @media (max-width: 767px) {
-    html {
-      font-size: 112.5%; /* ~18px — đủ lớn cho trẻ em, vẫn vừa màn hình */
-    }
   }
   body {
     @apply bg-background text-base text-foreground;
