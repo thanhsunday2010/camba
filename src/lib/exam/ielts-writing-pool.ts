@@ -2,14 +2,16 @@ import { PrismaClient, QuestionType, Skill } from "@prisma/client";
 import {
   buildIeltsWritingMockSections,
   getIeltsWritingMockQuestionCount,
+  getIeltsWritingTaskDef,
   IELTS_WRITING_LEVEL,
-  IELTS_WRITING_TASK_DEFS,
   IELTS_WRITING_TASKS,
   IeltsWritingTask,
   isIeltsWritingMockPoolKey,
   isIeltsWritingPracticePoolKey,
+  parseIeltsWritingMockPoolKey,
   parseIeltsWritingPracticePoolKey,
 } from "@/lib/exam/ielts-writing-config";
+import { ieltsAcademicQuestionFilter, type IeltsModule } from "@/lib/exam/ielts-module";
 import { getUsedPoolQuestionIds } from "@/lib/exam/practice-pool";
 import {
   pickDiverseQuestionIds,
@@ -23,9 +25,16 @@ const writingPoolPickSelect = {
   content: true,
 } as const;
 
+function moduleFilter(module: IeltsModule) {
+  return module === "ACADEMIC"
+    ? ieltsAcademicQuestionFilter()
+    : { content: { path: ["ieltsModule"], equals: module } };
+}
+
 export async function getIeltsWritingPoolQuestions(
   db: PrismaClient,
-  task: IeltsWritingTask
+  task: IeltsWritingTask,
+  module: IeltsModule = "ACADEMIC"
 ): Promise<QuestionPickMeta[]> {
   return db.question.findMany({
     where: {
@@ -36,6 +45,7 @@ export async function getIeltsWritingPoolQuestions(
       AND: [
         { content: { path: ["examTrack"], equals: "IELTS" } },
         { content: { path: ["ieltsWritingTask"], equals: task } },
+        moduleFilter(module),
       ],
     },
     select: writingPoolPickSelect,
@@ -79,25 +89,26 @@ export async function assignIeltsWritingQuestionsForAttempt(
   const exclude = await getUsedPoolQuestionIds(db, attempt.userId, attempt.paperId);
 
   if (practiceKey && isIeltsWritingPracticePoolKey(practiceKey)) {
-    const task = parseIeltsWritingPracticePoolKey(practiceKey);
-    if (!task) throw new Error("practicePoolKey IELTS Writing không hợp lệ");
+    const parsed = parseIeltsWritingPracticePoolKey(practiceKey);
+    if (!parsed) throw new Error("practicePoolKey IELTS Writing không hợp lệ");
 
-    const pool = await getIeltsWritingPoolQuestions(db, task);
+    const pool = await getIeltsWritingPoolQuestions(db, parsed.task, parsed.module);
     if (pool.length === 0) {
-      throw new Error(`Ngân hàng IELTS Writing Task ${task} chưa có câu hỏi`);
+      throw new Error(`Ngân hàng IELTS Writing Task ${parsed.task} chưa có câu hỏi`);
     }
 
-    const count = IELTS_WRITING_TASK_DEFS[task].practiceQuestionCount;
+    const count = getIeltsWritingTaskDef(parsed.task, parsed.module).practiceQuestionCount;
     const picked = pickDiverseQuestionIds(pool, exclude, count);
     return createAttemptQuestions(db, attemptId, picked);
   }
 
   if (mockKey && isIeltsWritingMockPoolKey(mockKey)) {
+    const ieltsModule = parseIeltsWritingMockPoolKey(mockKey) ?? "ACADEMIC";
     const orderedIds: string[] = [];
 
     for (const task of IELTS_WRITING_TASKS) {
-      const pool = await getIeltsWritingPoolQuestions(db, task);
-      const need = IELTS_WRITING_TASK_DEFS[task].mockQuestionCount;
+      const pool = await getIeltsWritingPoolQuestions(db, task, ieltsModule);
+      const need = getIeltsWritingTaskDef(task, ieltsModule).mockQuestionCount;
       if (pool.length === 0) {
         throw new Error(`Ngân hàng IELTS Writing Task ${task} chưa có câu hỏi`);
       }

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { PartAiPracticeResultsMeta } from "@/lib/exam/part-ai-practice-results";
+import { IELTS_ACADEMIC_SPEAKING_URL } from "@/lib/exam/ielts-module";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotScoreMessage } from "@/lib/kids/mascot-messages";
 import {
@@ -149,9 +150,9 @@ export function ResultsClient({
             ← {partAiPracticeMeta.skillLabel} {partAiPracticeMeta.trackLabel}
           </Link>
         )}
-        {!partAiPracticeMeta && attempt.paper.title.includes("IELTS Speaking") && (
-          <Link href="/ielts/speaking" className="ml-4 text-sm text-rose-600 hover:underline">
-            ← Speaking IELTS
+        {!partAiPracticeMeta && attempt.paper.title.includes("IELTS") && attempt.paper.title.includes("Speaking") && (
+          <Link href={IELTS_ACADEMIC_SPEAKING_URL} className="ml-4 text-sm text-rose-600 hover:underline">
+            ← Speaking IELTS Academic
           </Link>
         )}
         <h1 className="mt-2 text-3xl font-bold">{attempt.paper.title}</h1>

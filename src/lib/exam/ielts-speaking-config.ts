@@ -1,29 +1,69 @@
 import { ExamLevel, Skill } from "@prisma/client";
 import type { PaperSection } from "@/lib/exam/paper-sections";
+import {
+  IELTS_MODULE_DEFAULT,
+  ieltsModuleCode,
+  type IeltsModule,
+} from "@/lib/exam/ielts-module";
 
 export type IeltsSpeakingPart = 1 | 2 | 3;
 
 /** Proxy level trong schema — câu hỏi IELTS Speaking dùng FCE + examTrack trong content */
 export const IELTS_SPEAKING_LEVEL: ExamLevel = "FCE";
 
-export const IELTS_SPEAKING_MOCK_POOL_KEY = "IELTS:SPK:MOCK";
-
-export function buildIeltsSpeakingPracticePoolKey(part: IeltsSpeakingPart): string {
-  return `IELTS:SPK:P${part}`;
+export function buildIeltsSpeakingMockPoolKey(
+  module: IeltsModule = IELTS_MODULE_DEFAULT
+): string {
+  return `IELTS:${ieltsModuleCode(module)}:SPK:MOCK`;
 }
+
+export const IELTS_SPEAKING_MOCK_POOL_KEY = buildIeltsSpeakingMockPoolKey("ACADEMIC");
+
+export function buildIeltsSpeakingPracticePoolKey(
+  part: IeltsSpeakingPart,
+  module: IeltsModule = IELTS_MODULE_DEFAULT
+): string {
+  return `IELTS:${ieltsModuleCode(module)}:SPK:P${part}`;
+}
+
+const PRACTICE_KEY_RE_NEW = /^IELTS:(AC|GT):SPK:P([123])$/;
+const PRACTICE_KEY_RE_LEGACY = /^IELTS:SPK:P([123])$/;
 
 export function isIeltsSpeakingPracticePoolKey(key: string): boolean {
-  return /^IELTS:SPK:P[123]$/.test(key);
+  return PRACTICE_KEY_RE_NEW.test(key) || PRACTICE_KEY_RE_LEGACY.test(key);
 }
 
-export function parseIeltsSpeakingPracticePoolKey(key: string): IeltsSpeakingPart | null {
-  const match = key.match(/^IELTS:SPK:P([123])$/);
-  if (!match) return null;
-  return Number(match[1]) as IeltsSpeakingPart;
+export function parseIeltsSpeakingPracticePoolKey(key: string): {
+  module: IeltsModule;
+  part: IeltsSpeakingPart;
+} | null {
+  const tagged = key.match(PRACTICE_KEY_RE_NEW);
+  if (tagged) {
+    return {
+      module: tagged[1] === "GT" ? "GENERAL" : "ACADEMIC",
+      part: Number(tagged[2]) as IeltsSpeakingPart,
+    };
+  }
+  const legacy = key.match(PRACTICE_KEY_RE_LEGACY);
+  if (legacy) {
+    return { module: "ACADEMIC", part: Number(legacy[1]) as IeltsSpeakingPart };
+  }
+  return null;
 }
 
 export function isIeltsSpeakingMockPoolKey(key: string): boolean {
-  return key === IELTS_SPEAKING_MOCK_POOL_KEY;
+  return (
+    key === IELTS_SPEAKING_MOCK_POOL_KEY ||
+    /^IELTS:(AC|GT):SPK:MOCK$/.test(key) ||
+    key === "IELTS:SPK:MOCK"
+  );
+}
+
+export function parseIeltsSpeakingMockPoolKey(key: string): IeltsModule | null {
+  if (key === "IELTS:SPK:MOCK" || key === IELTS_SPEAKING_MOCK_POOL_KEY) return "ACADEMIC";
+  const m = key.match(/^IELTS:(AC|GT):SPK:MOCK$/);
+  if (!m) return null;
+  return m[1] === "GT" ? "GENERAL" : "ACADEMIC";
 }
 
 export function isIeltsSpeakingPaper(paper: {
@@ -33,6 +73,13 @@ export function isIeltsSpeakingPaper(paper: {
   const key = paper.practicePoolKey ?? paper.mockPoolKey;
   if (!key) return false;
   return isIeltsSpeakingPracticePoolKey(key) || isIeltsSpeakingMockPoolKey(key);
+}
+
+export function getIeltsSpeakingPartDef(
+  part: IeltsSpeakingPart,
+  _module: IeltsModule = IELTS_MODULE_DEFAULT
+) {
+  return IELTS_SPEAKING_PART_DEFS[part];
 }
 
 export const IELTS_SPEAKING_PART_DEFS: Record<
@@ -54,7 +101,8 @@ export const IELTS_SPEAKING_PART_DEFS: Record<
     part: 1,
     label: "Part 1 — Introduction & Interview",
     shortLabel: "Part 1",
-    description: "8 câu hỏi ngắn về chủ đề quen thuộc (~4–5 phút)",
+    description:
+      "8 câu hỏi ngắn về chủ đề quen thuộc (gia đình, học tập, sở thích) · ~4–5 phút",
     practiceQuestionCount: 1,
     mockQuestionCount: 8,
     preparationSeconds: 0,
@@ -66,7 +114,8 @@ export const IELTS_SPEAKING_PART_DEFS: Record<
     part: 2,
     label: "Part 2 — Long turn (Cue card)",
     shortLabel: "Part 2",
-    description: "1 cue card — 1 phút chuẩn bị, nói 1–2 phút",
+    description:
+      "1 cue card Academic — 1 phút chuẩn bị, nói 1–2 phút theo bullet points",
     practiceQuestionCount: 1,
     mockQuestionCount: 1,
     preparationSeconds: 60,
@@ -78,7 +127,8 @@ export const IELTS_SPEAKING_PART_DEFS: Record<
     part: 3,
     label: "Part 3 — Two-way discussion",
     shortLabel: "Part 3",
-    description: "5 câu thảo luận sâu hơn (~4–5 phút)",
+    description:
+      "5 câu thảo luận trừu tượng, mở rộng từ Part 2 (~4–5 phút)",
     practiceQuestionCount: 1,
     mockQuestionCount: 5,
     preparationSeconds: 0,

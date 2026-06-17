@@ -6,6 +6,12 @@ import { formatExamLevel } from "@/lib/constants";
 import { LevelPicker } from "@/components/exam/level-picker";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { Card, CardContent } from "@/components/ui/card";
+import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
+import {
+  IELTS_ACADEMIC_SPEAKING_URL,
+  IELTS_ACADEMIC_WRITING_URL,
+  IELTS_MODULE_META,
+} from "@/lib/exam/ielts-module";
 
 export default async function ExamsHubPage() {
   const session = await auth();
@@ -16,6 +22,9 @@ export default async function ExamsHubPage() {
     select: { targetExam: true },
   });
   if (!user) redirect("/login");
+
+  const academicMeta = IELTS_MODULE_META.ACADEMIC;
+  const generalMeta = IELTS_MODULE_META.GENERAL;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -33,19 +42,30 @@ export default async function ExamsHubPage() {
 
       <LevelPicker currentLevel={user.targetExam} variant="full" />
 
-      <Card className="mt-8 border-2 border-rose-200 bg-gradient-to-br from-rose-50/60 to-white">
+      <div className="mt-8 mb-2 flex flex-wrap items-center gap-2">
+        <h2 className="text-lg font-extrabold text-slate-800">IELTS — Luyện Speaking & Writing</h2>
+        <IeltsModuleBadge module="ACADEMIC" />
+      </div>
+
+      <Card className="border-2 border-rose-200 bg-gradient-to-br from-rose-50/60 to-white">
         <CardContent className="flex flex-wrap items-center justify-between gap-4 py-6">
           <div>
-            <p className="text-lg font-extrabold text-rose-800">🎤 Luyện thi Speaking IELTS</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-lg font-extrabold text-rose-800">
+                🎤 {academicMeta.hubTitle("Speaking")}
+              </p>
+              <IeltsModuleBadge module="ACADEMIC" size="sm" />
+            </div>
             <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
-              1 câu ngẫu nhiên/Part · AI chấm band ngay · mock full Part 1+2+3
+              {academicMeta.description} · 1 câu ngẫu nhiên/Part · AI chấm band ngay · mock full
+              Part 1+2+3
             </p>
           </div>
           <Link
-            href="/ielts/speaking"
+            href={IELTS_ACADEMIC_SPEAKING_URL}
             className="kid-btn-fun inline-flex rounded-full bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-700"
           >
-            Vào luyện Speaking IELTS
+            Vào luyện Speaking Academic
           </Link>
         </CardContent>
       </Card>
@@ -53,17 +73,42 @@ export default async function ExamsHubPage() {
       <Card className="mt-4 border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 to-white">
         <CardContent className="flex flex-wrap items-center justify-between gap-4 py-6">
           <div>
-            <p className="text-lg font-extrabold text-amber-900">✏️ Luyện thi Writing IELTS</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-lg font-extrabold text-amber-900">
+                ✏️ {academicMeta.hubTitle("Writing")}
+              </p>
+              <IeltsModuleBadge module="ACADEMIC" size="sm" />
+            </div>
             <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
-              1 câu ngẫu nhiên/Task · AI chấm band ngay sau nộp · mock Task 1 + Task 2
+              Task 1 Academic (biểu đồ/bản đồ/sơ đồ) + Task 2 Essay · 1 câu ngẫu nhiên/Task · AI
+              chấm band ngay · mock Task 1 + Task 2
             </p>
           </div>
           <Link
-            href="/ielts/writing"
+            href={IELTS_ACADEMIC_WRITING_URL}
             className="kid-btn-fun inline-flex rounded-full bg-amber-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-700"
           >
-            Vào luyện Writing IELTS
+            Vào luyện Writing Academic
           </Link>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-4 border-2 border-dashed border-teal-200 bg-teal-50/40 opacity-90">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-base font-extrabold text-teal-900">
+                IELTS General Training — Speaking & Writing
+              </p>
+              <IeltsModuleBadge module="GENERAL" size="sm" />
+            </div>
+            <p className="mt-1 max-w-xl text-sm font-medium text-muted-foreground">
+              {generalMeta.description}
+            </p>
+          </div>
+          <span className="rounded-full bg-teal-100 px-4 py-2 text-sm font-bold text-teal-800">
+            Sắp ra mắt
+          </span>
         </CardContent>
       </Card>
 

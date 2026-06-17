@@ -1,7 +1,8 @@
-/** Ngân hàng IELTS Writing — sinh đa dạng Task 1 & Task 2 */
+/** Ngân hàng IELTS Writing — Academic & General Training */
 
 import { buildVarContext, difficultyForIndex } from "./generators/seed-vars";
 import type { SeedDifficulty } from "../../src/lib/exam/question-diversity";
+import type { IeltsModule } from "../../src/lib/exam/ielts-module";
 
 export type IeltsWritingSeed = {
   title: string;
@@ -10,6 +11,7 @@ export type IeltsWritingSeed = {
   instructions: string;
   task: 1 | 2;
   difficulty?: SeedDifficulty;
+  ieltsTask1Format?: "chart" | "map" | "process" | "letter";
 };
 
 const T1_CHART_TOPICS = [
@@ -111,17 +113,17 @@ function withDifficulty(
   return { ...item, difficulty };
 }
 
-function buildTask1Seed(idx: number): IeltsWritingSeed {
-  const difficulty = difficultyForIndex(idx, idx % 4);
-  const v = buildVarContext(idx, difficulty, idx % 4);
-  const kind = idx % 4;
+function buildAcademicTask1Seed(idx: number): IeltsWritingSeed {
+  const difficulty = difficultyForIndex(idx, idx % 3);
+  const kind = idx % 3;
 
   if (kind === 0) {
     const topic = T1_CHART_TOPICS[idx % T1_CHART_TOPICS.length]!;
     return withDifficulty(
       {
-        title: `IELTS WT1-${idx + 1}`,
+        title: `IELTS AC WT1-${idx + 1}`,
         task: 1,
+        ieltsTask1Format: "chart",
         taskPrompt: `The chart below shows ${topic} in three countries between 2000 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.`,
         wordLimit: 150,
         instructions: `Write at least 150 words. (Imagine a line or bar chart about ${topic} in Country A, B and C.)`,
@@ -134,8 +136,9 @@ function buildTask1Seed(idx: number): IeltsWritingSeed {
     const topic = T1_MAP_TOPICS[idx % T1_MAP_TOPICS.length]!;
     return withDifficulty(
       {
-        title: `IELTS WT1-${idx + 1}`,
+        title: `IELTS AC WT1-${idx + 1}`,
         task: 1,
+        ieltsTask1Format: "map",
         taskPrompt: `The maps show changes in ${topic}. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.`,
         wordLimit: 150,
         instructions: "Write at least 150 words. (Imagine two maps showing before/after changes.)",
@@ -144,25 +147,28 @@ function buildTask1Seed(idx: number): IeltsWritingSeed {
     );
   }
 
-  if (kind === 2) {
-    const topic = T1_PROCESS_TOPICS[idx % T1_PROCESS_TOPICS.length]!;
-    return withDifficulty(
-      {
-        title: `IELTS WT1-${idx + 1}`,
-        task: 1,
-        taskPrompt: `The diagram below shows ${topic}. Summarise the information by selecting and reporting the main features.`,
-        wordLimit: 150,
-        instructions: "Write at least 150 words. (Imagine a process diagram with 5–8 stages.)",
-      },
-      difficulty
-    );
-  }
+  const topic = T1_PROCESS_TOPICS[idx % T1_PROCESS_TOPICS.length]!;
+  return withDifficulty(
+    {
+      title: `IELTS AC WT1-${idx + 1}`,
+      task: 1,
+      ieltsTask1Format: "process",
+      taskPrompt: `The diagram below shows ${topic}. Summarise the information by selecting and reporting the main features.`,
+      wordLimit: 150,
+      instructions: "Write at least 150 words. (Imagine a process diagram with 5–8 stages.)",
+    },
+    difficulty
+  );
+}
 
+function buildGeneralTask1Seed(idx: number): IeltsWritingSeed {
+  const difficulty = difficultyForIndex(idx, idx % 5);
   const scenario = T1_LETTER_SCENARIOS[idx % T1_LETTER_SCENARIOS.length]!;
   return withDifficulty(
     {
-      title: `IELTS WT1-${idx + 1}`,
+      title: `IELTS GT WT1-${idx + 1}`,
       task: 1,
+      ieltsTask1Format: "letter",
       taskPrompt: `${scenario.prompt} In your letter: ${scenario.bullets}.`,
       wordLimit: 150,
       instructions: "Write at least 150 words. You do NOT need to write any addresses.",
@@ -171,7 +177,7 @@ function buildTask1Seed(idx: number): IeltsWritingSeed {
   );
 }
 
-function buildTask2Seed(idx: number): IeltsWritingSeed {
+function buildTask2Seed(idx: number, module: IeltsModule): IeltsWritingSeed {
   const difficulty = difficultyForIndex(idx, idx % 3);
   const topic = T2_ESSAY_TOPICS[idx % T2_ESSAY_TOPICS.length]!;
   const v = buildVarContext(idx, difficulty, idx % 3);
@@ -184,9 +190,11 @@ function buildTask2Seed(idx: number): IeltsWritingSeed {
       : `${topic} Consider how this affects young people in particular.`,
   ];
 
+  const prefix = module === "GENERAL" ? "GT" : "AC";
+
   return withDifficulty(
     {
-      title: `IELTS WT2-${idx + 1}`,
+      title: `IELTS ${prefix} WT2-${idx + 1}`,
       task: 2,
       taskPrompt: variants[idx % variants.length]!,
       wordLimit: 250,
@@ -199,16 +207,26 @@ function buildTask2Seed(idx: number): IeltsWritingSeed {
 export function buildIeltsWritingSeeds(
   task: 1 | 2,
   count: number,
-  startOffset = 0
+  startOffset = 0,
+  module: IeltsModule = "ACADEMIC"
 ): IeltsWritingSeed[] {
   const seeds: IeltsWritingSeed[] = [];
   for (let i = 0; i < count; i++) {
     const idx = startOffset + i;
-    seeds.push(task === 1 ? buildTask1Seed(idx) : buildTask2Seed(idx));
+    if (task === 1) {
+      seeds.push(
+        module === "GENERAL" ? buildGeneralTask1Seed(idx) : buildAcademicTask1Seed(idx)
+      );
+    } else {
+      seeds.push(buildTask2Seed(idx, module));
+    }
   }
   return seeds;
 }
 
-export function getIeltsWritingBankSeeds(): IeltsWritingSeed[] {
-  return [...buildIeltsWritingSeeds(1, 50, 0), ...buildIeltsWritingSeeds(2, 50, 0)];
+export function getIeltsWritingBankSeeds(module: IeltsModule = "ACADEMIC"): IeltsWritingSeed[] {
+  return [
+    ...buildIeltsWritingSeeds(1, 50, 0, module),
+    ...buildIeltsWritingSeeds(2, 50, 0, module),
+  ];
 }

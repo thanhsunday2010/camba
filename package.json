@@ -35,6 +35,7 @@
     "content:migrate-cambridge-writing": "tsx scripts/migrate-cambridge-writing.ts",
     "content:migrate-reading-pools": "tsx scripts/migrate-reading-passage-pools.ts",
     "content:migrate-ielts-writing": "tsx scripts/migrate-ielts-writing.ts",
+    "content:migrate-ielts-academic-module": "tsx scripts/migrate-ielts-academic-module.ts",
     "content:seed-promo": "tsx scripts/seed-promo.ts",
     "db:deploy": "node scripts/migrate-deploy.mjs && npm run db:seed",
     "db:baseline": "prisma migrate resolve --applied 20250101000000_init",

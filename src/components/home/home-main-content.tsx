@@ -8,6 +8,7 @@ import {
   CAMBRIDGE_COURSES_URL,
   IELTS_SPEAKING_CTA_LABEL,
   IELTS_SPEAKING_URL,
+  IELTS_WRITING_URL,
 } from "@/lib/site/ielts-speaking-cta";
 import {
   ArrowRight,
@@ -24,8 +25,6 @@ import {
   Star,
   ClipboardCheck,
 } from "lucide-react";
-
-const IELTS_WRITING_URL = "/ielts/writing";
 
 const PRACTICE_HIGHLIGHTS = [
   {
@@ -62,7 +61,7 @@ const IELTS_TRACK = [
   {
     href: IELTS_SPEAKING_URL,
     emoji: "🎤",
-    title: "Speaking IELTS",
+    title: "Speaking IELTS Academic",
     subtitle: "Part 1 · 2 · 3",
     description: "1 câu ngẫu nhiên/Part · mock full Part 1+2+3 · AI chấm band",
     border: "border-rose-200",
@@ -72,7 +71,7 @@ const IELTS_TRACK = [
   {
     href: IELTS_WRITING_URL,
     emoji: "✏️",
-    title: "Writing IELTS",
+    title: "Writing IELTS Academic",
     subtitle: "Task 1 · Task 2",
     description: "1 câu/Task · nộp & chấm AI ngay · mock Task 1 + Task 2",
     border: "border-amber-200",
@@ -148,7 +147,7 @@ export function HomeMainContent() {
 
             <div className="grid gap-6 lg:grid-cols-2">
               <div>
-                <h3 className="mb-3 text-lg font-extrabold text-rose-800">🇬🇧 IELTS — Speaking & Writing</h3>
+                <h3 className="mb-3 text-lg font-extrabold text-rose-800">🇬🇧 IELTS Academic — Speaking & Writing</h3>
                 <div className="grid gap-3">
                   {IELTS_TRACK.map((track) => (
                     <Link key={track.href} href={track.href} className="group block">
@@ -288,7 +287,7 @@ export function HomeMainContent() {
                 <Link href={IELTS_SPEAKING_URL}>🎤 {IELTS_SPEAKING_CTA_LABEL}</Link>
               </Button>
               <Button asChild variant="outline" className="rounded-full">
-                <Link href={IELTS_WRITING_URL}>✏️ Luyện Writing IELTS</Link>
+                <Link href={IELTS_WRITING_URL}>✏️ Luyện Writing IELTS Academic</Link>
               </Button>
             </div>
           </div>

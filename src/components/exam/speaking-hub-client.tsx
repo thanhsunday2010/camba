@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
 import { formatQuotaRatio, isQuotaExhausted, isUnlimitedQuota } from "@/lib/subscription/plans";
+import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
+import type { IeltsModule } from "@/lib/exam/ielts-module";
 
 export type SpeakingUsageSnapshot = {
   planName: string;
@@ -41,6 +43,7 @@ type PracticePart = {
 type Props = {
   trackLabel: string;
   skillName?: string;
+  ieltsModule?: IeltsModule;
   quotaHint: string;
   usage: SpeakingUsageSnapshot;
   practiceParts: PracticePart[];
@@ -59,6 +62,7 @@ function usagePct(used: number, limit: number) {
 export function SpeakingHubClient({
   trackLabel,
   skillName = "Speaking",
+  ieltsModule,
   quotaHint,
   usage,
   practiceParts,
@@ -109,7 +113,10 @@ export function SpeakingHubClient({
       )}
 
       <section>
-        <h2 className="mb-4 text-xl font-extrabold text-purple-800">Luyện tập theo Part</h2>
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-extrabold text-purple-800">Luyện tập theo Part</h2>
+          {ieltsModule && <IeltsModuleBadge module={ieltsModule} size="sm" />}
+        </div>
         <div className="grid gap-4 md:grid-cols-3">
           {practiceParts.map((part) => (
             <Card key={part.part} className="border-2 border-purple-100">

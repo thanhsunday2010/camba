@@ -19,6 +19,7 @@ import { getCambridgeWritingPoolQuestions } from "@/lib/exam/cambridge-writing-p
 import {
   isIeltsSpeakingMockPoolKey,
   isIeltsSpeakingPracticePoolKey,
+  parseIeltsSpeakingMockPoolKey,
   parseIeltsSpeakingPracticePoolKey,
   type IeltsSpeakingPart,
 } from "@/lib/exam/ielts-speaking-config";
@@ -26,6 +27,7 @@ import { getIeltsSpeakingPoolQuestions } from "@/lib/exam/ielts-speaking-pool";
 import {
   isIeltsWritingMockPoolKey,
   isIeltsWritingPracticePoolKey,
+  parseIeltsWritingMockPoolKey,
   parseIeltsWritingPracticePoolKey,
   type IeltsWritingTask,
 } from "@/lib/exam/ielts-writing-config";
@@ -110,26 +112,28 @@ async function getSwapPool(
   const key = paper.practicePoolKey ?? paper.mockPoolKey;
 
   if (key && isIeltsSpeakingPracticePoolKey(key)) {
-    const part = parseIeltsSpeakingPracticePoolKey(key);
-    if (part) return getIeltsSpeakingPoolQuestions(db, part);
+    const parsed = parseIeltsSpeakingPracticePoolKey(key);
+    if (parsed) return getIeltsSpeakingPoolQuestions(db, parsed.part, parsed.module);
   }
 
   if (key && isIeltsSpeakingMockPoolKey(key)) {
     const part = readNumberField(ctx.content, "ieltsPart") as IeltsSpeakingPart | null;
+    const ieltsModule = parseIeltsSpeakingMockPoolKey(key) ?? "ACADEMIC";
     if (part === 1 || part === 2 || part === 3) {
-      return getIeltsSpeakingPoolQuestions(db, part);
+      return getIeltsSpeakingPoolQuestions(db, part, ieltsModule);
     }
   }
 
   if (key && isIeltsWritingPracticePoolKey(key)) {
-    const task = parseIeltsWritingPracticePoolKey(key);
-    if (task) return getIeltsWritingPoolQuestions(db, task);
+    const parsed = parseIeltsWritingPracticePoolKey(key);
+    if (parsed) return getIeltsWritingPoolQuestions(db, parsed.task, parsed.module);
   }
 
   if (key && isIeltsWritingMockPoolKey(key)) {
     const task = readNumberField(ctx.content, "ieltsWritingTask") as IeltsWritingTask | null;
+    const ieltsModule = parseIeltsWritingMockPoolKey(key) ?? "ACADEMIC";
     if (task === 1 || task === 2) {
-      return getIeltsWritingPoolQuestions(db, task);
+      return getIeltsWritingPoolQuestions(db, task, ieltsModule);
     }
   }
 

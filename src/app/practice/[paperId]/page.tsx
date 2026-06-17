@@ -7,6 +7,7 @@ import { getPaperComments } from "@/lib/actions/paper-comments";
 import { parseSections } from "@/lib/exam/paper-sections";
 import { getUserPlanLimits } from "@/lib/subscription/service";
 import { isPartAiPracticePaper } from "@/lib/exam/ai-practice-config";
+import { parseIeltsModuleFromPoolKey } from "@/lib/exam/ielts-module";
 
 export const revalidate = 300;
 
@@ -45,6 +46,9 @@ export default async function PracticePage({
     paper.isMockTest ||
     paper.paperKind === "MOCK_FULL" ||
     paper.paperKind === "PLACEMENT";
+  const ieltsModule = parseIeltsModuleFromPoolKey(
+    paper.practicePoolKey ?? paper.mockPoolKey
+  );
 
   return (
     <>
@@ -67,6 +71,7 @@ export default async function PracticePage({
       practicePoolKey={paper.practicePoolKey}
       mockPoolKey={paper.mockPoolKey}
       partAiPractice={isPartAiPracticePaper(paper)}
+      ieltsModule={ieltsModule ?? undefined}
     />
     </>
   );

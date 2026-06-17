@@ -17,6 +17,7 @@ import {
   IELTS_WRITING_TASKS,
   type IeltsWritingTask,
 } from "@/lib/exam/ielts-writing-config";
+import type { IeltsModule } from "@/lib/exam/ielts-module";
 
 export type BankStats = {
   questionCount: number;
@@ -133,7 +134,8 @@ export async function countCambridgeWritingMockBankQuestions(
 
 export async function countIeltsSpeakingPartQuestions(
   db: PrismaClient,
-  part: IeltsSpeakingPart
+  part: IeltsSpeakingPart,
+  module: IeltsModule = "ACADEMIC"
 ): Promise<number> {
   return db.question.count({
     where: {
@@ -144,6 +146,9 @@ export async function countIeltsSpeakingPartQuestions(
       AND: [
         { content: { path: ["examTrack"], equals: "IELTS" } },
         { content: { path: ["ieltsPart"], equals: part } },
+        module === "ACADEMIC"
+          ? { NOT: { content: { path: ["ieltsModule"], equals: "GENERAL" } } }
+          : { content: { path: ["ieltsModule"], equals: module } },
       ],
     },
   });
@@ -151,7 +156,8 @@ export async function countIeltsSpeakingPartQuestions(
 
 export async function countIeltsWritingTaskQuestions(
   db: PrismaClient,
-  task: IeltsWritingTask
+  task: IeltsWritingTask,
+  module: IeltsModule = "ACADEMIC"
 ): Promise<number> {
   return db.question.count({
     where: {
@@ -162,21 +168,30 @@ export async function countIeltsWritingTaskQuestions(
       AND: [
         { content: { path: ["examTrack"], equals: "IELTS" } },
         { content: { path: ["ieltsWritingTask"], equals: task } },
+        module === "ACADEMIC"
+          ? { NOT: { content: { path: ["ieltsModule"], equals: "GENERAL" } } }
+          : { content: { path: ["ieltsModule"], equals: module } },
       ],
     },
   });
 }
 
-export async function countIeltsSpeakingMockBankQuestions(db: PrismaClient): Promise<number> {
+export async function countIeltsSpeakingMockBankQuestions(
+  db: PrismaClient,
+  module: IeltsModule = "ACADEMIC"
+): Promise<number> {
   const counts = await Promise.all(
-    IELTS_SPEAKING_PARTS.map((part) => countIeltsSpeakingPartQuestions(db, part))
+    IELTS_SPEAKING_PARTS.map((part) => countIeltsSpeakingPartQuestions(db, part, module))
   );
   return counts.reduce((sum, n) => sum + n, 0);
 }
 
-export async function countIeltsWritingMockBankQuestions(db: PrismaClient): Promise<number> {
+export async function countIeltsWritingMockBankQuestions(
+  db: PrismaClient,
+  module: IeltsModule = "ACADEMIC"
+): Promise<number> {
   const counts = await Promise.all(
-    IELTS_WRITING_TASKS.map((task) => countIeltsWritingTaskQuestions(db, task))
+    IELTS_WRITING_TASKS.map((task) => countIeltsWritingTaskQuestions(db, task, module))
   );
   return counts.reduce((sum, n) => sum + n, 0);
 }

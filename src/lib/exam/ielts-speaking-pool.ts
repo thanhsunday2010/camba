@@ -2,14 +2,17 @@ import { PrismaClient, QuestionType, Skill } from "@prisma/client";
 import {
   buildIeltsSpeakingMockSections,
   getIeltsSpeakingMockQuestionCount,
+  getIeltsSpeakingPartDef,
   IELTS_SPEAKING_LEVEL,
   IELTS_SPEAKING_PART_DEFS,
   IELTS_SPEAKING_PARTS,
   IeltsSpeakingPart,
+  parseIeltsSpeakingMockPoolKey,
+  parseIeltsSpeakingPracticePoolKey,
   isIeltsSpeakingMockPoolKey,
   isIeltsSpeakingPracticePoolKey,
-  parseIeltsSpeakingPracticePoolKey,
 } from "@/lib/exam/ielts-speaking-config";
+import { ieltsAcademicQuestionFilter, type IeltsModule } from "@/lib/exam/ielts-module";
 import { getUsedPoolQuestionIds } from "@/lib/exam/practice-pool";
 import {
   pickDiverseQuestionIds,
@@ -23,9 +26,14 @@ const speakingPoolPickSelect = {
   content: true,
 } as const;
 
+function moduleFilter(module: IeltsModule) {
+  return module === "ACADEMIC" ? ieltsAcademicQuestionFilter() : { content: { path: ["ieltsModule"], equals: module } };
+}
+
 export async function getIeltsSpeakingPoolQuestions(
   db: PrismaClient,
-  part: IeltsSpeakingPart
+  part: IeltsSpeakingPart,
+  module: IeltsModule = "ACADEMIC"
 ): Promise<QuestionPickMeta[]> {
   return db.question.findMany({
     where: {
@@ -36,6 +44,7 @@ export async function getIeltsSpeakingPoolQuestions(
       AND: [
         { content: { path: ["examTrack"], equals: "IELTS" } },
         { content: { path: ["ieltsPart"], equals: part } },
+        moduleFilter(module),
       ],
     },
     select: speakingPoolPickSelect,
@@ -79,25 +88,26 @@ export async function assignIeltsSpeakingQuestionsForAttempt(
   const exclude = await getUsedPoolQuestionIds(db, attempt.userId, attempt.paperId);
 
   if (practiceKey && isIeltsSpeakingPracticePoolKey(practiceKey)) {
-    const part = parseIeltsSpeakingPracticePoolKey(practiceKey);
-    if (!part) throw new Error("practicePoolKey IELTS không hợp lệ");
+    const parsed = parseIeltsSpeakingPracticePoolKey(practiceKey);
+    if (!parsed) throw new Error("practicePoolKey IELTS Speaking không hợp lệ");
 
-    const pool = await getIeltsSpeakingPoolQuestions(db, part);
+    const pool = await getIeltsSpeakingPoolQuestions(db, parsed.part, parsed.module);
     if (pool.length === 0) {
-      throw new Error(`Ngân hàng IELTS Speaking Part ${part} chưa có câu hỏi`);
+      throw new Error(`Ngân hàng IELTS Speaking Part ${parsed.part} chưa có câu hỏi`);
     }
 
-    const count = IELTS_SPEAKING_PART_DEFS[part].practiceQuestionCount;
+    const count = getIeltsSpeakingPartDef(parsed.part, parsed.module).practiceQuestionCount;
     const picked = pickDiverseQuestionIds(pool, exclude, count);
     return createAttemptQuestions(db, attemptId, picked);
   }
 
   if (mockKey && isIeltsSpeakingMockPoolKey(mockKey)) {
+    const ieltsModule = parseIeltsSpeakingMockPoolKey(mockKey) ?? "ACADEMIC";
     const orderedIds: string[] = [];
 
     for (const part of IELTS_SPEAKING_PARTS) {
-      const pool = await getIeltsSpeakingPoolQuestions(db, part);
-      const need = IELTS_SPEAKING_PART_DEFS[part].mockQuestionCount;
+      const pool = await getIeltsSpeakingPoolQuestions(db, part, ieltsModule);
+      const need = getIeltsSpeakingPartDef(part, ieltsModule).mockQuestionCount;
       if (pool.length === 0) {
         throw new Error(`Ngân hàng IELTS Speaking Part ${part} chưa có câu hỏi`);
       }
@@ -108,7 +118,7 @@ export async function assignIeltsSpeakingQuestionsForAttempt(
 
     const expected = getIeltsSpeakingMockQuestionCount();
     if (orderedIds.length !== expected) {
-      throw new Error(`IELTS mock thiếu câu hỏi (${orderedIds.length}/${expected})`);
+      throw new Error(`IELTS Speaking mock thiếu câu (${orderedIds.length}/${expected})`);
     }
 
     return createAttemptQuestions(db, attemptId, orderedIds);

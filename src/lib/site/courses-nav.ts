@@ -1,5 +1,9 @@
 import { EXAM_LEVELS } from "@/lib/constants";
-import { CAMBRIDGE_COURSES_URL, IELTS_SPEAKING_URL } from "@/lib/site/ielts-speaking-cta";
+import {
+  CAMBRIDGE_COURSES_URL,
+  IELTS_SPEAKING_URL,
+  IELTS_WRITING_URL,
+} from "@/lib/site/ielts-speaking-cta";
 
 export type CourseNavLink = {
   label: string;
@@ -16,16 +20,13 @@ export type CourseNavGroup = {
 
 export const COURSES_NAV: CourseNavGroup[] = [
   {
-    id: "ielts-speaking",
-    label: "Luyện thi Speaking IELTS",
+    id: "ielts-academic",
+    label: "IELTS Academic",
     href: IELTS_SPEAKING_URL,
-    children: [{ label: "Speaking IELTS — Luyện & Mock", href: IELTS_SPEAKING_URL }],
-  },
-  {
-    id: "ielts-writing",
-    label: "Luyện thi Writing IELTS",
-    href: "/ielts/writing",
-    children: [{ label: "Writing IELTS — Luyện & Mock", href: "/ielts/writing" }],
+    children: [
+      { label: "Speaking Academic — Luyện & Mock", href: IELTS_SPEAKING_URL },
+      { label: "Writing Academic — Luyện & Mock", href: IELTS_WRITING_URL },
+    ],
   },
   {
     id: "cambridge",

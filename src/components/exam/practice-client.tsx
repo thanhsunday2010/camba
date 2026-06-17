@@ -48,6 +48,8 @@ import {
   practiceMinWordsMessage,
   type PracticeMinWordsContext,
 } from "@/lib/exam/practice-min-words";
+import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
+import type { IeltsModule } from "@/lib/exam/ielts-module";
 
 interface PaperQuestion {
   id: string;
@@ -77,6 +79,7 @@ interface PracticeClientProps {
   mockPoolKey?: string | null;
   /** Writing/Speaking hub: 1 câu + AI chấm ngay */
   partAiPractice?: boolean;
+  ieltsModule?: IeltsModule;
 }
 
 const SECTION_EMOJI: Record<string, string> = {
@@ -173,6 +176,7 @@ export function PracticeClient({
   practicePoolKey = null,
   mockPoolKey = null,
   partAiPractice = false,
+  ieltsModule,
 }: PracticeClientProps) {
   const router = useRouter();
   const { play } = useKidSound();
@@ -688,7 +692,10 @@ export function PracticeClient({
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold kid-gradient-text">{paperTitle}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-extrabold kid-gradient-text">{paperTitle}</h1>
+            {ieltsModule && <IeltsModuleBadge module={ieltsModule} size="sm" />}
+          </div>
           {currentSection && (
             <p className="mt-1 text-sm font-bold text-purple-700">
               {SECTION_EMOJI[currentSection.skill] ?? "📌"} Phần: {currentSection.label}

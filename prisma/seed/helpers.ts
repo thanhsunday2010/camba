@@ -161,6 +161,8 @@ export type WritingCreateMeta = {
   examTrack?: "CAMBRIDGE" | "IELTS";
   cambridgeWritingPart?: 1 | 2;
   ieltsWritingTask?: 1 | 2;
+  ieltsModule?: "ACADEMIC" | "GENERAL";
+  ieltsTask1Format?: "chart" | "map" | "process" | "letter";
   startOrderIndex?: number;
 };
 
@@ -191,6 +193,8 @@ export async function createWritings(
           ...(meta?.ieltsWritingTask != null
             ? { ieltsWritingTask: meta.ieltsWritingTask }
             : {}),
+          ...(meta?.ieltsModule ? { ieltsModule: meta.ieltsModule } : {}),
+          ...(meta?.ieltsTask1Format ? { ieltsTask1Format: meta.ieltsTask1Format } : {}),
           ...(item.difficulty ? { difficulty: item.difficulty } : {}),
         },
         points: 10,
@@ -249,6 +253,7 @@ export type SpeakingCreateMeta = {
   examTrack?: "CAMBRIDGE" | "IELTS";
   cambridgePart?: 1 | 2 | 3;
   ieltsPart?: 1 | 2 | 3;
+  ieltsModule?: "ACADEMIC" | "GENERAL";
   startOrderIndex?: number;
 };
 
@@ -281,6 +286,9 @@ export async function createSpeakings(
             : {}),
           ...(examTrack === "IELTS" && meta?.ieltsPart != null
             ? { ieltsPart: meta.ieltsPart }
+            : {}),
+          ...(examTrack === "IELTS" && meta?.ieltsModule
+            ? { ieltsModule: meta.ieltsModule }
             : {}),
           ...(item.difficulty ? { difficulty: item.difficulty } : {}),
         },

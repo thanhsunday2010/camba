@@ -2,8 +2,9 @@ import type { ExamLevel } from "@prisma/client";
 import { isPartAiPracticePaper } from "@/lib/exam/ai-practice-config";
 import { parseCambridgeSpeakingPracticePoolKey } from "@/lib/exam/cambridge-speaking-config";
 import { parseCambridgeWritingPracticePoolKey } from "@/lib/exam/cambridge-writing-config";
-import { isIeltsSpeakingPracticePoolKey } from "@/lib/exam/ielts-speaking-config";
-import { isIeltsWritingPracticePoolKey } from "@/lib/exam/ielts-writing-config";
+import { isIeltsSpeakingPracticePoolKey, parseIeltsSpeakingPracticePoolKey } from "@/lib/exam/ielts-speaking-config";
+import { isIeltsWritingPracticePoolKey, parseIeltsWritingPracticePoolKey } from "@/lib/exam/ielts-writing-config";
+import { IELTS_MODULE_META, ieltsHubPath } from "@/lib/exam/ielts-module";
 import { getCambridgeSpeakingUsageSnapshot } from "@/lib/subscription/cambridge-speaking-limit";
 import { getCambridgeWritingUsageSnapshot } from "@/lib/subscription/cambridge-writing-limit";
 import { getIeltsSpeakingUsageSnapshot } from "@/lib/subscription/ielts-speaking-limit";
@@ -56,24 +57,28 @@ export async function getPartAiPracticeResultsMeta(
   const nextPracticeHref = `/practice/${paper.id}`;
 
   if (isIeltsWritingPracticePoolKey(key)) {
+    const parsed = parseIeltsWritingPracticePoolKey(key)!;
     const usage = await getIeltsWritingUsageSnapshot(userId);
+    const meta = IELTS_MODULE_META[parsed.module];
     return {
       paperId: paper.id,
       skillLabel: "Writing",
-      trackLabel: "IELTS",
-      hubHref: "/ielts/writing",
+      trackLabel: meta.label,
+      hubHref: ieltsHubPath("writing", parsed.module),
       nextPracticeHref,
       ...usageFields(usage),
     };
   }
 
   if (isIeltsSpeakingPracticePoolKey(key)) {
+    const parsed = parseIeltsSpeakingPracticePoolKey(key)!;
     const usage = await getIeltsSpeakingUsageSnapshot(userId);
+    const meta = IELTS_MODULE_META[parsed.module];
     return {
       paperId: paper.id,
       skillLabel: "Speaking",
-      trackLabel: "IELTS",
-      hubHref: "/ielts/speaking",
+      trackLabel: meta.label,
+      hubHref: ieltsHubPath("speaking", parsed.module),
       nextPracticeHref,
       ...usageFields(usage),
     };

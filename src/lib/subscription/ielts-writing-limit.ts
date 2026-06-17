@@ -30,7 +30,11 @@ async function countIeltsWritingPracticeToday(userId: string): Promise<number> {
       startedAt: { gte: startOfToday() },
       paper: {
         paperKind: PaperKind.PRACTICE,
-        practicePoolKey: { startsWith: "IELTS:WRT:T" },
+        OR: [
+          { practicePoolKey: { startsWith: "IELTS:AC:WRT:T" } },
+          { practicePoolKey: { startsWith: "IELTS:GT:WRT:T" } },
+          { practicePoolKey: { startsWith: "IELTS:WRT:T" } },
+        ],
       },
     },
   });
@@ -41,7 +45,13 @@ async function countIeltsWritingMockToday(userId: string): Promise<number> {
     where: {
       userId,
       startedAt: { gte: startOfToday() },
-      paper: { mockPoolKey: IELTS_WRITING_MOCK_POOL_KEY },
+      paper: {
+        OR: [
+          { mockPoolKey: IELTS_WRITING_MOCK_POOL_KEY },
+          { mockPoolKey: "IELTS:WRT:MOCK" },
+          { mockPoolKey: "IELTS:GT:WRT:MOCK" },
+        ],
+      },
     },
   });
 }
@@ -51,7 +61,13 @@ async function countIeltsWritingMockThisWeek(userId: string): Promise<number> {
     where: {
       userId,
       startedAt: { gte: startOfWeek() },
-      paper: { mockPoolKey: IELTS_WRITING_MOCK_POOL_KEY },
+      paper: {
+        OR: [
+          { mockPoolKey: IELTS_WRITING_MOCK_POOL_KEY },
+          { mockPoolKey: "IELTS:WRT:MOCK" },
+          { mockPoolKey: "IELTS:GT:WRT:MOCK" },
+        ],
+      },
     },
   });
 }

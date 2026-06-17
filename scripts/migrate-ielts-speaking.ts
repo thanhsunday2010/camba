@@ -1,5 +1,5 @@
 /**
- * Seed 100 câu Speaking IELTS + tạo đề luyện tập (Part 1–3) & mock full speaking.
+ * Seed 100 câu Speaking IELTS Academic + tạo đề luyện tập (Part 1–3) & mock full speaking.
  * Usage: npm run content:migrate-ielts-speaking
  */
 import "dotenv/config";
@@ -9,42 +9,50 @@ import {
   buildIeltsSpeakingMockTimeLimit,
   buildIeltsSpeakingPracticePoolKey,
   getIeltsSpeakingMockQuestionCount,
+  getIeltsSpeakingPartDef,
   IELTS_SPEAKING_LEVEL,
   IELTS_SPEAKING_MOCK_POOL_KEY,
-  IELTS_SPEAKING_PART_DEFS,
   IELTS_SPEAKING_PARTS,
 } from "../src/lib/exam/ielts-speaking-config";
+import { ieltsAcademicQuestionFilter } from "../src/lib/exam/ielts-module";
 import { getIeltsSpeakingBankSeeds } from "../prisma/seed/ielts-speaking-content";
 
 const db = new PrismaClient();
+const MODULE = "ACADEMIC" as const;
 
 async function seedQuestions() {
   const existing = await db.question.count({
     where: {
       skill: Skill.SPEAKING,
       placementSlug: null,
-      content: { path: ["examTrack"], equals: "IELTS" },
+      AND: [
+        { content: { path: ["examTrack"], equals: "IELTS" } },
+        ieltsAcademicQuestionFilter(),
+      ],
     },
   });
 
   if (existing >= 100) {
-    console.log(`Ngân hàng IELTS Speaking đã có ${existing} câu — bỏ qua seed`);
+    console.log(`Ngân hàng IELTS Speaking Academic đã có ${existing} câu — bỏ qua seed`);
     return existing;
   }
 
   if (existing > 0) {
-    console.log(`Xóa ${existing} câu IELTS Speaking cũ để seed lại...`);
+    console.log(`Xóa ${existing} câu IELTS Speaking Academic cũ để seed lại...`);
     await db.question.deleteMany({
       where: {
         skill: Skill.SPEAKING,
         placementSlug: null,
-        content: { path: ["examTrack"], equals: "IELTS" },
+        AND: [
+          { content: { path: ["examTrack"], equals: "IELTS" } },
+          ieltsAcademicQuestionFilter(),
+        ],
       },
     });
   }
 
   const seeds = getIeltsSpeakingBankSeeds();
-  console.log(`Tạo ${seeds.length} câu IELTS Speaking`);
+  console.log(`Tạo ${seeds.length} câu IELTS Speaking Academic`);
 
   for (const item of seeds) {
     const q = await db.question.create({
@@ -58,6 +66,7 @@ async function seedQuestions() {
           preparationTime: item.preparationTime,
           speakingTime: item.speakingTime,
           examTrack: "IELTS",
+          ieltsModule: MODULE,
           ieltsPart: item.ieltsPart,
         },
         points: 10,
@@ -81,24 +90,30 @@ async function countPartPool(part: 1 | 2 | 3) {
       AND: [
         { content: { path: ["examTrack"], equals: "IELTS" } },
         { content: { path: ["ieltsPart"], equals: part } },
+        ieltsAcademicQuestionFilter(),
       ],
     },
   });
 }
 
 async function upsertPracticePaper(part: 1 | 2 | 3, poolCount: number) {
-  const def = IELTS_SPEAKING_PART_DEFS[part];
-  const poolKey = buildIeltsSpeakingPracticePoolKey(part);
-  const title = `IELTS Speaking — ${def.shortLabel} Luyện tập`;
+  const def = getIeltsSpeakingPartDef(part, MODULE);
+  const poolKey = buildIeltsSpeakingPracticePoolKey(part, MODULE);
+  const title = `IELTS Academic Speaking — ${def.shortLabel} Luyện tập`;
   const description = `${def.practiceQuestionCount} câu ngẫu nhiên từ ngân hàng ${poolCount} câu · ${def.description}`;
 
-  const existing = await db.examPaper.findUnique({ where: { practicePoolKey: poolKey } });
+  const legacyKey = `IELTS:SPK:P${part}`;
+  const existing =
+    (await db.examPaper.findUnique({ where: { practicePoolKey: poolKey } })) ??
+    (await db.examPaper.findUnique({ where: { practicePoolKey: legacyKey } }));
+
   if (existing) {
     await db.examPaper.update({
       where: { id: existing.id },
       data: {
         title,
         description,
+        practicePoolKey: poolKey,
         published: true,
         isMockTest: false,
         paperKind: PaperKind.PRACTICE,
@@ -127,14 +142,16 @@ async function upsertPracticePaper(part: 1 | 2 | 3, poolCount: number) {
 }
 
 async function upsertMockPaper(totalPool: number) {
-  const title = "IELTS Speaking — Mock test full";
+  const title = "IELTS Academic Speaking — Mock test full";
   const count = getIeltsSpeakingMockQuestionCount();
-  const description = `${count} câu theo format thi thật (Part 1: 8 · Part 2: 1 cue card · Part 3: 5) — ngân hàng ${totalPool} câu`;
+  const description = `${count} câu theo format IELTS Academic (Part 1: 8 · Part 2: 1 cue card · Part 3: 5) — ngân hàng ${totalPool} câu`;
   const sections = buildIeltsSpeakingMockSections();
 
-  const existing = await db.examPaper.findUnique({
-    where: { mockPoolKey: IELTS_SPEAKING_MOCK_POOL_KEY },
-  });
+  const existing =
+    (await db.examPaper.findUnique({
+      where: { mockPoolKey: IELTS_SPEAKING_MOCK_POOL_KEY },
+    })) ??
+    (await db.examPaper.findUnique({ where: { mockPoolKey: "IELTS:SPK:MOCK" } }));
 
   if (existing) {
     await db.examPaper.update({
@@ -142,6 +159,7 @@ async function upsertMockPaper(totalPool: number) {
       data: {
         title,
         description,
+        mockPoolKey: IELTS_SPEAKING_MOCK_POOL_KEY,
         published: true,
         isMockTest: true,
         paperKind: PaperKind.MOCK_SKILL,
@@ -172,7 +190,7 @@ async function upsertMockPaper(totalPool: number) {
 }
 
 async function main() {
-  console.log("\n=== IELTS Speaking — seed & papers ===\n");
+  console.log("\n=== IELTS Academic Speaking — seed & papers ===\n");
   const seeded = await seedQuestions();
 
   for (const part of IELTS_SPEAKING_PARTS) {

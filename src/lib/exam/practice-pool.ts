@@ -299,14 +299,14 @@ export async function assignDynamicExamQuestionsForAttempt(
   if (attempt.attemptQuestions.length > 0) return attempt.attemptQuestions.length;
 
   const poolKey = attempt.paper.practicePoolKey ?? attempt.paper.mockPoolKey ?? "";
-  if (poolKey.startsWith("IELTS:SPK:")) {
+  if (/^IELTS:(AC|GT):SPK:/.test(poolKey) || poolKey.startsWith("IELTS:SPK:")) {
     const { assignIeltsSpeakingQuestionsForAttempt } = await import(
       "@/lib/exam/ielts-speaking-pool"
     );
     return assignIeltsSpeakingQuestionsForAttempt(db, attemptId);
   }
 
-  if (poolKey.startsWith("IELTS:WRT:")) {
+  if (/^IELTS:(AC|GT):WRT:/.test(poolKey) || poolKey.startsWith("IELTS:WRT:")) {
     const { assignIeltsWritingQuestionsForAttempt } = await import(
       "@/lib/exam/ielts-writing-pool"
     );
