@@ -3,9 +3,9 @@ import { resolvePlacementSlug } from "@/lib/placement/placement-config";
 import { PLACEMENT_TITLE_PREFIX } from "@/lib/placement/paper-titles";
 
 export const PLACEMENT_SLUG_LABELS: Record<PlacementSlug, string> = {
-  yle: "YLE (Starters / Movers / Flyers)",
-  secondary: "Secondary (KET / PET / FCE)",
-  adult: "Giao tiếp hàng ngày & Công sở",
+  yle: "YLE (Starters / Movers / Flyers) (6-12 tuổi)",
+  secondary: "Secondary (KET / PET / FCE) (13-17 tuổi)",
+  adult: "Giao tiếp hàng ngày & Công sở (Người lớn)",
   "ielts-academic-full": "IELTS Academic — Full (4 kỹ năng)",
   "ielts-gt-full": "IELTS General Training — Full (4 kỹ năng)",
   "ielts-academic-short": "IELTS Academic — Rút gọn",

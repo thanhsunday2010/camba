@@ -1,4 +1,5 @@
-import type { MascotMood } from "@/components/kids/camba-mascot";
+import type { MascotMood, MascotActivity } from "@/components/kids/camba-mascot";
+import type { KidSound } from "@/lib/kids/sounds";
 import type { PlacementTrack } from "@/lib/placement/evaluate";
 
 export type MascotToastAction = {
@@ -11,6 +12,8 @@ export type MascotToastPayload = {
   message: string;
   subtitle?: string;
   mood?: MascotMood;
+  activity?: MascotActivity;
+  sound?: KidSound;
   durationMs?: number;
   /** Keep visible until hideMascot() or navigation */
   persist?: boolean;
@@ -21,6 +24,26 @@ export type MascotToastPayload = {
 };
 
 export const MASCOT_DEFAULT_DURATION_MS = 3000;
+
+export function mascotAnswerCorrectMessage(): MascotToastPayload {
+  return {
+    message: "Đúng rồi! Yeah! 🎉",
+    mood: "cheer",
+    activity: "correct",
+    sound: "answerCorrect",
+    durationMs: 2200,
+  };
+}
+
+export function mascotAnswerWrongMessage(): MascotToastPayload {
+  return {
+    message: "Chưa đúng — thử lại nhé!",
+    mood: "think",
+    activity: "wrong",
+    sound: "answerWrong",
+    durationMs: 2200,
+  };
+}
 
 export function mascotTestCompleteMessage(paperKind?: string): MascotToastPayload {
   if (paperKind === "PLACEMENT") {
@@ -35,17 +58,18 @@ export function mascotTestCompleteMessage(paperKind?: string): MascotToastPayloa
   return {
     message: "Tuyệt vời! Bạn đã hoàn thành bài luyện tập 🎉",
     mood: "cheer",
+    activity: "celebrate",
   };
 }
 
 export function mascotStreakMessage(streak: number): MascotToastPayload {
   if (streak >= 10) {
-    return { message: "10 câu đúng liên tiếp — siêu sao! ⭐⭐", mood: "cheer" };
+    return { message: "10 câu đúng liên tiếp — siêu sao! ⭐⭐", mood: "cheer", activity: "celebrate", confetti: true };
   }
   if (streak >= 5) {
-    return { message: "5 câu đúng liên tiếp! Thỏ tin bạn làm tiếp được! 🔥", mood: "cheer" };
+    return { message: "5 câu đúng liên tiếp! Thỏ tin bạn làm tiếp được! 🔥", mood: "cheer", activity: "celebrate" };
   }
-  return { message: "Chuỗi đúng tuyệt vời! Tiếp tục nhé 🐰", mood: "happy" };
+  return { message: "Chuỗi đúng tuyệt vời! Tiếp tục nhé 🐰", mood: "happy", activity: "correct" };
 }
 
 export function mascotHalfProgressMessage(): MascotToastPayload {

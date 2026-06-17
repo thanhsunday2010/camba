@@ -116,6 +116,18 @@
   .animate-mascot-body-sway {
     animation: mascotBodySway 2.2s ease-in-out infinite;
   }
+  .animate-mascot-talk-blink {
+    animation: mascotTalkBlink 1.2s ease-in-out infinite;
+  }
+  .animate-mascot-mouth-talk {
+    animation: mascotMouthTalk 0.35s ease-in-out infinite;
+  }
+  .animate-mascot-paw-talk-left {
+    animation: mascotPawTalk 0.45s ease-in-out infinite;
+  }
+  .animate-mascot-feet-talk {
+    animation: mascotFeetTalk 0.5s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -198,4 +210,24 @@
   0%, 100% { transform: rotate(0deg); }
   25% { transform: rotate(-2deg); }
   75% { transform: rotate(2deg); }
+}
+
+@keyframes mascotTalkBlink {
+  0%, 38%, 42%, 88%, 92%, 100% { transform: scaleY(1); }
+  40%, 90% { transform: scaleY(0.08); }
+}
+
+@keyframes mascotMouthTalk {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.15); }
+}
+
+@keyframes mascotPawTalk {
+  0%, 100% { transform: rotate(-12deg) translateY(0); }
+  50% { transform: rotate(-32deg) translateY(-3px); }
+}
+
+@keyframes mascotFeetTalk {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(6deg); }
 }

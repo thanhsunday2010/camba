@@ -5,9 +5,14 @@ import { cn } from "@/lib/utils";
 
 export type MascotMood = "happy" | "cheer" | "think" | "wave";
 
+export type MascotActivity = "idle" | "talk" | "celebrate" | "correct" | "wrong" | "think";
+
 interface CambaMascotProps {
   size?: "sm" | "md" | "lg" | "xl";
   mood?: MascotMood;
+  activity?: MascotActivity;
+  /** Mouth / limb motion while speaking or playing feedback SFX */
+  talking?: boolean;
   className?: string;
   animate?: boolean;
 }
@@ -22,13 +27,19 @@ const SIZES = {
 export function CambaMascot({
   size = "md",
   mood = "happy",
+  activity = "idle",
+  talking = false,
   className,
   animate = true,
 }: CambaMascotProps) {
   const uid = useId().replace(/:/g, "");
   const bodyGrad = `rb-body-${uid}`;
   const faceGrad = `rb-face-${uid}`;
-  const wink = mood === "happy" || mood === "cheer";
+  const isTalking = talking || activity === "talk" || activity === "correct" || activity === "wrong";
+  const isCelebrate = activity === "celebrate" || activity === "correct";
+  const wavePaw = mood === "wave" || activity === "correct" || activity === "celebrate";
+  const wink = !isTalking && (mood === "happy" || mood === "cheer");
+  const resolvedMood = activity === "wrong" || activity === "think" ? "think" : mood;
 
   return (
     <div
@@ -58,13 +69,24 @@ export function CambaMascot({
           <ellipse cx="50" cy="86" rx="16" ry="13" fill="#FFFFFF" />
 
           {/* Feet */}
-          <g className={cn(animate && "origin-[50px_102px] animate-mascot-feet")}>
+          <g
+            className={cn(
+              animate && (isTalking ? "origin-[50px_102px] animate-mascot-feet-talk" : "origin-[50px_102px] animate-mascot-feet")
+            )}
+          >
             <ellipse cx="38" cy="102" rx="9" ry="5" fill="#F9A8D4" />
             <ellipse cx="62" cy="102" rx="9" ry="5" fill="#F9A8D4" />
           </g>
 
           {/* Left paw */}
-          <g className={cn(animate && "origin-[24px_80px] animate-mascot-paw-left")}>
+          <g
+            className={cn(
+              animate &&
+                (isTalking
+                  ? "origin-[24px_80px] animate-mascot-paw-talk-left"
+                  : "origin-[24px_80px] animate-mascot-paw-left")
+            )}
+          >
             <ellipse cx="24" cy="80" rx="7" ry="9" fill="#E5E7EB" transform="rotate(-15 24 80)" />
           </g>
         </g>
@@ -72,10 +94,11 @@ export function CambaMascot({
         {/* Right paw — wave */}
         <g
           className={cn(
-            animate && mood === "wave" && "origin-[76px_76px] animate-mascot-wave",
-            animate && mood !== "wave" && "origin-[76px_76px] animate-mascot-paw-left"
+            animate && wavePaw && "origin-[76px_76px] animate-mascot-wave",
+            animate && !wavePaw && isTalking && "origin-[76px_76px] animate-mascot-paw-talk-left",
+            animate && !wavePaw && !isTalking && "origin-[76px_76px] animate-mascot-paw-left"
           )}
-          style={{ animationDelay: mood === "wave" ? "0s" : "0.6s" }}
+          style={{ animationDelay: wavePaw ? "0s" : "0.6s" }}
         >
           <ellipse cx="76" cy="76" rx="7" ry="9" fill="#E5E7EB" transform="rotate(20 76 76)" />
           <circle cx="80" cy="68" r="4" fill="#F9A8D4" />
@@ -95,17 +118,17 @@ export function CambaMascot({
         </g>
         <g
           className={cn(
-            mood === "wave" && animate && "origin-[64px_20px] animate-mascot-ear-right",
-            mood !== "wave" && animate && "origin-[64px_20px] animate-mascot-ear-left"
+            wavePaw && animate && "origin-[64px_20px] animate-mascot-ear-right",
+            !wavePaw && animate && "origin-[64px_20px] animate-mascot-ear-left"
           )}
-          style={{ animationDelay: mood === "wave" ? "0s" : "0.4s" }}
+          style={{ animationDelay: wavePaw ? "0s" : "0.4s" }}
         >
           <ellipse cx="64" cy="18" rx="9" ry="26" fill="#D1D5DB" stroke="#9CA3AF" strokeWidth="0.5" />
           <ellipse cx="64" cy="20" rx="5" ry="18" fill="#FBCFE8" />
         </g>
 
         {/* Eyes */}
-        <g className={cn(animate && "animate-mascot-blink")}>
+        <g className={cn(animate && (isTalking ? "animate-mascot-talk-blink" : "animate-mascot-blink"))}>
           {wink ? (
             <path d="M36 56 Q40 60 44 56" stroke="#1F2937" strokeWidth="2.2" strokeLinecap="round" fill="none" />
           ) : (
@@ -120,7 +143,7 @@ export function CambaMascot({
           <circle cx="61.5" cy="55.5" r="1.8" fill="white" />
         </g>
 
-        {mood === "think" && (
+        {resolvedMood === "think" && (
           <>
             <g stroke="#6366F1" strokeWidth="1.8" fill="none">
               <circle cx="40" cy="56" r="9" />
@@ -134,11 +157,18 @@ export function CambaMascot({
         {/* Nose + mouth + buck teeth */}
         <ellipse cx="50" cy="64" rx="4" ry="3.5" fill="#F472B6" />
         <path
-          d={mood === "cheer" ? "M44 68 Q50 74 56 68" : "M45 68 Q51 72 57 67"}
+          d={
+            isTalking
+              ? "M44 67 Q47 72 50 67 Q53 72 56 67"
+              : resolvedMood === "cheer"
+                ? "M44 68 Q50 74 56 68"
+                : "M45 68 Q51 72 57 67"
+          }
           stroke="#374151"
           strokeWidth="1.8"
           strokeLinecap="round"
           fill="none"
+          className={cn(isTalking && animate && "animate-mascot-mouth-talk")}
         />
         <rect x="46.5" y="67" width="3" height="4" rx="0.8" fill="white" stroke="#E5E7EB" strokeWidth="0.4" />
         <rect x="50.5" y="67" width="3" height="4" rx="0.8" fill="white" stroke="#E5E7EB" strokeWidth="0.4" />
@@ -151,7 +181,7 @@ export function CambaMascot({
           <circle cx="72" cy="51" r="2.5" fill="#F59E0B" />
         </g>
 
-        {mood === "cheer" && (
+        {(resolvedMood === "cheer" || isCelebrate) && (
           <>
             <text x="2" y="22" fontSize="11" className="animate-float">
               💡

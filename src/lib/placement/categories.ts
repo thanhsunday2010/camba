@@ -16,6 +16,7 @@ export const PLACEMENT_CATEGORIES: Record<
   PlacementCategoryId,
   {
     title: string;
+    menuLabel: string;
     description: string;
     sectionClass: string;
     titleClass: string;
@@ -24,6 +25,7 @@ export const PLACEMENT_CATEGORIES: Record<
 > = {
   ielts: {
     title: "IELTS Placement Test",
+    menuLabel: "IELTS",
     description:
       "Đánh giá 4 kỹ năng IELTS (Listening → Reading → Writing → Speaking) — kết quả theo band.",
     sectionClass:
@@ -33,6 +35,7 @@ export const PLACEMENT_CATEGORIES: Record<
   },
   cambridge: {
     title: "Cambridge Placement Test",
+    menuLabel: "Cambridge (6-17 tuổi)",
     description:
       "YLE (Starters / Movers / Flyers) và Secondary (KET / PET / FCE) — kết quả CEFR & Cambridge shields.",
     sectionClass:
@@ -42,6 +45,7 @@ export const PLACEMENT_CATEGORIES: Record<
   },
   general: {
     title: "General English Placement Test",
+    menuLabel: "General English (Người lớn)",
     description:
       "Giao tiếp hàng ngày & công sở — kết quả theo khung CEFR (A1–C1).",
     sectionClass:

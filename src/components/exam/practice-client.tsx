@@ -28,6 +28,8 @@ import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections
 import { formatDuration } from "@/lib/constants";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import {
+  mascotAnswerCorrectMessage,
+  mascotAnswerWrongMessage,
   mascotGradingWaitMessage,
   mascotPlacementSubmitWaitMessage,
   mascotSpeakingDoneMessage,
@@ -266,14 +268,16 @@ export function PracticeClient({
 
       if (instant && !objectiveFeedback[questionId]) {
         setObjectiveFeedback((prev) => ({ ...prev, [questionId]: instant }));
-        play(instant.isCorrect ? "answerCorrect" : "answerWrong");
         if (instant.isCorrect) {
           consecutiveCorrectRef.current += 1;
           if (consecutiveCorrectRef.current === 5) {
             showMascot(mascotStreakMessage(5));
+          } else {
+            showMascot(mascotAnswerCorrectMessage());
           }
         } else {
           consecutiveCorrectRef.current = 0;
+          showMascot(mascotAnswerWrongMessage());
         }
       } else if (
         q &&

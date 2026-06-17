@@ -7,7 +7,7 @@ export const revalidate = 60;
 export default async function PlacementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ paperId?: string; category?: string }>;
+  searchParams: Promise<{ paperId?: string; category?: string; test?: string }>;
 }) {
   const params = await searchParams;
   const initialPreset = parsePlacementPageSearchParams(params);
