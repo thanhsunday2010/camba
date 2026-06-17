@@ -18,6 +18,7 @@ interface YleScrollHubProps {
   themeBg: string;
   nodes: YleSkillNodeData[];
   mascotRank: YleMascotRankProgress;
+  highlightNodeId?: string;
 }
 
 export function YleScrollHub({
@@ -29,6 +30,7 @@ export function YleScrollHub({
   themeBg,
   nodes,
   mascotRank,
+  highlightNodeId,
 }: YleScrollHubProps) {
   return (
     <div className="relative overflow-hidden rounded-3xl border-2 border-violet-200/80 bg-gradient-to-br from-slate-950 via-violet-950 to-indigo-950 p-4 text-white shadow-xl sm:p-6">
@@ -61,7 +63,11 @@ export function YleScrollHub({
         </p>
         <HorizontalScrollTrack label="Kỹ năng luyện tập" fadeEdges={false} className="-mx-1">
           {nodes.map((node) => (
-            <SkillScrollCard key={node.id} node={node} />
+            <SkillScrollCard
+              key={node.id}
+              node={node}
+              highlighted={highlightNodeId === node.id}
+            />
           ))}
         </HorizontalScrollTrack>
       </div>
@@ -69,7 +75,13 @@ export function YleScrollHub({
   );
 }
 
-function SkillScrollCard({ node }: { node: YleSkillNodeData }) {
+function SkillScrollCard({
+  node,
+  highlighted,
+}: {
+  node: YleSkillNodeData;
+  highlighted?: boolean;
+}) {
   const skillKey = node.id === "USE_OF_ENGLISH" ? "USE_OF_ENGLISH" : node.id;
   const gradient = SKILL_COLORS[skillKey] ?? "from-violet-500 to-purple-600";
   const pct = node.progressPct;
@@ -94,6 +106,11 @@ function SkillScrollCard({ node }: { node: YleSkillNodeData }) {
         </div>
         {node.locked && (
           <span className="rounded-full bg-black/30 px-2 py-0.5 text-[10px] font-bold">🔒 Hết lượt</span>
+        )}
+        {highlighted && !node.locked && (
+          <span className="rounded-full bg-sky-400/90 px-2 py-0.5 text-[10px] font-bold text-slate-900">
+            Tiếp theo
+          </span>
         )}
       </div>
       <p className="relative mt-3 text-base font-extrabold">{node.label}</p>
@@ -123,7 +140,10 @@ function SkillScrollCard({ node }: { node: YleSkillNodeData }) {
   );
 
   const className = cn(
-    "scroll-card relative flex w-[min(78vw,17.5rem)] flex-col overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md transition-transform",
+    "scroll-card relative flex w-[min(78vw,17.5rem)] flex-col overflow-hidden rounded-2xl border p-4 backdrop-blur-md transition-transform",
+    highlighted && !node.locked
+      ? "border-sky-300/80 bg-white/15 ring-2 ring-sky-400/50"
+      : "border-white/15 bg-white/10",
     node.locked
       ? "cursor-not-allowed opacity-70"
       : "hover:-translate-y-1 hover:border-white/30 hover:bg-white/15 active:scale-[0.98]"

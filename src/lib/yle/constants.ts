@@ -18,6 +18,16 @@ export const YLE_ORBIT_NODES = [
 
 export type YleOrbitNodeId = (typeof YLE_ORBIT_NODES)[number]["id"];
 
+/** Recommended daily practice order for continuous engagement */
+export const YLE_PRACTICE_ORDER: YleOrbitNodeId[] = [
+  "READING",
+  "LISTENING",
+  "USE_OF_ENGLISH",
+  "SPEAKING",
+  "WRITING",
+  "MOCK",
+];
+
 export function yleLevelLabel(level: YleLevel): string {
   const labels: Record<YleLevel, string> = {
     STARTERS: "Pre A1 Starters",
@@ -27,16 +37,16 @@ export function yleLevelLabel(level: YleLevel): string {
   return labels[level];
 }
 
-const NODE_SLUGS: Record<Exclude<YleOrbitNodeId, "SPEAKING" | "WRITING">, string> = {
+const NODE_SLUGS: Record<YleOrbitNodeId, string> = {
   READING: "reading",
   LISTENING: "listening",
   USE_OF_ENGLISH: "grammar",
+  SPEAKING: "speaking",
+  WRITING: "writing",
   MOCK: "mock",
 };
 
 export function yleSkillPath(level: YleLevel, nodeId: YleOrbitNodeId): string {
-  if (nodeId === "SPEAKING") return `/exams/${level}/speaking`;
-  if (nodeId === "WRITING") return `/exams/${level}/writing`;
   return `/yle/${level}/${NODE_SLUGS[nodeId]}`;
 }
 
@@ -46,6 +56,8 @@ export function parseYleSkillSlug(slug: string): YleOrbitNodeId | null {
     listening: "LISTENING",
     grammar: "USE_OF_ENGLISH",
     "use-of-english": "USE_OF_ENGLISH",
+    speaking: "SPEAKING",
+    writing: "WRITING",
     mock: "MOCK",
   };
   return map[slug] ?? null;

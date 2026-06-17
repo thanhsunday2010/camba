@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { isYleLevel } from "@/lib/yle/constants";
 import { loadYleLevelHub } from "@/lib/yle/hub-data";
 import { YleScrollHub } from "@/components/yle/yle-scroll-hub";
+import { YleContinueBanner } from "@/components/yle/yle-continue-banner";
 import { YleLeaderboard } from "@/components/yle/yle-leaderboard";
 import { YleMascotRankPanel } from "@/components/yle/yle-mascot-rank-panel";
 import { formatQuotaRatio } from "@/lib/subscription/plans";
@@ -24,7 +25,7 @@ export default async function YleLevelHubPage({
   const hub = await loadYleLevelHub(level);
   if (!hub) redirect("/login");
 
-  const { theme, progress, leaderboard, nodes, usage, userId, levelLabel } = hub;
+  const { theme, progress, leaderboard, nodes, usage, userId, levelLabel, continueSuggestion } = hub;
 
   return (
     <div className="page-shell">
@@ -35,6 +36,10 @@ export default async function YleLevelHubPage({
         ← Vũ trụ YLE
       </Link>
 
+      {continueSuggestion && (
+        <YleContinueBanner suggestion={continueSuggestion} level={level} />
+      )}
+
       <YleScrollHub
         level={level}
         levelLabel={levelLabel}
@@ -44,6 +49,7 @@ export default async function YleLevelHubPage({
         themeBg={theme.bg}
         nodes={nodes}
         mascotRank={progress.mascotRank}
+        highlightNodeId={continueSuggestion?.nodeId}
       />
 
       <div className="mb-5 mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-xl border border-violet-100 bg-violet-50/40 px-3 py-2.5 text-xs sm:gap-x-6 sm:px-4 sm:py-3 sm:text-sm">

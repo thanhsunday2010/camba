@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { ResultsClient } from "@/components/exam/results-client";
 import { parseGamificationSnapshot } from "@/lib/gamification/service";
 import { getPartAiPracticeResultsMeta } from "@/lib/exam/part-ai-practice-results";
+import { getObjectivePracticeContinueMeta } from "@/lib/exam/practice-results-next";
 
 export default async function ResultsPage({
   params,
@@ -41,12 +42,23 @@ export default async function ResultsPage({
     level: attempt.paper.level,
   });
 
+  const objectiveContinueMeta =
+    partAiPracticeMeta === null && attempt.status === "GRADED"
+      ? getObjectivePracticeContinueMeta({
+          id: attempt.paper.id,
+          level: attempt.paper.level,
+          skill: attempt.paper.skill,
+          paperKind: attempt.paper.paperKind,
+        })
+      : null;
+
   return (
     <ResultsClient
       attempt={attempt}
       aiFeedbacks={aiFeedbacks}
       gamification={gamification}
       partAiPracticeMeta={partAiPracticeMeta}
+      objectiveContinueMeta={objectiveContinueMeta}
     />
   );
 }

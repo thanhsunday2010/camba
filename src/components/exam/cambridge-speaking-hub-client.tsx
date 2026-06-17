@@ -33,9 +33,18 @@ type Props = {
   practiceParts: PracticePart[];
   mockPaper: (PaperCard & { done: boolean }) | null;
   mockBankStats?: import("@/lib/exam/bank-stats").BankStats;
+  hubHref?: string;
+  nextSkill?: { href: string; label: string; emoji: string } | null;
 };
 
-export function CambridgeSpeakingHubClient({ usage, practiceParts, mockPaper, mockBankStats }: Props) {
+export function CambridgeSpeakingHubClient({
+  usage,
+  practiceParts,
+  mockPaper,
+  mockBankStats,
+  hubHref,
+  nextSkill,
+}: Props) {
   const level = usage.level;
   const mockCount = getCambridgeSpeakingMockQuestionCount(level);
   const parts = getCambridgeSpeakingParts(level);
@@ -53,6 +62,8 @@ export function CambridgeSpeakingHubClient({ usage, practiceParts, mockPaper, mo
       mockDescription={`${mockCount} câu theo format Cambridge ${levelLabel}: ${parts.length} phần liên tiếp · câu hỏi ngẫu nhiên · AI chấm band Cambridge.`}
       mockBankStats={mockBankStats}
       migrateHint="Chưa có đề — chạy migrate Cambridge Speaking"
+      hubHref={hubHref}
+      nextSkill={nextSkill}
     />
   );
 }

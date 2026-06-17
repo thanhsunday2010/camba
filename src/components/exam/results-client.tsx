@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { PartAiPracticeResultsMeta } from "@/lib/exam/part-ai-practice-results";
+import type { ObjectivePracticeContinueMeta } from "@/lib/exam/practice-results-next";
 import { IELTS_ACADEMIC_SPEAKING_URL } from "@/lib/exam/ielts-module";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import { mascotScoreMessage } from "@/lib/kids/mascot-messages";
@@ -78,6 +79,7 @@ interface ResultsClientProps {
   aiFeedbacks: AIFeedbackItem[];
   gamification?: GamificationSnapshot | null;
   partAiPracticeMeta?: PartAiPracticeResultsMeta | null;
+  objectiveContinueMeta?: ObjectivePracticeContinueMeta | null;
 }
 
 export function ResultsClient({
@@ -85,6 +87,7 @@ export function ResultsClient({
   aiFeedbacks,
   gamification,
   partAiPracticeMeta = null,
+  objectiveContinueMeta = null,
 }: ResultsClientProps) {
   const { showMascot } = useMascotToast();
   const mascotShownRef = useRef(false);
@@ -312,7 +315,38 @@ export function ResultsClient({
           <PartAiPracticeNextCard meta={partAiPracticeMeta} />
         </div>
       )}
+
+      {!partAiPracticeMeta && objectiveContinueMeta && (
+        <div className="mt-8">
+          <ObjectivePracticeContinueCard meta={objectiveContinueMeta} />
+        </div>
+      )}
     </div>
+  );
+}
+
+function ObjectivePracticeContinueCard({ meta }: { meta: ObjectivePracticeContinueMeta }) {
+  return (
+    <Card className="mb-8 border-2 border-violet-200 bg-gradient-to-br from-violet-50/70 via-white to-sky-50/40">
+      <CardContent className="space-y-4 pt-6">
+        <p className="text-sm font-bold uppercase tracking-wide text-violet-700">
+          Luyện tiếp · {meta.skillLabel}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild className="kid-btn-fun rounded-full">
+            <Link href={meta.retryHref}>Làm lại →</Link>
+          </Button>
+          {meta.nextSkillHref && meta.nextSkillLabel && (
+            <Button asChild variant="secondary" className="rounded-full">
+              <Link href={meta.nextSkillHref}>Kỹ năng tiếp: {meta.nextSkillLabel} →</Link>
+            </Button>
+          )}
+          <Button asChild variant="outline" className="rounded-full">
+            <Link href={meta.hubHref}>Về hub kỹ năng</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

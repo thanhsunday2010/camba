@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { HorizontalScrollTrack } from "@/components/ui/horizontal-scroll-track";
 import { formatQuotaRatio, isQuotaExhausted, isUnlimitedQuota } from "@/lib/subscription/plans";
 import { formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
 import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
 import type { IeltsModule } from "@/lib/exam/ielts-module";
+import { cn } from "@/lib/utils";
 
 export type SpeakingUsageSnapshot = {
   planName: string;
@@ -52,11 +54,19 @@ type Props = {
   mockDescription: string;
   mockBankStats?: BankStats;
   migrateHint?: string;
+  hubHref?: string;
+  nextSkill?: { href: string; label: string; emoji: string } | null;
 };
 
 function usagePct(used: number, limit: number) {
   if (isUnlimitedQuota(limit) || limit <= 0) return 0;
   return Math.min(100, Math.round((used / limit) * 100));
+}
+
+function pickNextPart(parts: PracticePart[]): PracticePart | null {
+  const withPaper = parts.filter((p) => p.paper);
+  const undone = withPaper.find((p) => !p.done);
+  return undone ?? withPaper[0] ?? null;
 }
 
 export function SpeakingHubClient({
@@ -71,29 +81,48 @@ export function SpeakingHubClient({
   mockDescription: _mockDescription,
   mockBankStats,
   migrateHint = "Chưa có đề — chạy migrate Speaking",
+  hubHref,
+  nextSkill,
 }: Props) {
   const practiceLocked = isQuotaExhausted(usage.practiceUsed, usage.practiceLimit);
   const mockLocked = isQuotaExhausted(usage.mockUsed, usage.mockLimit);
+  const nextPart = pickNextPart(practiceParts);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {nextPart?.paper && !practiceLocked && (
+        <Card className="overflow-hidden border-2 border-violet-300">
+          <div className="bg-gradient-to-r from-rose-500 to-violet-600 px-4 py-3 text-white">
+            <p className="text-xs font-bold uppercase tracking-wide text-white/80">Bước 1 · Luyện ngay</p>
+            <p className="text-lg font-extrabold">
+              {skillName} · {nextPart.shortLabel}
+            </p>
+          </div>
+          <CardContent className="pt-4">
+            <Button asChild size="lg" className="kid-btn-fun w-full rounded-full">
+              <Link href={`/practice/${nextPart.paper!.id}`}>
+                {nextPart.done ? "Luyện lại" : "Bắt đầu"} {nextPart.shortLabel} →
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border-2 border-sky-200 bg-gradient-to-br from-sky-50/60 to-white">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-extrabold">
-            Hôm nay · {usage.planName}
-          </CardTitle>
+          <CardTitle className="text-base font-extrabold">Hôm nay · {usage.planName}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div>
             <div className="mb-1 flex justify-between text-sm font-semibold">
-              <span>Luyện tập (1 câu / Part)</span>
+              <span>Luyện (1 câu/Part)</span>
               <span>{formatQuotaRatio(usage.practiceUsed, usage.practiceLimit)}</span>
             </div>
             <Progress value={usagePct(usage.practiceUsed, usage.practiceLimit)} />
           </div>
           <div>
             <div className="mb-1 flex justify-between text-sm font-semibold">
-              <span>Mock test ({usage.mockPeriod === "week" ? "tuần" : "ngày"})</span>
+              <span>Mock ({usage.mockPeriod === "week" ? "tuần" : "ngày"})</span>
               <span>{formatQuotaRatio(usage.mockUsed, usage.mockLimit)}</span>
             </div>
             <Progress value={usagePct(usage.mockUsed, usage.mockLimit)} />
@@ -106,19 +135,26 @@ export function SpeakingHubClient({
           Đã hết lượt luyện {skillName} {trackLabel} hôm nay.{" "}
           <Link href="/pricing" className="font-bold underline">
             Nâng cấp gói
-          </Link>{" "}
-          để luyện thêm.
+          </Link>
         </p>
       )}
 
       <section>
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <h2 className="page-section-title text-purple-800">Luyện tập theo Part</h2>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <h2 className="page-section-title text-purple-800">Các Part · vuốt ngang</h2>
           {ieltsModule && <IeltsModuleBadge module={ieltsModule} size="sm" />}
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
+        <HorizontalScrollTrack label={`${skillName} parts`} showHint>
           {practiceParts.map((part) => (
-            <Card key={part.part} className="border-2 border-purple-100">
+            <Card
+              key={part.part}
+              className={cn(
+                "scroll-card w-[min(72vw,14rem)] border-2",
+                part.paper?.id === nextPart?.paper?.id && !part.done
+                  ? "border-sky-300 ring-2 ring-sky-200"
+                  : "border-purple-100"
+              )}
+            >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between gap-2">
                   <CardTitle className="text-base font-extrabold">{part.shortLabel}</CardTitle>
@@ -137,25 +173,25 @@ export function SpeakingHubClient({
               <CardContent>
                 {part.paper ? (
                   practiceLocked ? (
-                    <Button className="w-full rounded-full" disabled>
-                      Hết lượt hôm nay
+                    <Button className="w-full rounded-full" disabled size="sm">
+                      Hết lượt
                     </Button>
                   ) : (
-                    <Button asChild className="kid-btn-fun w-full rounded-full">
-                      <Link href={`/practice/${part.paper.id}`}>Luyện tập</Link>
+                    <Button asChild className="kid-btn-fun w-full rounded-full" size="sm">
+                      <Link href={`/practice/${part.paper.id}`}>Luyện</Link>
                     </Button>
                   )
                 ) : (
-                  <p className="text-sm text-amber-700">{migrateHint}</p>
+                  <p className="text-xs text-amber-700">{migrateHint}</p>
                 )}
               </CardContent>
             </Card>
           ))}
-        </div>
+        </HorizontalScrollTrack>
       </section>
 
       <section>
-        <h2 className="page-section-title mb-3 text-amber-800 sm:mb-4">Mock full</h2>
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-800">Bước 2 · Mock</p>
         <Card className="border-2 border-amber-200 bg-amber-50/40">
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -185,6 +221,21 @@ export function SpeakingHubClient({
           </CardContent>
         </Card>
       </section>
+
+      <div className="flex flex-wrap gap-2">
+        {nextSkill && (
+          <Button asChild variant="secondary" className="rounded-full">
+            <Link href={nextSkill.href}>
+              Kỹ năng tiếp: {nextSkill.emoji} {nextSkill.label} →
+            </Link>
+          </Button>
+        )}
+        {hubHref && (
+          <Button asChild variant="ghost" className="rounded-full">
+            <Link href={hubHref}>← Về quỹ đạo</Link>
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

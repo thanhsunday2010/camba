@@ -187,9 +187,70 @@ export default async function ExamsLevelPage({
         )}
       </div>
 
+      <section className="mb-8 sm:mb-10">
+        <h2 className="page-section-title mb-3 text-purple-900 sm:mb-4">
+          Bước 1 · Luyện theo kỹ năng
+        </h2>
+        <SkillPracticeGrid
+          skills={gridSkills}
+          mockLockedHint="Đã hết lượt mock test hôm nay — quay lại ngày mai"
+        />
+      </section>
+
+      <section className="mb-8 sm:mb-10">
+        <h2 className="page-section-title mb-3 text-purple-900 sm:mb-4">
+          Bước 2 · Speaking & Writing (AI chấm)
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card className="border-2 border-rose-200 bg-gradient-to-br from-rose-50/60 to-white">
+            <CardContent className="flex flex-col gap-3 py-4 sm:py-5">
+              <div>
+                <p className="page-section-title text-rose-800">
+                  🎤 Speaking {formatExamLevel(level)}
+                </p>
+                {speakingQuestionCount > 0 && (
+                  <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+                    {formatBankQuestionCount(speakingQuestionCount)} · {speakingPartCount} Part
+                  </p>
+                )}
+              </div>
+              <Link
+                href={`/exams/${level}/speaking`}
+                className="kid-btn-fun inline-flex w-full justify-center rounded-full bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-700 sm:w-auto"
+              >
+                Luyện Speaking →
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 to-white">
+            <CardContent className="flex flex-col gap-3 py-4 sm:py-5">
+              <div>
+                <p className="page-section-title text-amber-900">
+                  ✏️ Writing {formatExamLevel(level)}
+                </p>
+                {writingQuestionCount > 0 && (
+                  <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+                    {formatBankQuestionCount(writingQuestionCount)} · {writingPartCount} Part
+                  </p>
+                )}
+              </div>
+              <Link
+                href={`/exams/${level}/writing`}
+                className="kid-btn-fun inline-flex w-full justify-center rounded-full bg-amber-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-700 sm:w-auto"
+              >
+                Luyện Writing →
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       {fullMocks.length > 0 && (
-        <section className="mb-8 sm:mb-10">
-          <h2 className="page-section-title mb-3 text-amber-700 sm:mb-4">🏆 Full Mock</h2>
+        <section>
+          <h2 className="page-section-title mb-3 text-amber-700 sm:mb-4">
+            Bước 3 · Full Mock (thi thử)
+          </h2>
           <FullMockGrid
             papers={fullMocks.map((p) => ({
               id: p.id,
@@ -206,60 +267,6 @@ export default async function ExamsLevelPage({
           />
         </section>
       )}
-
-      <section className="mb-8 sm:mb-10">
-        <Card className="border-2 border-rose-200 bg-gradient-to-br from-rose-50/60 to-white">
-          <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 sm:gap-4 sm:py-5">
-            <div>
-              <p className="page-section-title text-rose-800">
-                🎤 Speaking {formatExamLevel(level)}
-              </p>
-              {speakingQuestionCount > 0 && (
-                <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-                  {formatBankQuestionCount(speakingQuestionCount)} · {speakingPartCount} Part
-                </p>
-              )}
-            </div>
-            <Link
-              href={`/exams/${level}/speaking`}
-              className="kid-btn-fun inline-flex rounded-full bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-700"
-            >
-              Vào luyện Speaking
-            </Link>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="mb-8 sm:mb-10">
-        <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 to-white">
-          <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 sm:gap-4 sm:py-5">
-            <div>
-              <p className="page-section-title text-amber-900">
-                ✏️ Writing {formatExamLevel(level)}
-              </p>
-              {writingQuestionCount > 0 && (
-                <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-                  {formatBankQuestionCount(writingQuestionCount)} · {writingPartCount} Part
-                </p>
-              )}
-            </div>
-            <Link
-              href={`/exams/${level}/writing`}
-              className="kid-btn-fun inline-flex rounded-full bg-amber-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-700"
-            >
-              Vào luyện Writing
-            </Link>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section>
-        <h2 className="page-section-title mb-3 text-purple-900 sm:mb-4">Luyện theo kỹ năng</h2>
-        <SkillPracticeGrid
-          skills={gridSkills}
-          mockLockedHint="Đã hết lượt mock test hôm nay — quay lại ngày mai"
-        />
-      </section>
     </div>
   );
 }

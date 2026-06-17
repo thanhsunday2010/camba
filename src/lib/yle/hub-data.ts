@@ -14,6 +14,7 @@ import {
 } from "@/lib/yle/constants";
 import { getYleLevelLeaderboard } from "@/lib/yle/leaderboard";
 import { getYleUserProgress } from "@/lib/yle/progress";
+import { suggestYleContinue } from "@/lib/yle/practice-path";
 import type { YleSkillNodeData } from "@/lib/yle/types";
 
 export async function loadYleLevelHub(level: YleLevel) {
@@ -65,6 +66,7 @@ export async function loadYleLevelHub(level: YleLevel) {
     progress,
     leaderboard,
     nodes,
+    continueSuggestion: suggestYleContinue(level, nodes),
     usage,
     papers,
     completedPaperIds,

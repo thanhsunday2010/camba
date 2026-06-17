@@ -7,6 +7,8 @@ import { isIeltsWritingPracticePoolKey, parseIeltsWritingPracticePoolKey } from 
 import { IELTS_MODULE_META, ieltsHubPath } from "@/lib/exam/ielts-module";
 import { getCambridgeSpeakingUsageSnapshot } from "@/lib/subscription/cambridge-speaking-limit";
 import { getCambridgeWritingUsageSnapshot } from "@/lib/subscription/cambridge-writing-limit";
+import { isYleLevel, yleSkillPath } from "@/lib/yle/constants";
+import type { YleLevel } from "@/lib/yle/constants";
 import { getIeltsSpeakingUsageSnapshot } from "@/lib/subscription/ielts-speaking-limit";
 import { getIeltsWritingUsageSnapshot } from "@/lib/subscription/ielts-writing-limit";
 
@@ -87,11 +89,15 @@ export async function getPartAiPracticeResultsMeta(
   const writingParsed = parseCambridgeWritingPracticePoolKey(key);
   if (writingParsed) {
     const usage = await getCambridgeWritingUsageSnapshot(userId, writingParsed.level);
+    const level = writingParsed.level;
+    const hubHref = isYleLevel(level)
+      ? yleSkillPath(level as YleLevel, "WRITING")
+      : `/exams/${level}/writing`;
     return {
       paperId: paper.id,
       skillLabel: "Writing",
-      trackLabel: `Cambridge ${writingParsed.level}`,
-      hubHref: `/exams/${writingParsed.level.toLowerCase()}/writing`,
+      trackLabel: `Cambridge ${level}`,
+      hubHref,
       nextPracticeHref,
       ...usageFields(usage),
     };
@@ -100,11 +106,15 @@ export async function getPartAiPracticeResultsMeta(
   const speakingParsed = parseCambridgeSpeakingPracticePoolKey(key);
   if (speakingParsed) {
     const usage = await getCambridgeSpeakingUsageSnapshot(userId, speakingParsed.level);
+    const level = speakingParsed.level;
+    const hubHref = isYleLevel(level)
+      ? yleSkillPath(level as YleLevel, "SPEAKING")
+      : `/exams/${level}/speaking`;
     return {
       paperId: paper.id,
       skillLabel: "Speaking",
-      trackLabel: `Cambridge ${speakingParsed.level}`,
-      hubHref: `/exams/${speakingParsed.level.toLowerCase()}/speaking`,
+      trackLabel: `Cambridge ${level}`,
+      hubHref,
       nextPracticeHref,
       ...usageFields(usage),
     };
