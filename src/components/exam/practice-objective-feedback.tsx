@@ -47,7 +47,7 @@ export function PracticeObjectiveFeedback({
               feedback.isCorrect ? "text-emerald-800" : "text-rose-800"
             )}
           >
-            {feedback.isCorrect ? "🎉 Chính xác! Giỏi lắm!" : "😅 Chưa đúng rồi — cố lên nhé!"}
+            {feedback.isCorrect ? "Đúng rồi!" : "Chưa đúng"}
           </p>
           {!feedback.isCorrect && (
             <p className="mt-1 text-sm font-semibold text-rose-900">

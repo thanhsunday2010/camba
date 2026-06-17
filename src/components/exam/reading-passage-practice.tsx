@@ -72,23 +72,17 @@ export function ReadingPassagePractice({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-semibold text-purple-800">
-        <span>
-          {answeredCount}/{questions.length} câu đã trả lời
+      <div className="mb-3 flex items-center gap-2">
+        <Progress value={progressPct} className="h-2 flex-1" />
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {answeredCount}/{questions.length}
         </span>
-        <div className="flex min-w-[140px] flex-1 items-center gap-2 sm:max-w-xs">
-          <Progress value={progressPct} className="h-2" />
-          <span className="text-xs text-muted-foreground">{progressPct}%</span>
-        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 lg:h-[min(calc(100dvh-11rem),780px)] lg:min-h-[420px]">
         <aside className="flex min-h-0 max-h-[50vh] flex-col overflow-hidden rounded-2xl border-2 border-sky-200 bg-gradient-to-br from-sky-50/90 to-white shadow-md lg:max-h-none lg:h-full">
-          <div className="shrink-0 border-b border-sky-100 px-4 py-3">
-            <h2 className="text-base font-extrabold text-sky-900">📄 Đoạn văn</h2>
-            <p className="mt-0.5 text-xs font-medium text-sky-800/80">
-              Đọc kỹ đoạn văn rồi trả lời các câu bên cạnh
-            </p>
+          <div className="shrink-0 border-b border-sky-100 px-4 py-2.5">
+            <h2 className="text-sm font-extrabold text-sky-900">📄 Đoạn văn</h2>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
             {media && (media.imageDescription || media.imageUrl) && (
@@ -113,11 +107,8 @@ export function ReadingPassagePractice({
         </aside>
 
         <div className="flex min-h-0 max-h-[55vh] flex-col overflow-hidden rounded-2xl border-2 border-purple-200 bg-white/95 shadow-md lg:max-h-none lg:h-full">
-          <div className="shrink-0 border-b border-purple-100 px-4 py-3">
-            <h2 className="text-base font-extrabold text-purple-900">❓ Câu hỏi</h2>
-            <p className="mt-0.5 text-xs font-medium text-muted-foreground">
-              {questions.length} câu theo format đề thi
-            </p>
+          <div className="shrink-0 border-b border-purple-100 px-4 py-2.5">
+            <h2 className="text-sm font-extrabold text-purple-900">❓ Câu hỏi</h2>
           </div>
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4">
             {questions.map((question, index) => (

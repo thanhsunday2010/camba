@@ -25,7 +25,6 @@ import { ReadingPassagePractice } from "@/components/exam/reading-passage-practi
 import { QuestionType, PaperKind } from "@prisma/client";
 import { Shuffle } from "lucide-react";
 import { getSectionForIndex, type PaperSection } from "@/lib/exam/paper-sections";
-import { formatDuration } from "@/lib/constants";
 import { useMascotToast } from "@/components/kids/mascot-toast-provider";
 import {
   mascotAnswerCorrectMessage,
@@ -149,20 +148,6 @@ function buildObjectiveFeedback(
   };
 }
 
-function isReadingListeningPractice(
-  paperKind: string | undefined,
-  questions: PaperQuestion[]
-): boolean {
-  return (
-    paperKind === "PRACTICE" &&
-    questions.length > 0 &&
-    questions.every(
-      (q) =>
-        (q.skill === "READING" || q.skill === "LISTENING") &&
-        (q.type === "MCQ" || q.type === "GAP_FILL")
-    )
-  );
-}
 
 export function PracticeClient({
   paperId,
@@ -205,7 +190,6 @@ export function PracticeClient({
   >({});
   const [swappingQuestion, setSwappingQuestion] = useState(false);
 
-  const readingListeningPractice = isReadingListeningPractice(paperKind, sessionQuestions);
   const readingPassagePractice = isReadingPassageSession(paperKind, sessionQuestions);
 
   useEffect(() => {
@@ -679,72 +663,20 @@ export function PracticeClient({
     >
       <ConfettiBurst active={showConfetti} />
 
-      {readingPassagePractice && (
-        <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-sky-50 px-4 py-3 text-sm font-semibold text-indigo-900">
-          📖 <strong>Reading theo đoạn văn:</strong> Một đoạn văn · nhiều câu hỏi (format đề thi).
-          Chọn đáp án để biết ngay đúng/sai và xem giải thích.
-        </div>
-      )}
-      {readingListeningPractice && !readingPassagePractice && (
-        <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-sky-300 bg-gradient-to-r from-sky-50 to-emerald-50 px-4 py-3 text-sm font-semibold text-sky-900">
-          ⚡ <strong>Luyện tập tương tác:</strong> Chọn đáp án để biết ngay đúng/sai, nghe âm thanh
-          vui nhộn và xem giải thích tại chỗ. Trang kết quả chỉ hiển thị điểm tổng.
-        </div>
-      )}
-      {paperKind === "PLACEMENT" && (
-        <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-sky-300 bg-gradient-to-r from-sky-50 to-blue-50 px-4 py-3 text-sm font-semibold text-sky-900">
-          🎯 <strong>Bài test trình độ:</strong> Bạn có thể nhảy tới bất kỳ câu nào trên bản đồ
-          để làm hoặc sửa câu đã bỏ qua.
-        </div>
-      )}
-      {paperKind === "PLACEMENT" && useSectionTimer && (
-        <div className="mb-4 rounded-2xl border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-violet-50 px-4 py-3 text-sm font-semibold text-indigo-900">
-          📋 <strong>Placement nhiều phần:</strong> Mỗi phần có thời gian riêng (theo format thi
-          thật). Hết giờ sẽ chuyển phần tiếp theo.
-        </div>
-      )}
-      {isMockTest && paperKind === "MOCK_FULL" && (
-        <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 text-sm font-semibold text-amber-900">
-          🏆 <strong>Full mock Cambridge:</strong> Mỗi phần thi có thời gian riêng. Hết giờ phần
-          này sẽ chuyển sang phần tiếp theo — không quay lại phần đã qua.
-        </div>
-      )}
-      {isPartAiPracticeUi && (
-        <div className="mb-4 animate-bounce-in rounded-2xl border-2 border-violet-300 bg-gradient-to-r from-violet-50 to-fuchsia-50 px-4 py-3 text-sm font-semibold text-violet-900">
-          ✨ <strong>Luyện 1 câu:</strong> Làm xong và nộp — AI chấm sửa ngay (tính 1 lượt AI
-          chấm).
-        </div>
-      )}
-      {isMockTest && paperKind !== "PLACEMENT" && paperKind !== "MOCK_FULL" && !isPartAiPracticeUi && (
-        <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 text-sm font-semibold text-amber-900">
-          ⏰ <strong>Chế độ thi thử:</strong> Làm tuần tự từng câu nhé!
-        </div>
-      )}
-
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-extrabold kid-gradient-text">{paperTitle}</h1>
             {ieltsModule && <IeltsModuleBadge module={ieltsModule} size="sm" />}
           </div>
           {currentSection && (
-            <p className="mt-1 text-sm font-bold text-purple-700">
-              {SECTION_EMOJI[currentSection.skill] ?? "📌"} Phần: {currentSection.label}
+            <p className="mt-0.5 text-sm font-semibold text-purple-700">
+              {SECTION_EMOJI[currentSection.skill] ?? "📌"} {currentSection.label}
             </p>
           )}
-          {useSectionTimer && currentSection?.timeLimit && (
-            <p className="mt-1 text-xs font-bold text-amber-800">
-              ⏱ Phần này: {formatDuration(currentSection.timeLimit)}
-            </p>
-          )}
-          {!isPartAiPracticeUi && !readingPassagePractice && (
-            <p className="text-sm font-semibold text-muted-foreground">
-              Câu {currentIndex + 1}/{sessionQuestions.length || "…"} · Đã trả lời {answeredCount} câu
-            </p>
-          )}
-          {readingPassagePractice && (
-            <p className="text-sm font-semibold text-muted-foreground">
-              {sessionQuestions.length} câu · Đã trả lời {answeredCount} câu
+          {!isPartAiPracticeUi && !readingPassagePractice && sessionQuestions.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Câu {currentIndex + 1}/{sessionQuestions.length}
             </p>
           )}
           {!isPartAiPracticeUi && !readingPassagePractice && (

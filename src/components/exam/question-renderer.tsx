@@ -104,20 +104,12 @@ export function QuestionRenderer({
       <div className="flex items-start justify-between gap-3">
         <h3
           className={cn(
-            "font-extrabold text-purple-800",
-            hidePassage ? "text-sm" : "text-lg"
+            "font-bold text-purple-800",
+            hidePassage ? "text-sm" : "text-base"
           )}
         >
-          ✨ Câu {index + 1}
+          Câu {index + 1}
         </h3>
-        <span
-          className={cn(
-            "shrink-0 rounded-full bg-sunshine-200 font-bold text-sunshine-900",
-            hidePassage ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs"
-          )}
-        >
-          ⭐ {question.points} điểm
-        </span>
       </div>
 
       {media && (media.imageDescription || media.imageUrl) && (
@@ -362,7 +354,7 @@ function FreeTextQuestion({
                   : "font-semibold text-amber-800"
               }
             >
-              Tối thiểu {practiceMinWords} từ để chuyển câu / nộp bài
+              Tối thiểu {practiceMinWords} từ
             </span>
           )}
           {limitHint && <span>{limitHint}</span>}
@@ -406,12 +398,7 @@ function SpeakingQuestion({
       <div className="overflow-hidden rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50/90 via-white to-pink-50/40 shadow-sm">
         <div className="border-b border-purple-100 px-4 py-3">
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <p className="text-sm font-extrabold text-purple-900">🎤 Bài nói</p>
-              {questionTitle && (
-                <p className="mt-0.5 text-base font-semibold text-muted-foreground">{questionTitle}</p>
-              )}
-            </div>
+            <p className="text-sm font-extrabold text-purple-900">🎤 Bài nói</p>
             <div className="flex flex-wrap gap-1.5">
               {content.preparationTime != null && content.preparationTime > 0 && (
                 <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-base font-bold text-purple-700 ring-1 ring-purple-100">
@@ -425,9 +412,6 @@ function SpeakingQuestion({
               )}
             </div>
           </div>
-          <p className="mt-2 text-base font-medium leading-relaxed text-purple-800/90">
-            Nghe câu hỏi của giám khảo, rồi trả lời bằng tiếng Anh — giống thi Speaking thật.
-          </p>
         </div>
 
         <div className="space-y-3 px-4 py-3">

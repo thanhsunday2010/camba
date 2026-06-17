@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, Clock, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
+import { type BankStats } from "@/lib/exam/bank-stats";
 
 export type SkillGridPaper = {
   id: string;
@@ -43,7 +43,6 @@ function PaperLink({
   label,
   locked,
   lockedHint,
-  bankStats,
 }: {
   paper: SkillGridPaper;
   done: boolean;
@@ -51,7 +50,6 @@ function PaperLink({
   label: string;
   locked?: boolean;
   lockedHint?: string;
-  bankStats?: BankStats;
 }) {
   const minutes = formatMinutes(paper.timeLimit);
   const isPractice = variant === "practice";
@@ -86,12 +84,6 @@ function PaperLink({
           <Badge className="h-5 shrink-0 bg-sky-500 px-1.5 text-[10px] hover:bg-sky-500">Mới</Badge>
         )}
       </div>
-      {paper.description && (
-        <p className="text-base font-medium leading-relaxed text-muted-foreground">{paper.description}</p>
-      )}
-      {bankStats && (
-        <p className="text-xs font-semibold text-violet-700">📚 {formatBankStatsLine(bankStats)}</p>
-      )}
       {minutes && (
         <p className="flex items-center gap-1.5 text-base font-semibold text-muted-foreground">
           <Clock className="h-4 w-4" />
@@ -146,14 +138,6 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
               </span>
               <div className="min-w-0 flex-1">
                 <h3 className="text-lg font-extrabold text-purple-900">{skill.skillLabel}</h3>
-                <p className="mt-1 text-base font-semibold leading-relaxed text-muted-foreground">
-                  {skill.practiceInfo}
-                </p>
-                {skill.mockInfo && (
-                  <p className="mt-0.5 text-base font-semibold leading-relaxed text-amber-800/90">
-                    {skill.mockInfo}
-                  </p>
-                )}
               </div>
               {hasNew && (
                 <Sparkles className="h-4 w-4 shrink-0 text-sky-500" aria-label="Có bài mới" />
@@ -167,7 +151,6 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
                   done={!!skill.practiceDone}
                   variant="practice"
                   label="Luyện tập"
-                  bankStats={skill.practiceBankStats}
                 />
               )}
               {skill.mock && (
@@ -178,7 +161,6 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
                   label="Mock test"
                   locked={skill.mockLocked}
                   lockedHint={skill.mockLocked ? mockLockedHint : undefined}
-                  bankStats={skill.mockBankStats}
                 />
               )}
             </div>
@@ -195,14 +177,12 @@ export function FullMockGrid({
   locked = false,
   lockedHint,
   lockedHref,
-  bankStats,
 }: {
   papers: SkillGridPaper[];
   completedPaperIds: ReadonlySet<string>;
   locked?: boolean;
   lockedHint?: string;
   lockedHref?: string;
-  bankStats?: BankStats;
 }) {
   if (papers.length === 0) return null;
 
@@ -231,28 +211,16 @@ export function FullMockGrid({
                 <Badge className="shrink-0 bg-sky-500 hover:bg-sky-500">Mới</Badge>
               )}
             </div>
-            {paper.description && (
-              <p className="text-base font-medium leading-relaxed text-muted-foreground">
-                {paper.description}
-              </p>
-            )}
-            {bankStats && (
-              <p className="text-xs font-semibold text-amber-800">
-                📚 {formatBankStatsLine(bankStats)}
-              </p>
-            )}
             {minutes && (
-              <p className="mt-2 flex items-center gap-1 text-sm font-semibold text-amber-800">
+              <p className="mt-1 flex items-center gap-1 text-sm font-semibold text-amber-800">
                 <Clock className="h-3.5 w-3.5" />
-                {minutes} · tất cả kỹ năng
+                {minutes}
               </p>
             )}
-            {locked ? (
-              <p className="mt-4 text-sm font-bold text-amber-900">
-                {lockedHint ?? "Nâng cấp Pro để mở full mock →"}
+            {locked && (
+              <p className="mt-2 text-xs font-semibold text-amber-900">
+                {lockedHint ?? "Nâng cấp Pro để mở full mock"}
               </p>
-            ) : (
-              <p className="mt-4 text-sm font-bold text-amber-900">Bắt đầu full mock →</p>
             )}
           </>
         );

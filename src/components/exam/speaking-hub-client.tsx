@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { formatBankStatsLine, type BankStats } from "@/lib/exam/bank-stats";
 import { formatQuotaRatio, isQuotaExhausted, isUnlimitedQuota } from "@/lib/subscription/plans";
+import type { BankStats } from "@/lib/exam/bank-stats";
 import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
 import type { IeltsModule } from "@/lib/exam/ielts-module";
 
@@ -63,13 +63,13 @@ export function SpeakingHubClient({
   trackLabel,
   skillName = "Speaking",
   ieltsModule,
-  quotaHint,
+  quotaHint: _quotaHint,
   usage,
   practiceParts,
   mockPaper,
   mockTitle,
-  mockDescription,
-  mockBankStats,
+  mockDescription: _mockDescription,
+  mockBankStats: _mockBankStats,
   migrateHint = "Chưa có đề — chạy migrate Speaking",
 }: Props) {
   const practiceLocked = isQuotaExhausted(usage.practiceUsed, usage.practiceLimit);
@@ -79,10 +79,9 @@ export function SpeakingHubClient({
     <div className="space-y-8">
       <Card className="border-2 border-sky-200 bg-gradient-to-br from-sky-50/60 to-white">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-extrabold">
-            Quyền lợi hôm nay · {usage.planName}
+          <CardTitle className="text-base font-extrabold">
+            Hôm nay · {usage.planName}
           </CardTitle>
-          <CardDescription>{quotaHint}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -129,15 +128,8 @@ export function SpeakingHubClient({
                     </Badge>
                   )}
                 </div>
-                <CardDescription className="text-sm leading-relaxed">{part.description}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm font-medium text-muted-foreground">{part.practiceInfo}</p>
-                {part.bankStats && (
-                  <p className="text-xs font-semibold text-violet-700">
-                    📚 {formatBankStatsLine(part.bankStats)}
-                  </p>
-                )}
+              <CardContent>
                 {part.paper ? (
                   practiceLocked ? (
                     <Button className="w-full rounded-full" disabled>
@@ -145,7 +137,7 @@ export function SpeakingHubClient({
                     </Button>
                   ) : (
                     <Button asChild className="kid-btn-fun w-full rounded-full">
-                      <Link href={`/practice/${part.paper.id}`}>Bắt đầu luyện tập</Link>
+                      <Link href={`/practice/${part.paper.id}`}>Luyện tập</Link>
                     </Button>
                   )
                 ) : (
@@ -158,29 +150,23 @@ export function SpeakingHubClient({
       </section>
 
       <section>
-        <h2 className="mb-4 text-xl font-extrabold text-amber-800">Mock test {skillName} full</h2>
+        <h2 className="mb-4 text-xl font-extrabold text-amber-800">Mock full</h2>
         <Card className="border-2 border-amber-200 bg-amber-50/40">
-          <CardHeader>
+          <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-lg font-extrabold">{mockTitle}</CardTitle>
-              {mockPaper?.done && <Badge variant="secondary">Đã làm ít nhất 1 lần</Badge>}
+              {mockPaper?.done && <Badge variant="secondary">Đã làm</Badge>}
             </div>
-            <CardDescription className="text-base leading-relaxed">{mockDescription}</CardDescription>
-            {mockBankStats && (
-              <p className="text-xs font-semibold text-amber-800">
-                📚 {formatBankStatsLine(mockBankStats)}
-              </p>
-            )}
           </CardHeader>
           <CardContent>
             {mockPaper ? (
               mockLocked ? (
                 <Button className="rounded-full bg-amber-600" disabled>
-                  {usage.mockPeriod === "week" ? "Hết lượt tuần này" : "Hết lượt hôm nay"}
+                  {usage.mockPeriod === "week" ? "Hết lượt tuần" : "Hết lượt hôm nay"}
                 </Button>
               ) : (
                 <Button asChild className="kid-btn-fun rounded-full bg-amber-600 hover:bg-amber-700">
-                  <Link href={`/practice/${mockPaper.id}`}>Bắt đầu mock test</Link>
+                  <Link href={`/practice/${mockPaper.id}`}>Bắt đầu mock</Link>
                 </Button>
               )
             ) : (
