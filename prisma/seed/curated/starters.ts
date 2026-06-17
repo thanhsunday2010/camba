@@ -133,21 +133,31 @@ const reading = fromPassageSets([
       mcq("Pet shop", "Why can't they get one?", ["They are too expensive", "They have a small flat", "The shop is closed", "They don't like pets"], "They have a small flat"),
     ],
   },
+  {
+    title: "Picture — park scene",
+    passage:
+      "Look at the picture. A girl in a yellow dress is standing next to a red ball on a table. A cat is under the tree. A yellow bus is in the street. The boy is happy. They are eating sandwiches.",
+    questions: [
+      mcq("Picture — park scene", "What animal is under the tree?", ["A dog", "A cat", "A horse", "A cow"], "A cat"),
+      mcq("Picture — park scene", "What colour is the big ball?", ["Blue", "Green", "Red", "Black"], "Red"),
+      mcq("Picture — park scene", "How many apples are on the table?", ["Two", "Three", "Four", "Six"], "Three"),
+      mcq("Picture — park scene", "Where is the book?", ["On the chair", "On the table", "Under the bed", "In the bag"], "On the table"),
+      mcq("Picture — park scene", "How are the children going to school?", ["By car", "By bus", "By bike", "On foot"], "By bus"),
+    ],
+  },
+  {
+    title: "Picture — home scene",
+    passage:
+      "Look at the picture. The weather is sunny. The girl is wearing a yellow dress. They are eating sandwiches in the kitchen. The boy feels happy. You sleep in the bedroom at night.",
+    questions: [
+      mcq("Picture — home scene", "What is the weather like?", ["Rainy", "Snowy", "Sunny", "Windy"], "Sunny"),
+      mcq("Picture — home scene", "What is the girl wearing?", ["A coat", "A yellow dress", "Trousers", "Boots only"], "A yellow dress"),
+      mcq("Picture — home scene", "What are they eating?", ["Soup", "Pizza", "Sandwiches", "Rice"], "Sandwiches"),
+      mcq("Picture — home scene", "Where do you sleep?", ["In the bathroom", "In the bedroom", "In the garden", "At school"], "In the bedroom"),
+      mcq("Picture — home scene", "How does the boy feel?", ["Sad", "Angry", "Happy", "Tired"], "Happy"),
+    ],
+  },
 ]);
-
-// Standalone picture-style questions (Starters Part 1 style)
-reading.push(
-  mcq("Picture — cat", "Look at the picture. What animal is under the tree?", ["A dog", "A cat", "A horse", "A cow"], "A cat"),
-  mcq("Picture — ball", "Look at the picture. What colour is the big ball?", ["Blue", "Green", "Red", "Black"], "Red"),
-  mcq("Picture — apples", "Look at the picture. How many apples are on the table?", ["Two", "Three", "Four", "Six"], "Three"),
-  mcq("Picture — book", "Look at the picture. Where is the book?", ["On the chair", "On the table", "Under the bed", "In the bag"], "On the table"),
-  mcq("Picture — bus", "Look at the picture. How are the children going to school?", ["By car", "By bus", "By bike", "On foot"], "By bus"),
-  mcq("Picture — weather", "Look at the picture. What is the weather like?", ["Rainy", "Snowy", "Sunny", "Windy"], "Sunny"),
-  mcq("Picture — clothes", "Look at the picture. What is the girl wearing?", ["A coat", "A yellow dress", "Trousers", "Boots only"], "A yellow dress"),
-  mcq("Picture — food", "Look at the picture. What are they eating?", ["Soup", "Pizza", "Sandwiches", "Rice"], "Sandwiches"),
-  mcq("Picture — bedroom", "Look at the picture. Where do you sleep?", ["In the bathroom", "In the bedroom", "In the garden", "At school"], "In the bedroom"),
-  mcq("Picture — happy", "Look at the picture. How does the boy feel?", ["Sad", "Angry", "Happy", "Tired"], "Happy")
-);
 
 const listening = [
   listen("Pen colour", "The pen is blue.", "What colour is the pen?", ["Red", "Blue", "Green", "Black"], "Blue"),

@@ -133,15 +133,19 @@ const reading = fromPassageSets([
       mcq("Ocean project", "What did the teacher do?", ["Cancelled the project", "Entered it into a competition", "Deleted the website", "Sold it"], "Entered it into a competition"),
     ],
   },
+  {
+    title: "Town information board",
+    passage:
+      "Information for visitors: The library is open until six on weekdays and four on Saturdays. School concert tickets cost eight pounds for adults and five for students. Heavy rain is expected on Tuesday but Wednesday will be dry and sunny. The cycling club meets at the north gate of the park every Sunday morning. Bake the cookies for twelve minutes at 180 degrees.",
+    questions: [
+      mcq("Town information board", "When does the library close on Saturdays?", ["Four", "Five", "Six", "Seven"], "Four"),
+      mcq("Town information board", "How much do students pay for concert tickets?", ["Three pounds", "Five pounds", "Eight pounds", "Ten pounds"], "Five pounds"),
+      mcq("Town information board", "Which day will be sunny?", ["Monday", "Tuesday", "Wednesday", "Thursday"], "Wednesday"),
+      mcq("Town information board", "Where does the cycling club meet?", ["The south gate", "The north gate", "The school", "The river"], "The north gate"),
+      mcq("Town information board", "How long should you bake the cookies?", ["Ten minutes", "Twelve minutes", "Fifteen minutes", "Twenty minutes"], "Twelve minutes"),
+    ],
+  },
 ]);
-
-reading.push(
-  mcq("Library hours", "When does it close on Saturdays?", ["Four", "Five", "Six", "Seven"], "Four", "The library is open until six on weekdays and four on Saturdays."),
-  mcq("Concert tickets", "How much do students pay?", ["Three pounds", "Five pounds", "Eight pounds", "Ten pounds"], "Five pounds", "Tickets for the school concert cost eight pounds for adults and five for students."),
-  mcq("Weather report", "Which day will be sunny?", ["Monday", "Tuesday", "Wednesday", "Thursday"], "Wednesday", "Heavy rain is expected on Tuesday but Wednesday will be dry and sunny."),
-  mcq("Cycling club", "Where do they meet?", ["The south gate", "The north gate", "The school", "The river"], "The north gate", "Members of the cycling club meet at the north gate of the park every Sunday morning."),
-  mcq("Cooking book", "How long should you bake them?", ["Ten minutes", "Twelve minutes", "Fifteen minutes", "Twenty minutes"], "Twelve minutes", "The recipe book says to bake the cookies for twelve minutes at 180 degrees.")
-);
 
 const listening = [
   listen("Gate announcement", "Flight BA203 to Rome is now boarding at gate 12.", "Which gate?", ["10", "11", "12", "14"], "12"),

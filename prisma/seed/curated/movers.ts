@@ -133,15 +133,19 @@ const reading = fromPassageSets([
       mcq("Pet rabbit", "Where does she clean it?", ["In the kitchen", "In the garden", "At school", "In the bathroom"], "In the garden"),
     ],
   },
+  {
+    title: "Short school notices",
+    passage:
+      "School notice board: Our school starts at eight thirty every morning. Anna usually has a cheese sandwich for lunch. Ben collects stamps from different countries. The weather forecast says it will be sunny tomorrow. The bus to town takes about twenty minutes.",
+    questions: [
+      mcq("Short school notices", "What time does school start?", ["Eight", "Eight thirty", "Nine", "Nine thirty"], "Eight thirty"),
+      mcq("Short school notices", "What does Anna usually eat?", ["Pizza", "A cheese sandwich", "Soup", "Rice"], "A cheese sandwich"),
+      mcq("Short school notices", "What does Ben collect?", ["Coins", "Stamps", "Cards", "Books"], "Stamps"),
+      mcq("Short school notices", "What will the weather be like tomorrow?", ["Rainy", "Cloudy", "Sunny", "Snowy"], "Sunny"),
+      mcq("Short school notices", "How long does the bus take?", ["Ten minutes", "Twenty minutes", "Half an hour", "An hour"], "Twenty minutes"),
+    ],
+  },
 ]);
-
-reading.push(
-  mcq("School start", "What time does school start?", ["Eight", "Eight thirty", "Nine", "Nine thirty"], "Eight thirty", "Our school starts at eight thirty every morning."),
-  mcq("Sandwich lunch", "What does Anna usually eat?", ["Pizza", "A cheese sandwich", "Soup", "Rice"], "A cheese sandwich", "Anna usually has a cheese sandwich for lunch."),
-  mcq("Stamp collection", "What does Ben collect?", ["Coins", "Stamps", "Cards", "Books"], "Stamps", "Ben collects stamps from different countries."),
-  mcq("Weather tomorrow", "What will the weather be like?", ["Rainy", "Cloudy", "Sunny", "Snowy"], "Sunny", "The weather forecast says it will be sunny tomorrow."),
-  mcq("Bus time", "How long does the bus take?", ["Ten minutes", "Twenty minutes", "Half an hour", "An hour"], "Twenty minutes", "The bus to town takes about twenty minutes.")
-);
 
 const listening = [
   listen("Phone call", "Can you call me at half past four?", "When should you call?", ["4:00", "4:15", "4:30", "5:00"], "4:30"),

@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-06-17T07:56:24.293Z",
+  "generatedAt": "2026-06-17T08:16:06.039Z",
   "audits": [
     {
       "level": "STARTERS",
       "curated": {
-        "reading": 65,
-        "listening": 25,
-        "writing": 10,
-        "speaking": 10,
-        "uoe": 0
+        "reading": 100,
+        "listening": 125,
+        "writing": 20,
+        "speaking": 20,
+        "uoe": 20
       },
       "expanded": {
-        "reading": 215,
+        "reading": 250,
         "listening": 536,
         "writing": 28,
-        "speaking": 26,
+        "speaking": 28,
         "uoe": 80
       },
       "required": {
@@ -25,42 +25,42 @@
         "uoe": 80
       },
       "generatedSharePct": {
-        "reading": 70,
-        "listening": 95,
-        "writing": 64,
-        "speaking": 62,
-        "uoe": 100
+        "reading": 60,
+        "listening": 77,
+        "writing": 29,
+        "speaking": 29,
+        "uoe": 75
       },
       "readingIssues": {
-        "passages": 12,
-        "questions": 65,
-        "short": 1,
+        "passages": 20,
+        "questions": 100,
+        "short": 0,
         "long": 0,
         "solo": 0,
         "smallSets": 0
       },
       "maxPracticeSessions": {
-        "reading": 6,
-        "listening": 2,
-        "writing": 10,
-        "speaking": 10,
-        "uoe": 0
+        "reading": 10,
+        "listening": 10,
+        "writing": 20,
+        "speaking": 20,
+        "uoe": 2
       }
     },
     {
       "level": "MOVERS",
       "curated": {
-        "reading": 60,
-        "listening": 25,
-        "writing": 10,
-        "speaking": 10,
-        "uoe": 0
+        "reading": 100,
+        "listening": 120,
+        "writing": 20,
+        "speaking": 20,
+        "uoe": 20
       },
       "expanded": {
-        "reading": 310,
+        "reading": 350,
         "listening": 586,
-        "writing": 35,
-        "speaking": 26,
+        "writing": 38,
+        "speaking": 28,
         "uoe": 80
       },
       "required": {
@@ -71,42 +71,42 @@
         "uoe": 80
       },
       "generatedSharePct": {
-        "reading": 81,
-        "listening": 96,
-        "writing": 71,
-        "speaking": 62,
-        "uoe": 100
+        "reading": 71,
+        "listening": 80,
+        "writing": 47,
+        "speaking": 29,
+        "uoe": 75
       },
       "readingIssues": {
-        "passages": 16,
-        "questions": 60,
+        "passages": 20,
+        "questions": 100,
         "short": 0,
         "long": 0,
-        "solo": 5,
-        "smallSets": 5
+        "solo": 0,
+        "smallSets": 0
       },
       "maxPracticeSessions": {
-        "reading": 6,
-        "listening": 2,
-        "writing": 10,
-        "speaking": 10,
-        "uoe": 0
+        "reading": 10,
+        "listening": 10,
+        "writing": 20,
+        "speaking": 20,
+        "uoe": 2
       }
     },
     {
       "level": "FLYERS",
       "curated": {
-        "reading": 60,
-        "listening": 25,
-        "writing": 10,
-        "speaking": 10,
-        "uoe": 0
+        "reading": 100,
+        "listening": 120,
+        "writing": 20,
+        "speaking": 20,
+        "uoe": 20
       },
       "expanded": {
-        "reading": 560,
+        "reading": 600,
         "listening": 586,
-        "writing": 35,
-        "speaking": 26,
+        "writing": 38,
+        "speaking": 28,
         "uoe": 80
       },
       "required": {
@@ -117,35 +117,35 @@
         "uoe": 80
       },
       "generatedSharePct": {
-        "reading": 89,
-        "listening": 96,
-        "writing": 71,
-        "speaking": 62,
-        "uoe": 100
+        "reading": 83,
+        "listening": 80,
+        "writing": 47,
+        "speaking": 29,
+        "uoe": 75
       },
       "readingIssues": {
-        "passages": 16,
-        "questions": 60,
+        "passages": 20,
+        "questions": 100,
         "short": 0,
         "long": 0,
-        "solo": 5,
-        "smallSets": 5
+        "solo": 0,
+        "smallSets": 0
       },
       "maxPracticeSessions": {
-        "reading": 6,
-        "listening": 2,
-        "writing": 10,
-        "speaking": 10,
-        "uoe": 0
+        "reading": 10,
+        "listening": 10,
+        "writing": 20,
+        "speaking": 20,
+        "uoe": 2
       }
     },
     {
       "level": "KET",
       "curated": {
-        "reading": 94,
-        "listening": 25,
-        "writing": 10,
-        "speaking": 10,
+        "reading": 104,
+        "listening": 120,
+        "writing": 20,
+        "speaking": 20,
         "uoe": 30
       },
       "expanded": {
@@ -163,35 +163,35 @@
         "uoe": 225
       },
       "generatedSharePct": {
-        "reading": 83,
-        "listening": 95,
-        "writing": 75,
-        "speaking": 60,
+        "reading": 81,
+        "listening": 78,
+        "writing": 50,
+        "speaking": 20,
         "uoe": 87
       },
       "readingIssues": {
-        "passages": 17,
-        "questions": 94,
+        "passages": 19,
+        "questions": 104,
         "short": 0,
         "long": 0,
         "solo": 0,
         "smallSets": 0
       },
       "maxPracticeSessions": {
-        "reading": 9,
-        "listening": 2,
-        "writing": 10,
-        "speaking": 10,
+        "reading": 10,
+        "listening": 10,
+        "writing": 20,
+        "speaking": 20,
         "uoe": 3
       }
     },
     {
       "level": "PET",
       "curated": {
-        "reading": 91,
-        "listening": 25,
-        "writing": 10,
-        "speaking": 10,
+        "reading": 101,
+        "listening": 120,
+        "writing": 20,
+        "speaking": 20,
         "uoe": 30
       },
       "expanded": {
@@ -209,39 +209,39 @@
         "uoe": 225
       },
       "generatedSharePct": {
-        "reading": 82,
-        "listening": 95,
-        "writing": 75,
-        "speaking": 60,
+        "reading": 80,
+        "listening": 78,
+        "writing": 50,
+        "speaking": 20,
         "uoe": 87
       },
       "readingIssues": {
-        "passages": 17,
-        "questions": 91,
+        "passages": 19,
+        "questions": 101,
         "short": 0,
         "long": 0,
         "solo": 0,
         "smallSets": 0
       },
       "maxPracticeSessions": {
-        "reading": 9,
-        "listening": 2,
-        "writing": 10,
-        "speaking": 10,
+        "reading": 10,
+        "listening": 10,
+        "writing": 20,
+        "speaking": 20,
         "uoe": 3
       }
     },
     {
       "level": "FCE",
       "curated": {
-        "reading": 85,
-        "listening": 25,
-        "writing": 10,
-        "speaking": 10,
+        "reading": 100,
+        "listening": 120,
+        "writing": 20,
+        "speaking": 20,
         "uoe": 30
       },
       "expanded": {
-        "reading": 335,
+        "reading": 350,
         "listening": 550,
         "writing": 40,
         "speaking": 25,
@@ -255,25 +255,25 @@
         "uoe": 300
       },
       "generatedSharePct": {
-        "reading": 75,
-        "listening": 95,
-        "writing": 75,
-        "speaking": 60,
+        "reading": 71,
+        "listening": 78,
+        "writing": 50,
+        "speaking": 20,
         "uoe": 90
       },
       "readingIssues": {
-        "passages": 16,
-        "questions": 85,
+        "passages": 19,
+        "questions": 100,
         "short": 0,
         "long": 0,
         "solo": 0,
         "smallSets": 0
       },
       "maxPracticeSessions": {
-        "reading": 8,
-        "listening": 2,
-        "writing": 10,
-        "speaking": 10,
+        "reading": 10,
+        "listening": 10,
+        "writing": 20,
+        "speaking": 20,
         "uoe": 3
       }
     }

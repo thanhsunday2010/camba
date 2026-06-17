@@ -8,6 +8,7 @@ import { FCE_BANK } from "./fce";
 import type { LevelBank } from "./types";
 import { enrichCuratedReading } from "../generators/reading-passage-sets";
 import { questionCounts } from "../generators/bulk-data";
+import { LEVEL_SUPPLEMENTS, mergeLevelBank } from "./supplements";
 
 const BANKS: Record<ExamLevel, LevelBank> = {
   STARTERS: STARTERS_BANK,
@@ -31,13 +32,13 @@ function trimBank(level: ExamLevel, bank: LevelBank): LevelBank {
 }
 
 export function getCuratedLevelData(level: ExamLevel): LevelBank {
-  const bank = BANKS[level];
+  const merged = mergeLevelBank(BANKS[level], LEVEL_SUPPLEMENTS[level]);
   return {
-    reading: enrichCuratedReading(level, bank.reading),
-    listening: bank.listening,
-    writing: bank.writing,
-    speaking: bank.speaking,
-    uoe: bank.uoe,
+    reading: enrichCuratedReading(level, merged.reading),
+    listening: merged.listening,
+    writing: merged.writing,
+    speaking: merged.speaking,
+    uoe: merged.uoe,
   };
 }
 
