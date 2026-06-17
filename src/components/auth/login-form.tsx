@@ -6,10 +6,11 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OAuthSignInButtons } from "@/components/auth/oauth-sign-in-buttons";
+import { LoginFormHeader } from "@/components/inline-edit/page-editable-sections";
 import type { OAuthProviderId } from "@/lib/auth/providers";
 import { isPhoneInput, isValidPhone } from "@/lib/auth/phone";
 import { redirectAfterAuth, sanitizeAuthCallbackUrl } from "@/lib/auth/safe-callback-url";
@@ -66,8 +67,7 @@ export function LoginForm({ oauthProviders }: LoginFormProps) {
   return (
     <Card className="w-full max-w-md border-2 border-purple-100">
       <CardHeader>
-        <CardTitle>Đăng nhập</CardTitle>
-        <CardDescription>Email, số điện thoại hoặc mạng xã hội</CardDescription>
+        <LoginFormHeader />
       </CardHeader>
       <CardContent className="space-y-6">
         <OAuthSignInButtons providers={oauthProviders} callbackUrl={callbackUrl} mode="login" />

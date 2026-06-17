@@ -5,6 +5,8 @@ import { PaymentInstructions } from "@/components/pricing/payment-instructions";
 import { getBankTransferSettings } from "@/lib/payment/get-bank-transfer-settings";
 import { getVietQrImageUrl } from "@/lib/payment/vietqr";
 
+import { PaymentPageTitle } from "@/components/inline-edit/page-editable-sections";
+
 async function buildPaymentView(order: {
   id: string;
   amount: number;
@@ -61,7 +63,7 @@ export default async function PaymentPage({
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-10">
-      <h1 className="mb-6 text-3xl font-extrabold kid-gradient-text">Thanh toán</h1>
+      <PaymentPageTitle />
       <PaymentInstructions
         order={order}
         bank={view.bank}

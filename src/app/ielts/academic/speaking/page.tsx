@@ -4,6 +4,8 @@ import { IeltsSpeakingHubClient } from "@/components/ielts/ielts-speaking-hub-cl
 import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 
+import { IeltsAcademicHubHeader } from "@/components/inline-edit/page-editable-sections";
+
 export const revalidate = 60;
 
 export default async function IeltsAcademicSpeakingPage() {
@@ -17,16 +19,12 @@ export default async function IeltsAcademicSpeakingPage() {
           <Link href="/exams" className="text-sm font-semibold text-purple-600 hover:underline">
             ← Chọn level
           </Link>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-extrabold kid-gradient-text">
-              {data.meta.hubTitle("Speaking")}
-            </h1>
-            <IeltsModuleBadge module={data.module} />
-          </div>
-          <p className="mt-1 max-w-2xl font-semibold text-muted-foreground">
-            {data.meta.description} · Mỗi lần luyện 1 câu ngẫu nhiên · AI chấm band ngay · mock
-            full Part 1+2+3
-          </p>
+          <IeltsAcademicHubHeader
+            skill="speaking"
+            defaultTitle={data.meta.hubTitle("Speaking")}
+            defaultDescription={`${data.meta.description} · Mỗi lần luyện 1 câu ngẫu nhiên · AI chấm band ngay · mock full Part 1+2+3`}
+            badge={<IeltsModuleBadge module={data.module} />}
+          />
         </div>
       </div>
 

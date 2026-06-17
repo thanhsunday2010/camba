@@ -6,6 +6,8 @@ import { getAvailablePaymentGroups } from "@/lib/payment/config";
 import { CheckoutForm } from "@/components/pricing/checkout-form";
 import { Button } from "@/components/ui/button";
 
+import { SubscribePageHeader } from "@/components/inline-edit/page-editable-sections";
+
 export const dynamic = "force-dynamic";
 
 export default async function SubscribePage({
@@ -30,8 +32,7 @@ export default async function SubscribePage({
     <div className="container mx-auto max-w-4xl px-4 py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold kid-gradient-text">Thanh toán gói</h1>
-          <p className="mt-1 text-muted-foreground">Bước cuối để nâng cấp tài khoản</p>
+          <SubscribePageHeader />
         </div>
         <Button asChild variant="outline" className="rounded-full">
           <Link href="/pricing">← Quay lại bảng giá</Link>

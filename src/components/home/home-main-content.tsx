@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +27,7 @@ import {
   Star,
   ClipboardCheck,
 } from "lucide-react";
+import { EditableText } from "@/components/inline-edit/editable-text";
 
 const PRACTICE_HIGHLIGHTS = [
   {
@@ -104,13 +107,22 @@ export function HomeMainContent() {
       <section className="container mx-auto px-4 py-12 lg:py-16">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 text-center lg:text-left">
-            <h2 className="kid-section-title kid-gradient-text mb-2">Luyện thông minh, không lặp đề</h2>
-            <p className="text-muted-foreground">
-              Mỗi kỹ năng một cách luyện phù hợp — từ trắc nghiệm nhanh đến chấm AI chi tiết
-            </p>
+            <EditableText
+              contentKey="home.features.title"
+              defaultValue="Luyện thông minh, không lặp đề"
+              as="h2"
+              className="kid-section-title kid-gradient-text mb-2"
+            />
+            <EditableText
+              contentKey="home.features.subtitle"
+              defaultValue="Mỗi kỹ năng một cách luyện phù hợp — từ trắc nghiệm nhanh đến chấm AI chi tiết"
+              as="p"
+              multiline
+              className="text-muted-foreground"
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PRACTICE_HIGHLIGHTS.map((item) => (
+            {PRACTICE_HIGHLIGHTS.map((item, index) => (
               <Card key={item.title} className="kid-card border-2 border-purple-100">
                 <CardHeader className="pb-2">
                   <div
@@ -121,11 +133,20 @@ export function HomeMainContent() {
                   <span className="inline-block rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-700">
                     {item.badge}
                   </span>
-                  <CardTitle className="mt-2 text-base font-extrabold">{item.title}</CardTitle>
+                  <CardTitle className="mt-2 text-base font-extrabold">
+                    <EditableText
+                      contentKey={`home.highlights.${index}.title`}
+                      defaultValue={item.title}
+                    />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-sm font-medium leading-relaxed">
-                    {item.description}
+                    <EditableText
+                      contentKey={`home.highlights.${index}.description`}
+                      defaultValue={item.description}
+                      multiline
+                    />
                   </CardDescription>
                 </CardContent>
               </Card>
@@ -139,17 +160,31 @@ export function HomeMainContent() {
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-6xl space-y-10">
             <div>
-              <h2 className="kid-section-title mb-2 text-center lg:text-left">Chọn lộ trình luyện thi</h2>
-              <p className="text-center text-muted-foreground lg:text-left">
-                IELTS tập trung Speaking/Writing · Cambridge đủ 5 kỹ năng theo level
-              </p>
+              <EditableText
+                contentKey="home.tracks.title"
+                defaultValue="Chọn lộ trình luyện thi"
+                as="h2"
+                className="kid-section-title mb-2 text-center lg:text-left"
+              />
+              <EditableText
+                contentKey="home.tracks.subtitle"
+                defaultValue="IELTS tập trung Speaking/Writing · Cambridge đủ 5 kỹ năng theo level"
+                as="p"
+                multiline
+                className="text-center text-muted-foreground lg:text-left"
+              />
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
               <div>
-                <h3 className="mb-3 text-lg font-extrabold text-rose-800">🇬🇧 IELTS Academic — Speaking & Writing</h3>
+                <EditableText
+                  contentKey="home.ielts.sectionTitle"
+                  defaultValue="🇬🇧 IELTS Academic — Speaking & Writing"
+                  as="h3"
+                  className="mb-3 text-lg font-extrabold text-rose-800"
+                />
                 <div className="grid gap-3">
-                  {IELTS_TRACK.map((track) => (
+                  {IELTS_TRACK.map((track, index) => (
                     <Link key={track.href} href={track.href} className="group block">
                       <Card
                         className={`kid-card border-2 bg-gradient-to-br ${track.bg} ${track.border} transition-all group-hover:-translate-y-0.5`}
@@ -158,17 +193,35 @@ export function HomeMainContent() {
                           <div className="flex min-w-0 flex-1 items-start gap-3">
                             <span className="text-3xl">{track.emoji}</span>
                             <div>
-                              <p className="font-extrabold">{track.title}</p>
-                              <p className="text-sm font-bold text-muted-foreground">{track.subtitle}</p>
+                              <p className="font-extrabold">
+                                <EditableText
+                                  contentKey={`home.ielts.tracks.${index}.title`}
+                                  defaultValue={track.title}
+                                />
+                              </p>
+                              <p className="text-sm font-bold text-muted-foreground">
+                                <EditableText
+                                  contentKey={`home.ielts.tracks.${index}.subtitle`}
+                                  defaultValue={track.subtitle}
+                                />
+                              </p>
                               <p className="mt-1 text-sm font-medium text-muted-foreground">
-                                {track.description}
+                                <EditableText
+                                  contentKey={`home.ielts.tracks.${index}.description`}
+                                  defaultValue={track.description}
+                                  multiline
+                                />
                               </p>
                             </div>
                           </div>
                           <span
                             className={`kid-btn-fun inline-flex shrink-0 items-center gap-1 rounded-full px-4 py-2 text-sm font-bold text-white ${track.accent}`}
                           >
-                            Vào luyện
+                            <EditableText
+                              contentKey={`home.ielts.tracks.${index}.cta`}
+                              defaultValue="Vào luyện"
+                              as="span"
+                            />
                             <ArrowRight className="h-4 w-4" />
                           </span>
                         </CardContent>
@@ -179,12 +232,21 @@ export function HomeMainContent() {
               </div>
 
               <div>
-                <h3 className="mb-3 text-lg font-extrabold text-purple-800">📚 Cambridge — 5 kỹ năng</h3>
+                <EditableText
+                  contentKey="home.cambridge.sectionTitle"
+                  defaultValue="📚 Cambridge — 5 kỹ năng"
+                  as="h3"
+                  className="mb-3 text-lg font-extrabold text-purple-800"
+                />
                 <Card className="kid-card border-2 border-purple-200 bg-gradient-to-br from-purple-50/80 to-white">
                   <CardContent className="py-5">
-                    <p className="mb-4 text-sm font-medium text-muted-foreground">
-                      Starters → FCE: Reading, Listening, Grammar · Writing & Speaking hub riêng với AI chấm
-                    </p>
+                    <EditableText
+                      contentKey="home.cambridge.description"
+                      defaultValue="Starters → FCE: Reading, Listening, Grammar · Writing & Speaking hub riêng với AI chấm"
+                      as="p"
+                      multiline
+                      className="mb-4 text-sm font-medium text-muted-foreground"
+                    />
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                       {SKILLS.map((skill) => {
                         const Icon = SKILL_ICONS[skill.value] ?? BookOpen;
@@ -209,7 +271,11 @@ export function HomeMainContent() {
                     </div>
                     <Button asChild className="mt-5 w-full kid-btn-fun rounded-full">
                       <Link href={CAMBRIDGE_COURSES_URL}>
-                        Chọn level Cambridge
+                        <EditableText
+                          contentKey="home.cambridge.cta"
+                          defaultValue="Chọn level Cambridge"
+                          as="span"
+                        />
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
@@ -222,21 +288,40 @@ export function HomeMainContent() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg font-extrabold">
                   <ClipboardCheck className="h-5 w-5 text-indigo-600" />
-                  Thi thử (Mock test)
+                  <EditableText
+                    contentKey="home.mock.title"
+                    defaultValue="Thi thử (Mock test)"
+                    as="span"
+                  />
                 </CardTitle>
                 <CardDescription>
-                  Luyện như thi thật — đề ngẫu nhiên từ ngân hàng, không trùng cho đến khi hết pool
+                  <EditableText
+                    contentKey="home.mock.description"
+                    defaultValue="Luyện như thi thật — đề ngẫu nhiên từ ngân hàng, không trùng cho đến khi hết pool"
+                    multiline
+                  />
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="grid gap-3 sm:grid-cols-3">
-                  {MOCK_FEATURES.map((item) => (
+                  {MOCK_FEATURES.map((item, index) => (
                     <li
                       key={item.label}
                       className="rounded-xl border border-indigo-100 bg-white/80 px-4 py-3"
                     >
-                      <p className="font-extrabold text-indigo-900">{item.label}</p>
-                      <p className="mt-1 text-sm font-medium text-muted-foreground">{item.detail}</p>
+                      <p className="font-extrabold text-indigo-900">
+                        <EditableText
+                          contentKey={`home.mock.features.${index}.label`}
+                          defaultValue={item.label}
+                        />
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-muted-foreground">
+                        <EditableText
+                          contentKey={`home.mock.features.${index}.detail`}
+                          defaultValue={item.detail}
+                          multiline
+                        />
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -251,16 +336,28 @@ export function HomeMainContent() {
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-8">
             <div className="mb-8 text-center lg:text-left">
-              <h2 className="kid-section-title mb-2">Chọn cấp độ Cambridge</h2>
-              <p className="text-muted-foreground">
-                YLE cho trẻ em · KET/PET/FCE cho học sinh THCS–THPT — mỗi level một màu
-              </p>
+              <EditableText
+                contentKey="home.levels.title"
+                defaultValue="Chọn cấp độ Cambridge"
+                as="h2"
+                className="kid-section-title mb-2"
+              />
+              <EditableText
+                contentKey="home.levels.subtitle"
+                defaultValue="YLE cho trẻ em · KET/PET/FCE cho học sinh THCS–THPT — mỗi level một màu"
+                as="p"
+                multiline
+                className="text-muted-foreground"
+              />
             </div>
 
             <div className="mb-8">
-              <p className="mb-3 text-sm font-extrabold uppercase tracking-wide text-purple-600">
-                YLE (Starters · Movers · Flyers)
-              </p>
+              <EditableText
+                contentKey="home.levels.yleLabel"
+                defaultValue="YLE (Starters · Movers · Flyers)"
+                as="p"
+                className="mb-3 text-sm font-extrabold uppercase tracking-wide text-purple-600"
+              />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {yleLevels.map((level) => (
                   <LevelCard key={level.value} level={level} />
@@ -269,9 +366,12 @@ export function HomeMainContent() {
             </div>
 
             <div className="mb-6">
-              <p className="mb-3 text-sm font-extrabold uppercase tracking-wide text-purple-600">
-                Secondary (KET · PET · FCE)
-              </p>
+              <EditableText
+                contentKey="home.levels.secondaryLabel"
+                defaultValue="Secondary (KET · PET · FCE)"
+                as="p"
+                className="mb-3 text-sm font-extrabold uppercase tracking-wide text-purple-600"
+              />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {secondaryLevels.map((level) => (
                   <LevelCard key={level.value} level={level} />
@@ -281,13 +381,32 @@ export function HomeMainContent() {
 
             <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
               <Button asChild variant="outline" className="rounded-full">
-                <Link href="/exams">Xem hub luyện thi đầy đủ</Link>
+                <Link href="/exams">
+                  <EditableText
+                    contentKey="home.levels.ctaExams"
+                    defaultValue="Xem hub luyện thi đầy đủ"
+                    as="span"
+                  />
+                </Link>
               </Button>
               <Button asChild variant="outline" className="rounded-full">
-                <Link href={IELTS_SPEAKING_URL}>🎤 {IELTS_SPEAKING_CTA_LABEL}</Link>
+                <Link href={IELTS_SPEAKING_URL}>
+                  🎤{" "}
+                  <EditableText
+                    contentKey="home.levels.ctaSpeaking"
+                    defaultValue={IELTS_SPEAKING_CTA_LABEL}
+                    as="span"
+                  />
+                </Link>
               </Button>
               <Button asChild variant="outline" className="rounded-full">
-                <Link href={IELTS_WRITING_URL}>✏️ Luyện Writing IELTS Academic</Link>
+                <Link href={IELTS_WRITING_URL}>
+                  <EditableText
+                    contentKey="home.levels.ctaWriting"
+                    defaultValue="✏️ Luyện Writing IELTS Academic"
+                    as="span"
+                  />
+                </Link>
               </Button>
             </div>
           </div>
@@ -297,15 +416,29 @@ export function HomeMainContent() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-extrabold">
                   <Gem className="h-5 w-5 text-violet-600" />
-                  Gói Free, Pro & VIP
+                  <EditableText
+                    contentKey="home.sidebar.pricing.title"
+                    defaultValue="Gói Free, Pro & VIP"
+                    as="span"
+                  />
                 </CardTitle>
                 <CardDescription>
-                  AI chấm Writing & Speaking — lượt dùng chung mỗi ngày
+                  <EditableText
+                    contentKey="home.sidebar.pricing.description"
+                    defaultValue="AI chấm Writing & Speaking — lượt dùng chung mỗi ngày"
+                    multiline
+                  />
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button asChild className="w-full kid-btn-fun rounded-full">
-                  <Link href="/pricing">Xem bảng giá</Link>
+                  <Link href="/pricing">
+                    <EditableText
+                      contentKey="home.sidebar.pricing.cta"
+                      defaultValue="Xem bảng giá"
+                      as="span"
+                    />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -314,15 +447,29 @@ export function HomeMainContent() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-extrabold">
                   <Target className="h-5 w-5 text-sky-600" />
-                  Test trình độ
+                  <EditableText
+                    contentKey="home.sidebar.placement.title"
+                    defaultValue="Test trình độ"
+                    as="span"
+                  />
                 </CardTitle>
                 <CardDescription>
-                  Test trình độ Tiếng Anh và các chương trình khác như SAT, ĐGNL, IQ, ...
+                  <EditableText
+                    contentKey="home.sidebar.placement.description"
+                    defaultValue="Test trình độ Tiếng Anh và các chương trình khác như SAT, ĐGNL, IQ, ..."
+                    multiline
+                  />
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button asChild variant="fun" className="w-full rounded-full">
-                  <Link href="/placement">Làm test ngay</Link>
+                  <Link href="/placement">
+                    <EditableText
+                      contentKey="home.sidebar.placement.cta"
+                      defaultValue="Làm test ngay"
+                      as="span"
+                    />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
@@ -331,10 +478,18 @@ export function HomeMainContent() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-extrabold">
                   <Trophy className="h-5 w-5 text-amber-600" />
-                  Streak & xếp hạng
+                  <EditableText
+                    contentKey="home.sidebar.streak.title"
+                    defaultValue="Streak & xếp hạng"
+                    as="span"
+                  />
                 </CardTitle>
                 <CardDescription>
-                  Học mỗi ngày giữ 🔥 streak và leo bảng xếp hạng cùng bạn bè
+                  <EditableText
+                    contentKey="home.sidebar.streak.description"
+                    defaultValue="Học mỗi ngày giữ 🔥 streak và leo bảng xếp hạng cùng bạn bè"
+                    multiline
+                  />
                 </CardDescription>
               </CardHeader>
               <CardContent>

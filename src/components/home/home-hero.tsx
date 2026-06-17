@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MascotHero } from "@/components/kids/mascot-buddy";
+import { EditableText } from "@/components/inline-edit/editable-text";
 import { VTEN_COURSE_LABEL, VTEN_COURSE_URL } from "@/lib/site/vten-course";
 import {
   CAMBRIDGE_COURSES_CTA_LABEL,
@@ -26,12 +29,19 @@ export function HomeHero() {
       <div className="container relative mx-auto px-4 py-14 md:py-20 lg:py-24">
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="min-w-0 w-full text-center lg:text-left">
-            <h1 className="text-2xl font-extrabold tracking-tight md:text-5xl lg:text-6xl lg:leading-tight">
-              Giỏi Tiếng Anh cùng Camba!
-            </h1>
-            <p className="mt-6 max-w-xl text-lg font-semibold text-white/90 md:text-xl lg:mx-0 lg:mt-8">
-              App học Tiếng Anh miễn phí có AI chấm sửa.
-            </p>
+            <EditableText
+              contentKey="home.hero.title"
+              defaultValue="Giỏi Tiếng Anh cùng Camba!"
+              as="h1"
+              className="text-2xl font-extrabold tracking-tight md:text-5xl lg:text-6xl lg:leading-tight"
+            />
+            <EditableText
+              contentKey="home.hero.subtitle"
+              defaultValue="App học Tiếng Anh miễn phí có AI chấm sửa."
+              as="p"
+              multiline
+              className="mt-6 max-w-xl text-lg font-semibold text-white/90 md:text-xl lg:mx-0 lg:mt-8"
+            />
             <div className="mt-10 flex flex-wrap justify-center gap-4 lg:justify-start">
               <Button asChild size="lg" variant="fun" className="rounded-full">
                 <Link href="/placement">🎯 Test trình độ</Link>
@@ -55,9 +65,17 @@ export function HomeHero() {
           </div>
           <div className="flex w-full min-w-0 justify-center lg:justify-end">
             <MascotHero
-              message="Mình là Camba - Thỏ thông minh sẽ đồng hành cùng Bạn nhé!"
               mood="wave"
               className="max-w-full"
+              messageSlot={
+                <EditableText
+                  contentKey="home.hero.mascotMessage"
+                  defaultValue="Mình là Camba - Thỏ thông minh sẽ đồng hành cùng Bạn nhé!"
+                  as="p"
+                  multiline
+                  className="text-base font-extrabold leading-snug text-white md:text-lg"
+                />
+              }
             />
           </div>
         </div>

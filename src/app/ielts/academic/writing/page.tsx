@@ -4,6 +4,8 @@ import { IeltsWritingHubClient } from "@/components/ielts/ielts-writing-hub-clie
 import { IeltsModuleBadge } from "@/components/ielts/ielts-module-badge";
 import { CambaMascot } from "@/components/kids/camba-mascot";
 
+import { IeltsAcademicHubHeader } from "@/components/inline-edit/page-editable-sections";
+
 export const revalidate = 60;
 
 export default async function IeltsAcademicWritingPage() {
@@ -17,16 +19,12 @@ export default async function IeltsAcademicWritingPage() {
           <Link href="/exams" className="text-sm font-semibold text-purple-600 hover:underline">
             ← Chọn level
           </Link>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-extrabold kid-gradient-text">
-              {data.meta.hubTitle("Writing")}
-            </h1>
-            <IeltsModuleBadge module={data.module} />
-          </div>
-          <p className="mt-1 max-w-2xl font-semibold text-muted-foreground">
-            {data.meta.description} · Task 1 Academic (biểu đồ/bản đồ/sơ đồ) + Task 2 Essay · AI
-            chấm band ngay
-          </p>
+          <IeltsAcademicHubHeader
+            skill="writing"
+            defaultTitle={data.meta.hubTitle("Writing")}
+            defaultDescription={`${data.meta.description} · Task 1 Academic (biểu đồ/bản đồ/sơ đồ) + Task 2 Essay · AI chấm band ngay`}
+            badge={<IeltsModuleBadge module={data.module} />}
+          />
         </div>
       </div>
 

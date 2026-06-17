@@ -9,6 +9,8 @@ import { assignPaperAction } from "@/lib/actions/exam";
 import { formatExamLevel, formatSkill } from "@/lib/constants";
 import { getPublishedPaperOptions } from "@/lib/exam/cached-papers";
 
+import { TeacherPageTitle } from "@/components/inline-edit/page-editable-sections";
+
 export default async function TeacherPage() {
   const session = await auth();
   if (!session || !["TEACHER", "ADMIN"].includes(session.user.role)) {
@@ -35,7 +37,7 @@ export default async function TeacherPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">Dashboard Giáo viên</h1>
+      <TeacherPageTitle />
 
       <div className="grid gap-8 lg:grid-cols-2">
         <Card>

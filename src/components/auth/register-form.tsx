@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +15,7 @@ import { redirectAfterAuth } from "@/lib/auth/safe-callback-url";
 import { OAuthSignInButtons } from "@/components/auth/oauth-sign-in-buttons";
 import type { OAuthProviderId } from "@/lib/auth/providers";
 import { cn } from "@/lib/utils";
+import { RegisterFormHeader } from "@/components/inline-edit/page-editable-sections";
 
 interface RegisterFormProps {
   oauthProviders: OAuthProviderId[];
@@ -78,12 +79,7 @@ export function RegisterForm({
   return (
     <Card className="w-full max-w-md border-2 border-purple-100">
       <CardHeader>
-        <CardTitle>Đăng ký</CardTitle>
-        <CardDescription>
-          {hasReferralInvite
-            ? "Tạo tài khoản mới để nhận Camba Pro 1 tháng miễn phí"
-            : "Tạo tài khoản học sinh Camba — miễn phí"}
-        </CardDescription>
+        <RegisterFormHeader hasReferralInvite={hasReferralInvite} />
       </CardHeader>
       <CardContent className="space-y-6">
         <OAuthSignInButtons providers={oauthProviders} callbackUrl={callbackUrl} mode="register" />

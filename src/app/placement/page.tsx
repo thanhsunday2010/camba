@@ -1,6 +1,10 @@
 import { PlacementCategorySection } from "@/components/placement/placement-category-section";
 import { PlacementRecentAttempts } from "@/components/placement/placement-recent-attempts";
 import { CambaMascot } from "@/components/kids/camba-mascot";
+import {
+  PlacementGuestBanner,
+  PlacementPageHero,
+} from "@/components/inline-edit/page-editable-sections";
 import { getPublishedPlacementPapers } from "@/lib/exam/cached-papers";
 import { getSession } from "@/lib/auth-session";
 import { getPlacementWeeklySnapshot } from "@/lib/subscription/placement-limit";
@@ -28,10 +32,8 @@ export default async function PlacementPage() {
       <div className="mb-10 flex flex-wrap items-center gap-4">
         <CambaMascot size="lg" mood="think" />
         <div className="max-w-2xl">
-          <h1 className="text-3xl font-extrabold kid-gradient-text">Test trình độ</h1>
+          <PlacementPageHero />
           <p className="mt-2 font-semibold leading-relaxed text-muted-foreground">
-            Chọn nhóm placement phù hợp — <strong>IELTS</strong>,{" "}
-            <strong>Cambridge</strong> hoặc <strong>General English</strong>.
             {session?.user?.id ? (
               <> Tài khoản: <strong>2 lượt placement/tuần</strong> (mọi loại đề).</>
             ) : (
@@ -44,16 +46,7 @@ export default async function PlacementPage() {
         </div>
       </div>
 
-      {!session?.user?.id && (
-        <p className="mb-6 rounded-xl border-2 border-purple-100 bg-purple-50/80 px-4 py-3 text-sm font-semibold text-purple-900">
-          Khách (không đăng ký): <strong>1 lượt placement/tháng</strong> theo số điện thoại, áp dụng
-          mọi loại đề.{" "}
-          <a href="/register" className="font-bold underline">
-            Đăng ký miễn phí
-          </a>{" "}
-          để làm thêm (2 lượt/tuần).
-        </p>
-      )}
+      {!session?.user?.id && <PlacementGuestBanner />}
 
       {placementUsage && !placementUsage.unlimited && placementUsage.limit != null && (
         <p className="mb-6 rounded-xl border-2 border-sky-100 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-900">

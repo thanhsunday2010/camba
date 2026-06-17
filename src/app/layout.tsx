@@ -9,6 +9,7 @@ import { BugReportButton } from "@/components/feedback/bug-report-button";
 import { PromoOfferProvider } from "@/components/promo/promo-offer-provider";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { SoundProvider } from "@/components/kids/sound-provider";
+import { InlineEditBootstrap } from "@/components/inline-edit/inline-edit-bootstrap";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -40,7 +41,9 @@ export default function RootLayout({
               <FloatingDecor />
               <div className="relative z-10 flex min-h-screen flex-col">
                 <Navbar />
-                <main className="flex-1">{children}</main>
+                <InlineEditBootstrap>
+                  <main className="flex-1">{children}</main>
+                </InlineEditBootstrap>
                 <SiteFooter />
               </div>
               <BugReportButton />

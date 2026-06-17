@@ -23,6 +23,7 @@ import {
   getMockBankStats,
   getSkillPracticeBankStats,
 } from "@/lib/exam/bank-stats";
+import { CambridgeLevelHubHeader } from "@/components/inline-edit/page-editable-sections";
 
 const SKILL_EMOJI: Record<string, string> = {
   READING: "📖",
@@ -156,10 +157,7 @@ export default async function ExamsLevelPage({
         <div className="flex items-center gap-4">
           <span className="text-5xl">{theme.emoji}</span>
           <div>
-            <h1 className="text-3xl font-extrabold kid-gradient-text">{formatExamLevel(level)}</h1>
-            <p className="font-semibold text-muted-foreground">
-              Chọn kỹ năng để luyện tập hoặc thi mock
-            </p>
+            <CambridgeLevelHubHeader level={level} levelLabel={formatExamLevel(level)} />
           </div>
         </div>
       </div>

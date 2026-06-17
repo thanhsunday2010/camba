@@ -21,6 +21,8 @@ import { CambridgeSpeakingHubClient } from "@/components/exam/cambridge-speaking
 import { CambaMascot } from "@/components/kids/camba-mascot";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
 
+import { CambridgeSpeakingHubHeader } from "@/components/inline-edit/page-editable-sections";
+
 export const revalidate = 60;
 
 const VALID_LEVELS = ["STARTERS", "MOVERS", "FLYERS", "KET", "PET", "FCE"];
@@ -133,13 +135,11 @@ export default async function CambridgeSpeakingPage({
           >
             ← {formatExamLevel(levelParam)}
           </Link>
-          <h1 className={`mt-1 text-3xl font-extrabold kid-gradient-text`}>
-            Speaking {formatExamLevel(levelParam)} {theme.emoji}
-          </h1>
-          <p className="mt-1 max-w-2xl font-semibold text-muted-foreground">
-            AI chấm sửa theo band Cambridge · mỗi lần luyện 1 câu ngẫu nhiên · mock full giống
-            format thi thật
-          </p>
+          <CambridgeSpeakingHubHeader
+            level={levelParam}
+            levelLabel={formatExamLevel(levelParam)}
+            emoji={theme.emoji}
+          />
         </div>
       </div>
 

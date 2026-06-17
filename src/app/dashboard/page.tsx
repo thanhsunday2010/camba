@@ -23,6 +23,7 @@ import { SubscriptionUsageCard } from "@/components/pricing/subscription-usage-c
 import { ReferralWelcomeToast } from "@/components/referral/referral-welcome-toast";
 import { ensureUserReferralCode } from "@/lib/referral/codes";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
+import { DashboardGreeting } from "@/components/inline-edit/page-editable-sections";
 import type { UserProfileData } from "@/lib/actions/profile";
 
 export const revalidate = 60;
@@ -344,9 +345,7 @@ export default async function DashboardPage({
           </div>
         )}
         <div>
-          <h1 className="text-3xl font-extrabold kid-gradient-text">
-            Xin chào, {user.name}! 👋
-          </h1>
+          <DashboardGreeting userName={user.name ?? "bạn"} />
           <p className="font-semibold text-muted-foreground">
             {gamificationProfile.level.emoji} Cấp {gamificationProfile.level.level} ·{" "}
             {gamificationProfile.level.name}
