@@ -97,9 +97,4 @@ export const STARTERS_LISTENING_ROWS: ListenRow[] = [
   ["Pet parrot", "The parrot can talk.", "What can the parrot do?", ["Swim", "Talk", "Drive", "Cook"], "Talk"],
   ["Hot tea", "Grandma drinks hot tea.", "What does Grandma drink?", ["Cold milk", "Hot tea", "Orange juice", "Water"], "Hot tea"],
   ["Pick flower", "Don't pick the flowers in the park.", "What shouldn't you pick?", ["Stones", "The flowers", "Leaves", "Grass"], "The flowers"],
-  ["Pet duck", "The duck is swimming in the pond.", "Where is the duck?", ["In the tree", "In the pond", "On the road", "In the house"], "In the pond"],
-  ["Cut paper", "Use scissors to cut the paper.", "What do you cut?", ["The paper", "The table", "The book", "The hair"], "The paper"],
-  ["Pet lizard", "He has a green lizard.", "What colour is the lizard?", ["Red", "Green", "Blue", "Yellow"], "Green"],
-  ["Make bed", "Make your bed in the morning.", "When should you make your bed?", ["At night", "In the morning", "At school", "Never"], "In the morning"],
-  ["Pet pony", "The pony is small and white.", "What is the pony like?", ["Big and black", "Small and white", "Old and brown", "Fast and grey"], "Small and white"],
 ];

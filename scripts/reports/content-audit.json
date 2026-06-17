@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-17T08:16:06.039Z",
+  "generatedAt": "2026-06-17T08:34:15.483Z",
   "audits": [
     {
       "level": "STARTERS",
       "curated": {
         "reading": 100,
-        "listening": 125,
+        "listening": 120,
         "writing": 20,
         "speaking": 20,
         "uoe": 20
@@ -26,7 +26,7 @@
       },
       "generatedSharePct": {
         "reading": 60,
-        "listening": 77,
+        "listening": 78,
         "writing": 29,
         "speaking": 29,
         "uoe": 75
@@ -146,7 +146,7 @@
         "listening": 120,
         "writing": 20,
         "speaking": 20,
-        "uoe": 30
+        "uoe": 100
       },
       "expanded": {
         "reading": 550,
@@ -167,7 +167,7 @@
         "listening": 78,
         "writing": 50,
         "speaking": 20,
-        "uoe": 87
+        "uoe": 56
       },
       "readingIssues": {
         "passages": 19,
@@ -182,7 +182,7 @@
         "listening": 10,
         "writing": 20,
         "speaking": 20,
-        "uoe": 3
+        "uoe": 10
       }
     },
     {
@@ -192,7 +192,7 @@
         "listening": 120,
         "writing": 20,
         "speaking": 20,
-        "uoe": 30
+        "uoe": 100
       },
       "expanded": {
         "reading": 500,
@@ -213,7 +213,7 @@
         "listening": 78,
         "writing": 50,
         "speaking": 20,
-        "uoe": 87
+        "uoe": 56
       },
       "readingIssues": {
         "passages": 19,
@@ -228,7 +228,7 @@
         "listening": 10,
         "writing": 20,
         "speaking": 20,
-        "uoe": 3
+        "uoe": 10
       }
     },
     {
@@ -238,7 +238,7 @@
         "listening": 120,
         "writing": 20,
         "speaking": 20,
-        "uoe": 30
+        "uoe": 100
       },
       "expanded": {
         "reading": 350,
@@ -259,7 +259,7 @@
         "listening": 78,
         "writing": 50,
         "speaking": 20,
-        "uoe": 90
+        "uoe": 67
       },
       "readingIssues": {
         "passages": 19,
@@ -274,7 +274,7 @@
         "listening": 10,
         "writing": 20,
         "speaking": 20,
-        "uoe": 3
+        "uoe": 10
       }
     }
   ]
