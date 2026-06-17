@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { isYleLevel } from "@/lib/yle/constants";
 import { loadYleLevelHub } from "@/lib/yle/hub-data";
-import { YleOrbitHub } from "@/components/yle/yle-orbit-hub";
+import { YleScrollHub } from "@/components/yle/yle-scroll-hub";
 import { YleLeaderboard } from "@/components/yle/yle-leaderboard";
 import { YleMascotRankPanel } from "@/components/yle/yle-mascot-rank-panel";
 import { formatQuotaRatio } from "@/lib/subscription/plans";
@@ -35,10 +35,11 @@ export default async function YleLevelHubPage({
         ← Vũ trụ YLE
       </Link>
 
-      <YleOrbitHub
+      <YleScrollHub
         level={level}
         levelLabel={levelLabel}
         planetEmoji={theme.emoji}
+        planetGradient={theme.planetGradient}
         themeBorder={theme.border}
         themeBg={theme.bg}
         nodes={nodes}

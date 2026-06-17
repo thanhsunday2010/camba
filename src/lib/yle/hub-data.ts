@@ -14,7 +14,7 @@ import {
 } from "@/lib/yle/constants";
 import { getYleLevelLeaderboard } from "@/lib/yle/leaderboard";
 import { getYleUserProgress } from "@/lib/yle/progress";
-import type { OrbitNodeData } from "@/components/yle/yle-orbit-hub";
+import type { YleSkillNodeData } from "@/lib/yle/types";
 
 export async function loadYleLevelHub(level: YleLevel) {
   const session = await auth();
@@ -35,7 +35,7 @@ export async function loadYleLevelHub(level: YleLevel) {
   const mockTestUsedUp =
     !isUnlimitedQuota(usage.mockTestLimit) && usage.mockSkillCount >= usage.mockTestLimit;
 
-  const nodes: OrbitNodeData[] = YLE_ORBIT_NODES.map((def) => {
+  const nodes: YleSkillNodeData[] = YLE_ORBIT_NODES.map((def) => {
     const skillProgress = progress.stats.skillProgress[def.id] ?? {
       completed: 0,
       total: 0,

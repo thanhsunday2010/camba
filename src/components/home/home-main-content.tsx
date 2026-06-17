@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EXAM_LEVELS, SKILLS } from "@/lib/constants";
 import { LEVEL_THEMES } from "@/lib/kids/level-themes";
+import { isYleLevel } from "@/lib/yle/constants";
 import { HomeStreakCta } from "@/components/home/home-session-ctas";
+import { HorizontalScrollTrack } from "@/components/ui/horizontal-scroll-track";
+import { PlanetOrb } from "@/components/yle/yle-space-visuals";
 import {
   CAMBRIDGE_COURSES_URL,
   IELTS_SPEAKING_CTA_LABEL,
@@ -122,35 +125,14 @@ export function HomeMainContent() {
               className="text-muted-foreground"
             />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <HorizontalScrollTrack label="Tính năng luyện tập" className="lg:hidden">
             {PRACTICE_HIGHLIGHTS.map((item, index) => (
-              <Card key={item.title} className="kid-card border-2 border-purple-100">
-                <CardHeader className="pb-2">
-                  <div
-                    className={`mb-3 inline-flex rounded-xl bg-gradient-to-br ${item.color} p-2.5 text-white shadow-md`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                  </div>
-                  <span className="inline-block rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-700">
-                    {item.badge}
-                  </span>
-                  <CardTitle className="mt-2 text-base font-extrabold">
-                    <EditableText
-                      contentKey={`home.highlights.${index}.title`}
-                      defaultValue={item.title}
-                    />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm font-medium leading-relaxed">
-                    <EditableText
-                      contentKey={`home.highlights.${index}.description`}
-                      defaultValue={item.description}
-                      multiline
-                    />
-                  </CardDescription>
-                </CardContent>
-              </Card>
+              <FeatureCard key={item.title} item={item} index={index} variant="scroll" />
+            ))}
+          </HorizontalScrollTrack>
+          <div className="hidden gap-4 lg:grid lg:grid-cols-4">
+            {PRACTICE_HIGHLIGHTS.map((item, index) => (
+              <FeatureCard key={item.title} item={item} index={index} variant="grid" />
             ))}
           </div>
         </div>
@@ -184,52 +166,16 @@ export function HomeMainContent() {
                   as="h3"
                   className="mb-3 text-lg font-extrabold text-rose-800"
                 />
-                <div className="grid gap-3">
-                  {IELTS_TRACK.map((track, index) => (
-                    <Link key={track.href} href={track.href} className="group block">
-                      <Card
-                        className={`kid-card border-2 bg-gradient-to-br ${track.bg} ${track.border} transition-all group-hover:-translate-y-0.5`}
-                      >
-                        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:py-5">
-                          <div className="flex min-w-0 flex-1 items-start gap-3">
-                            <span className="text-3xl">{track.emoji}</span>
-                            <div>
-                              <p className="font-extrabold">
-                                <EditableText
-                                  contentKey={`home.ielts.tracks.${index}.title`}
-                                  defaultValue={track.title}
-                                />
-                              </p>
-                              <p className="text-sm font-bold text-muted-foreground">
-                                <EditableText
-                                  contentKey={`home.ielts.tracks.${index}.subtitle`}
-                                  defaultValue={track.subtitle}
-                                />
-                              </p>
-                              <p className="mt-1 text-sm font-medium text-muted-foreground">
-                                <EditableText
-                                  contentKey={`home.ielts.tracks.${index}.description`}
-                                  defaultValue={track.description}
-                                  multiline
-                                />
-                              </p>
-                            </div>
-                          </div>
-                          <span
-                            className={`kid-btn-fun inline-flex w-full shrink-0 items-center justify-center gap-1 rounded-full px-4 py-2.5 text-sm font-bold text-white sm:w-auto ${track.accent}`}
-                          >
-                            <EditableText
-                              contentKey={`home.ielts.tracks.${index}.cta`}
-                              defaultValue="Vào luyện"
-                              as="span"
-                            />
-                            <ArrowRight className="h-4 w-4" />
-                          </span>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
+            <HorizontalScrollTrack label="Lộ trình IELTS" className="lg:hidden">
+              {IELTS_TRACK.map((track, index) => (
+                <IeltsTrackCard key={track.href} track={track} index={index} variant="scroll" />
+              ))}
+            </HorizontalScrollTrack>
+            <div className="hidden gap-3 lg:grid">
+              {IELTS_TRACK.map((track, index) => (
+                <IeltsTrackCard key={track.href} track={track} index={index} variant="grid" />
+              ))}
+            </div>
               </div>
 
               <div>
@@ -353,17 +299,22 @@ export function HomeMainContent() {
             </div>
 
             <div className="mb-8">
-              <EditableText
-                contentKey="home.levels.yleLabel"
-                defaultValue="YLE (Starters · Movers · Flyers)"
-                as="p"
-                className="mb-3 text-sm font-extrabold uppercase tracking-wide text-purple-600"
-              />
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {yleLevels.map((level) => (
-                  <LevelCard key={level.value} level={level} />
-                ))}
+              <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                <EditableText
+                  contentKey="home.levels.yleLabel"
+                  defaultValue="YLE (Starters · Movers · Flyers)"
+                  as="p"
+                  className="text-sm font-extrabold uppercase tracking-wide text-purple-600"
+                />
+                <Link href="/yle" className="text-sm font-bold text-violet-700 underline">
+                  Vào vũ trụ YLE →
+                </Link>
               </div>
+              <HorizontalScrollTrack label="Level YLE">
+                {yleLevels.map((level) => (
+                  <LevelScrollCard key={level.value} level={level} />
+                ))}
+              </HorizontalScrollTrack>
             </div>
 
             <div className="mb-6">
@@ -373,11 +324,11 @@ export function HomeMainContent() {
                 as="p"
                 className="mb-3 text-sm font-extrabold uppercase tracking-wide text-purple-600"
               />
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <HorizontalScrollTrack label="Level Secondary">
                 {secondaryLevels.map((level) => (
-                  <LevelCard key={level.value} level={level} />
+                  <LevelScrollCard key={level.value} level={level} />
                 ))}
-              </div>
+              </HorizontalScrollTrack>
             </div>
 
             <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
@@ -507,30 +458,115 @@ export function HomeMainContent() {
   );
 }
 
-function LevelCard({ level }: { level: (typeof EXAM_LEVELS)[number] }) {
+function FeatureCard({
+  item,
+  index,
+  variant,
+}: {
+  item: (typeof PRACTICE_HIGHLIGHTS)[number];
+  index: number;
+  variant: "scroll" | "grid";
+}) {
+  return (
+    <Card
+      className={`kid-card border-2 border-purple-100 ${variant === "scroll" ? "scroll-card w-[min(78vw,16rem)]" : ""}`}
+    >
+      <CardHeader className="pb-2">
+        <div
+          className={`mb-3 inline-flex rounded-xl bg-gradient-to-br ${item.color} p-2.5 text-white shadow-md`}
+        >
+          <item.icon className="h-5 w-5" />
+        </div>
+        <span className="inline-block rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-700">
+          {item.badge}
+        </span>
+        <CardTitle className="mt-2 text-base font-extrabold">
+          <EditableText contentKey={`home.highlights.${index}.title`} defaultValue={item.title} />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <CardDescription className="text-sm font-medium leading-relaxed">
+          <EditableText
+            contentKey={`home.highlights.${index}.description`}
+            defaultValue={item.description}
+            multiline
+          />
+        </CardDescription>
+      </CardContent>
+    </Card>
+  );
+}
+
+function IeltsTrackCard({
+  track,
+  index,
+  variant,
+}: {
+  track: (typeof IELTS_TRACK)[number];
+  index: number;
+  variant: "scroll" | "grid";
+}) {
+  return (
+    <Link href={track.href} className={`group block ${variant === "scroll" ? "scroll-card w-[min(85vw,20rem)] shrink-0" : ""}`}>
+      <Card
+        className={`kid-card h-full border-2 bg-gradient-to-br ${track.bg} ${track.border} transition-all group-hover:-translate-y-0.5`}
+      >
+        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:py-5">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <span className="text-3xl">{track.emoji}</span>
+            <div>
+              <p className="font-extrabold">
+                <EditableText contentKey={`home.ielts.tracks.${index}.title`} defaultValue={track.title} />
+              </p>
+              <p className="text-sm font-bold text-muted-foreground">
+                <EditableText contentKey={`home.ielts.tracks.${index}.subtitle`} defaultValue={track.subtitle} />
+              </p>
+              <p className="mt-1 text-sm font-medium text-muted-foreground">
+                <EditableText
+                  contentKey={`home.ielts.tracks.${index}.description`}
+                  defaultValue={track.description}
+                  multiline
+                />
+              </p>
+            </div>
+          </div>
+          <span
+            className={`kid-btn-fun inline-flex w-full shrink-0 items-center justify-center gap-1 rounded-full px-4 py-2.5 text-sm font-bold text-white sm:w-auto ${track.accent}`}
+          >
+            <EditableText contentKey={`home.ielts.tracks.${index}.cta`} defaultValue="Vào luyện" as="span" />
+            <ArrowRight className="h-4 w-4" />
+          </span>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
+function LevelScrollCard({ level }: { level: (typeof EXAM_LEVELS)[number] }) {
   const theme = LEVEL_THEMES[level.value] ?? LEVEL_THEMES.KET;
+  const href = isYleLevel(level.value) ? `/yle/${level.value}` : `/exams/${level.value}`;
 
   return (
-    <Link href={`/exams/${level.value}`} className="group">
+    <Link href={href} className="scroll-card group w-[min(78vw,15rem)] shrink-0">
       <Card
-        className={`kid-card h-full border-2 transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-lg ${theme.border} ${theme.bg}`}
+        className={`kid-card h-full overflow-hidden border-2 transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-lg ${theme.border}`}
       >
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">{theme.emoji}</span>
-              <div>
-                <CardTitle className="text-base font-extrabold lg:text-lg">{level.label}</CardTitle>
-                <CardDescription className="font-semibold">{level.group}</CardDescription>
-              </div>
+        <div className={`bg-gradient-to-br p-4 ${theme.bg}`}>
+          <div className="flex items-center gap-3">
+            <PlanetOrb gradient={theme.planetGradient} emoji={theme.emoji} size="sm" />
+            <div className="min-w-0">
+              <CardTitle className="text-base font-extrabold leading-tight">{level.label}</CardTitle>
+              <CardDescription className="font-semibold">{level.group}</CardDescription>
             </div>
-            <ArrowRight className="h-5 w-5 shrink-0 text-purple-500 opacity-0 transition-opacity group-hover:opacity-100" />
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <CardContent className="pt-3">
           <p className="text-sm font-semibold text-purple-700">
-            Reading · Listening · Writing · Speaking · Mock
+            {isYleLevel(level.value) ? "Vũ trụ · quỹ đạo · mock" : "Reading · Listening · Mock"}
           </p>
+          <span className="mt-2 inline-flex items-center text-xs font-bold text-violet-600 group-hover:underline">
+            Vào luyện <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          </span>
         </CardContent>
       </Card>
     </Link>

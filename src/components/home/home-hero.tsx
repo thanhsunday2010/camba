@@ -12,22 +12,32 @@ import {
   IELTS_SPEAKING_CTA_LABEL,
   IELTS_SPEAKING_URL,
 } from "@/lib/site/ielts-speaking-cta";
+import { HorizontalScrollTrack } from "@/components/ui/horizontal-scroll-track";
+import { PlanetOrb, YleStarfield } from "@/components/yle/yle-space-visuals";
+
+const HERO_QUICK_LINKS = [
+  { href: "/yle", emoji: "🌌", label: "Vũ trụ YLE", accent: "from-pink-500 to-violet-600" },
+  { href: IELTS_SPEAKING_URL, emoji: "🎤", label: "IELTS Speaking", accent: "from-rose-500 to-pink-600" },
+  { href: CAMBRIDGE_COURSES_URL, emoji: "📚", label: "Cambridge", accent: "from-amber-500 to-orange-600" },
+  { href: VTEN_COURSE_URL, emoji: "👩‍🏫", label: "Khoá VTEN", accent: "from-emerald-500 to-teal-600", external: true },
+] as const;
 
 export function HomeHero() {
   return (
-    <section className="relative overflow-x-clip bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-20">
-        <div className="absolute left-10 top-10 h-20 w-20 rounded-full bg-yellow-300 blur-xl animate-float" />
-        <div
-          className="absolute right-20 top-20 h-32 w-32 rounded-full bg-sky-300 blur-xl animate-float"
-          style={{ animationDelay: "1s" }}
-        />
-        <div
-          className="absolute bottom-10 left-1/3 h-24 w-24 rounded-full bg-green-300 blur-xl animate-float"
-          style={{ animationDelay: "2s" }}
-        />
+    <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-violet-950 to-indigo-950 text-white">
+      <YleStarfield />
+      <div className="pointer-events-none absolute -right-16 top-8 opacity-80 motion-safe:animate-yle-planet-pulse" aria-hidden>
+        <PlanetOrb gradient="bg-gradient-to-br from-violet-500 to-fuchsia-600" size="md" emoji="🌟" />
       </div>
-      <div className="container relative mx-auto px-4 py-10 sm:py-14 md:py-20 lg:py-24">
+      <div
+        className="pointer-events-none absolute -left-8 bottom-12 opacity-60 motion-safe:animate-yle-planet-pulse"
+        style={{ animationDelay: "1.5s" }}
+        aria-hidden
+      >
+        <PlanetOrb gradient="bg-gradient-to-br from-orange-400 to-amber-600" size="sm" emoji="🚀" />
+      </div>
+
+      <div className="container relative z-10 mx-auto px-4 py-10 sm:py-14 md:py-16 lg:py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-8 sm:gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="min-w-0 w-full text-center lg:text-left">
             <EditableText
@@ -38,38 +48,62 @@ export function HomeHero() {
             />
             <EditableText
               contentKey="home.hero.subtitle"
-              defaultValue="App học Tiếng Anh miễn phí có AI chấm sửa."
+              defaultValue="App học Tiếng Anh miễn phí có AI chấm sửa — khám phá vũ trụ YLE, Cambridge & IELTS."
               as="p"
               multiline
-              className="mx-auto mt-4 max-w-xl text-base font-semibold text-white/90 sm:mt-6 sm:text-lg md:text-xl lg:mx-0 lg:mt-8"
+              className="mx-auto mt-4 max-w-xl text-base font-semibold text-violet-100/90 sm:mt-6 sm:text-lg md:text-xl lg:mx-0 lg:mt-8"
             />
-            <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4 lg:justify-start">
+
+            <HorizontalScrollTrack
+              label="Lối tắt luyện tập"
+              className="mt-8 lg:mt-10"
+              showHint={true}
+              fadeEdges={false}
+            >
               <PlacementOpenButton
-                size="lg"
                 variant="fun"
-                className="w-full rounded-full sm:w-auto"
+                className="scroll-card shrink-0 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-bold shadow-lg ring-1 ring-white/20"
               >
                 🎯 Test trình độ
               </PlacementOpenButton>
-              <Button
-                asChild
-                size="lg"
-                className="w-full rounded-full bg-rose-600 font-bold hover:bg-rose-700 sm:w-auto"
-              >
+              {HERO_QUICK_LINKS.map((item) => {
+                const className = `scroll-card inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r px-4 py-2.5 text-sm font-bold text-white shadow-lg ring-1 ring-white/20 transition hover:scale-[1.03] active:scale-95 ${item.accent}`;
+                if ("external" in item && item.external) {
+                  return (
+                    <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+                      <span>{item.emoji}</span>
+                      {item.label}
+                    </a>
+                  );
+                }
+                return (
+                  <Link key={item.label} href={item.href} className={className}>
+                    <span>{item.emoji}</span>
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </HorizontalScrollTrack>
+
+            <div className="mt-5 hidden flex-wrap gap-3 sm:flex sm:justify-center lg:justify-start">
+              <PlacementOpenButton size="lg" variant="fun" className="rounded-full">
+                🎯 Test trình độ
+              </PlacementOpenButton>
+              <Button asChild size="lg" className="rounded-full bg-rose-600 font-bold hover:bg-rose-700">
                 <Link href={IELTS_SPEAKING_URL}>🎤 {IELTS_SPEAKING_CTA_LABEL}</Link>
               </Button>
               <Button
                 asChild
                 size="lg"
                 variant="secondary"
-                className="kid-btn-fun w-full rounded-full text-purple-800 sm:w-auto"
+                className="kid-btn-fun rounded-full text-purple-800"
               >
                 <Link href={CAMBRIDGE_COURSES_URL}>📚 {CAMBRIDGE_COURSES_CTA_LABEL}</Link>
               </Button>
               <Button
                 asChild
                 size="default"
-                className="w-full rounded-full border-2 border-white bg-white/10 font-normal text-white hover:bg-white/20 sm:w-auto"
+                className="rounded-full border-2 border-white/30 bg-white/10 font-normal text-white hover:bg-white/20"
               >
                 <a href={VTEN_COURSE_URL} target="_blank" rel="noopener noreferrer">
                   👩‍🏫 {VTEN_COURSE_LABEL}
@@ -77,6 +111,7 @@ export function HomeHero() {
               </Button>
             </div>
           </div>
+
           <div className="flex w-full min-w-0 justify-center lg:justify-end">
             <MascotHero
               mood="wave"

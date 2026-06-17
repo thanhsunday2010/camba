@@ -83,6 +83,19 @@
   .mcq-option-kid {
     @apply flex cursor-pointer items-center gap-2.5 rounded-xl border-2 p-2.5 text-sm transition-all duration-200 hover:shadow-sm active:scale-[0.99];
   }
+  .scroll-track {
+    @apply flex gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-2 pt-1;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scroll-track::-webkit-scrollbar {
+    display: none;
+  }
+  .scroll-card {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
 }
 
 @layer utilities {
@@ -173,12 +186,16 @@
   .animate-yle-planet-pulse {
     animation: ylePlanetPulse 4s ease-in-out infinite;
   }
+  .animate-twinkle {
+    animation: twinkle 3s ease-in-out infinite;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-yle-orbit-spin,
   .animate-yle-orbit-counter,
-  .animate-yle-planet-pulse {
+  .animate-yle-planet-pulse,
+  .animate-twinkle {
     animation: none !important;
   }
 }
@@ -293,4 +310,9 @@
 @keyframes ylePlanetPulse {
   0%, 100% { transform: scale(1); box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15); }
   50% { transform: scale(1.03); box-shadow: 0 12px 32px rgba(124, 58, 237, 0.25); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.25); }
 }
