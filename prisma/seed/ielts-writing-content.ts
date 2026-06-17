@@ -104,10 +104,10 @@ const T2_ESSAY_TOPICS = [
   "Children today spend too much time on screens. What are the causes and what solutions can you suggest?",
 ];
 
-function withDifficulty<T extends { difficulty?: SeedDifficulty }>(
-  item: T,
+function withDifficulty(
+  item: Omit<IeltsWritingSeed, "difficulty">,
   difficulty: SeedDifficulty
-): T {
+): IeltsWritingSeed {
   return { ...item, difficulty };
 }
 
