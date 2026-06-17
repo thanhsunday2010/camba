@@ -13,9 +13,9 @@ export const revalidate = 3600;
 
 export default function PricingPage() {
   return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="mb-10 flex flex-col items-center text-center">
-        <CambaMascot size="lg" mood="happy" className="mb-4" />
+    <div className="page-shell">
+      <div className="mb-8 flex flex-col items-center text-center sm:mb-10">
+        <CambaMascot size="lg" mood="happy" className="mb-3 sm:mb-4" />
         <PricingPageHero />
       </div>
 

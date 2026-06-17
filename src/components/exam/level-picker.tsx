@@ -75,7 +75,7 @@ export function LevelPicker({ currentLevel, variant = "full" }: LevelPickerProps
             )}
           >
             <div className="mb-3 flex items-center gap-3">
-              <span className="text-3xl">{theme.emoji}</span>
+              <span className="text-2xl sm:text-3xl">{theme.emoji}</span>
               <div>
                 <p className="font-extrabold">{level.label}</p>
                 <p className="text-xs font-semibold text-muted-foreground">{level.group}</p>

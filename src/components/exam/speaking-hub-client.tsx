@@ -113,7 +113,7 @@ export function SpeakingHubClient({
 
       <section>
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <h2 className="text-xl font-extrabold text-purple-800">Luyện tập theo Part</h2>
+          <h2 className="page-section-title text-purple-800">Luyện tập theo Part</h2>
           {ieltsModule && <IeltsModuleBadge module={ieltsModule} size="sm" />}
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -150,7 +150,7 @@ export function SpeakingHubClient({
       </section>
 
       <section>
-        <h2 className="mb-4 text-xl font-extrabold text-amber-800">Mock full</h2>
+        <h2 className="page-section-title mb-3 text-amber-800 sm:mb-4">Mock full</h2>
         <Card className="border-2 border-amber-200 bg-amber-50/40">
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-2">

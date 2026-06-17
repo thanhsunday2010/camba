@@ -29,8 +29,8 @@ export default async function SubscribePage({
   const paymentGroups = await getAvailablePaymentGroups();
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-10">
-      <div className="mb-8 flex items-center justify-between gap-4">
+    <div className="page-shell max-w-4xl">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 sm:mb-8 sm:gap-4">
         <div>
           <SubscribePageHeader />
         </div>

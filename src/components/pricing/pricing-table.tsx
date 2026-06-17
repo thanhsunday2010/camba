@@ -111,16 +111,16 @@ export function PricingTable({ currentPlanId: currentPlanIdProp }: PricingTableP
                 </Badge>
               )}
               <CardHeader>
-                <CardTitle className="text-2xl font-extrabold">{plan.name}</CardTitle>
+                <CardTitle className="font-extrabold">{plan.name}</CardTitle>
                 <CardDescription className="font-medium">{plan.tagline}</CardDescription>
                 <div className="pt-2">
                   {planId === "FREE" ? (
-                    <p className="text-3xl font-extrabold text-emerald-600">Miễn phí</p>
+                    <p className="page-stat-value text-emerald-600">Miễn phí</p>
                   ) : (
                     <>
-                      <p className="text-3xl font-extrabold text-purple-700">
+                      <p className="page-stat-value text-purple-700">
                         {formatVnd(price)}
-                        <span className="text-base font-semibold text-muted-foreground">
+                        <span className="text-sm font-semibold text-muted-foreground sm:text-base">
                           /{yearly ? "năm" : "tháng"}
                         </span>
                       </p>

@@ -44,7 +44,7 @@ export default async function PaymentPage({
       if (!adminOrder) notFound();
       const view = await buildPaymentView(adminOrder);
       return (
-        <div className="container mx-auto max-w-2xl px-4 py-10">
+        <div className="page-shell max-w-2xl">
           <PaymentInstructions
             order={adminOrder}
             bank={view.bank}
@@ -62,7 +62,7 @@ export default async function PaymentPage({
   const view = await buildPaymentView(order);
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-10">
+    <div className="page-shell max-w-2xl">
       <PaymentPageTitle />
       <PaymentInstructions
         order={order}

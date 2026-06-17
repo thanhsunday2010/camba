@@ -36,7 +36,7 @@ export default async function TeacherPage() {
   ]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="page-shell">
       <TeacherPageTitle />
 
       <div className="grid gap-8 lg:grid-cols-2">

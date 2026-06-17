@@ -8,7 +8,7 @@ export default function LoginPage() {
   const oauthProviders = getEnabledOAuthProviders();
 
   return (
-    <div className="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
+      <div className="page-shell flex min-h-[calc(100vh-4rem)] items-center justify-center py-8 sm:py-12">
       <Suspense>
         <LoginForm oauthProviders={oauthProviders} />
       </Suspense>

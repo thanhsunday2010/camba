@@ -44,9 +44,9 @@ export function PlacementRecentAttempts() {
 
   return (
     <section>
-      <h2 className="mb-4 flex items-center gap-2 text-xl font-extrabold">
-        <Sparkles className="h-5 w-5 text-purple-500" />
-        Kết quả gần đây của bạn
+      <h2 className="page-section-title mb-3 flex items-center gap-2 sm:mb-4">
+        <Sparkles className="h-4 w-4 text-purple-500 sm:h-5 sm:w-5" />
+        Kết quả gần đây
       </h2>
       <div className="space-y-3">
         {attempts.map((a) => (

@@ -126,8 +126,8 @@ export function ResultsClient({
   }, [pct, showMascot, gamification, attempt.status, attempt.paper.paperKind]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
+    <div className="page-shell">
+      <div className="mb-6 sm:mb-8">
         <Link href="/dashboard" className="text-sm text-cambridge-600 hover:underline">
           ← Dashboard
         </Link>
@@ -144,8 +144,8 @@ export function ResultsClient({
             ← Speaking IELTS Academic
           </Link>
         )}
-        <h1 className="mt-2 text-3xl font-bold">{attempt.paper.title}</h1>
-        <p className="text-muted-foreground">Kết quả bài làm</p>
+        <h1 className="page-title mt-2">{attempt.paper.title}</h1>
+        <p className="page-subtitle">Kết quả bài làm</p>
       </div>
 
       {gamification && <GamificationCelebrationCard snapshot={gamification} />}
@@ -154,7 +154,7 @@ export function ResultsClient({
         <CardContent className="flex flex-wrap items-center gap-6 pt-6">
           {pct !== null ? (
             <div className="text-center">
-              <p className="text-4xl font-bold text-cambridge-700">{pct}%</p>
+              <p className="page-stat-value text-cambridge-700">{pct}%</p>
               <p className="text-sm text-muted-foreground">
                 {attempt.score}/{attempt.maxScore} điểm
               </p>
@@ -195,7 +195,7 @@ export function ResultsClient({
             <Card key={answer.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Câu {i + 1}</CardTitle>
+                  <CardTitle className="text-base font-semibold sm:text-lg">Câu {i + 1}</CardTitle>
                   {answer.isCorrect !== null && (
                     <Badge variant={answer.isCorrect ? "success" : "danger"}>
                       {answer.isCorrect ? "Đúng" : "Sai"}

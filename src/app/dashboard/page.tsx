@@ -141,46 +141,45 @@ export default async function DashboardPage({
 
   const overview = (
     <>
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid gap-3 sm:mb-8 sm:grid-cols-3 sm:gap-4">
         <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2 font-bold">
-              <Flame className="h-5 w-5 text-orange-500" />
+            <CardDescription className="flex items-center gap-2 text-sm font-bold">
+              <Flame className="h-4 w-4 text-orange-500 sm:h-5 sm:w-5" />
               Streak
             </CardDescription>
-            <CardTitle className="text-4xl font-extrabold text-orange-600">
+            <CardTitle className="page-stat-value text-orange-600">
               {user.streak} 🔥
             </CardTitle>
           </CardHeader>
         </Card>
         <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2 font-bold">
-              <Target className="h-5 w-5 text-purple-500" />
+            <CardDescription className="flex items-center gap-2 text-sm font-bold">
+              <Target className="h-4 w-4 text-purple-500 sm:h-5 sm:w-5" />
               Bài đã làm
             </CardDescription>
-            <CardTitle className="text-4xl font-extrabold text-purple-600">{totalAttempts}</CardTitle>
+            <CardTitle className="page-stat-value text-purple-600">{totalAttempts}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2 font-bold">
-              <TrendingUp className="h-5 w-5 text-emerald-500" />
+            <CardDescription className="flex items-center gap-2 text-sm font-bold">
+              <TrendingUp className="h-4 w-4 text-emerald-500 sm:h-5 sm:w-5" />
               Cấp độ
             </CardDescription>
-            <CardTitle className="text-4xl font-extrabold text-emerald-600">{user.targetExam}</CardTitle>
+            <CardTitle className="page-stat-value text-emerald-600">{user.targetExam}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
       {assignments.length > 0 && (
-        <Card className="mb-8 border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+        <Card className="mb-6 border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 sm:mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-extrabold">
               <ClipboardList className="h-5 w-5 text-purple-600" />
-              📋 Bài được giao ({assignments.length})
+              Bài được giao ({assignments.length})
             </CardTitle>
-            <CardDescription>Giáo viên đã giao — hoàn thành để đánh dấu xong</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {assignments.map((a) => (
@@ -298,10 +297,7 @@ export default async function DashboardPage({
 
           <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
             <CardHeader>
-              <CardTitle className="font-extrabold">🐰 Đổi level luyện tập</CardTitle>
-              <CardDescription>
-                Chọn level bất kỳ — không cần đăng ký tài khoản mới
-              </CardDescription>
+              <CardTitle className="font-extrabold">🐰 Đổi level</CardTitle>
             </CardHeader>
             <CardContent>
               <LevelPicker currentLevel={user.targetExam} variant="compact" />
@@ -326,33 +322,29 @@ export default async function DashboardPage({
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="page-shell">
       <ReferralWelcomeToast />
-      <div className="mb-8 flex animate-bounce-in items-center gap-4">
+      <div className="page-hero animate-bounce-in">
         {user.image ? (
           <Image
             src={user.image}
             alt={user.name ?? "Avatar"}
-            width={72}
-            height={72}
+            width={64}
+            height={64}
             unoptimized
-            className="h-[72px] w-[72px] rounded-full border-4 border-purple-200 object-cover shadow-md"
+            className="h-14 w-14 rounded-full border-4 border-purple-200 object-cover shadow-md sm:h-16 sm:w-16"
           />
         ) : (
-          <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-4 border-purple-200 bg-gradient-to-br from-purple-100 to-pink-100 shadow-md">
-            <UserRound className="h-8 w-8 text-purple-500" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-purple-200 bg-gradient-to-br from-purple-100 to-pink-100 shadow-md sm:h-16 sm:w-16">
+            <UserRound className="h-7 w-7 text-purple-500 sm:h-8 sm:w-8" />
           </div>
         )}
-        <div>
+        <div className="min-w-0 flex-1">
           <DashboardGreeting userName={user.name ?? "bạn"} />
-          <p className="font-semibold text-muted-foreground">
+          <p className="page-subtitle mt-0.5">
             {gamificationProfile.level.emoji} Cấp {gamificationProfile.level.level} ·{" "}
             {gamificationProfile.level.name}
-            {gamificationProfile.titleDisplay &&
-              ` · ${gamificationProfile.titleDisplay.emoji} ${gamificationProfile.titleDisplay.title}`}
-            {" · "}Mục tiêu: {formatExamLevel(user.targetExam)} 🎯
-            {user.grade && ` · ${user.grade}`}
-            {user.dateOfBirth && ` · ${new Date(user.dateOfBirth).toLocaleDateString("vi-VN")}`}
+            {" · "}Mục tiêu {formatExamLevel(user.targetExam)} 🎯
           </p>
         </div>
       </div>

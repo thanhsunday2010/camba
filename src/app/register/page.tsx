@@ -23,7 +23,7 @@ export default async function RegisterPage({
   const referrerName = refCode ? await getReferrerDisplayName(refCode) : null;
 
   return (
-    <div className="container mx-auto flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4 py-12">
+    <div className="page-shell flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center py-8 sm:py-12">
       {referrerName && <ReferralRegisterBanner referrerName={referrerName} />}
       <RegisterForm
         oauthProviders={oauthProviders}

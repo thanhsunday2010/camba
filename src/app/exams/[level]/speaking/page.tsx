@@ -125,8 +125,8 @@ export default async function CambridgeSpeakingPage({
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex flex-wrap items-center gap-4">
+    <div className="page-shell">
+      <div className="page-hero">
         <CambaMascot size="lg" mood="wave" />
         <div>
           <Link

@@ -25,25 +25,25 @@ export function ExamsHubIeltsSection({
 }) {
   return (
     <>
-      <div className="mt-8 mb-2 flex flex-wrap items-center gap-2">
+      <div className="mt-6 mb-2 flex flex-wrap items-center gap-2 sm:mt-8">
         <EditableText
           contentKey="exams.ielts.sectionTitle"
-          defaultValue="IELTS — Luyện Speaking & Writing"
+          defaultValue="IELTS Speaking & Writing"
           as="h2"
-          className="text-lg font-extrabold text-slate-800"
+          className="page-section-title text-slate-800"
         />
         <IeltsModuleBadge module="ACADEMIC" />
       </div>
 
       <Card className="border-2 border-rose-200 bg-gradient-to-br from-rose-50/60 to-white">
-        <CardContent className="flex flex-wrap items-center justify-between gap-4 py-6">
-          <div>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 sm:gap-4 sm:py-5">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <EditableText
                 contentKey="exams.ielts.speaking.cardTitle"
                 defaultValue={`🎤 ${speakingTitle}`}
                 as="p"
-                className="text-lg font-extrabold text-rose-800"
+                className="page-section-title text-rose-800"
               />
               <IeltsModuleBadge module="ACADEMIC" size="sm" />
             </div>
@@ -52,7 +52,7 @@ export function ExamsHubIeltsSection({
               defaultValue={speakingDescription}
               as="p"
               multiline
-              className="mt-1 max-w-xl text-sm font-medium text-muted-foreground"
+              className="mt-0.5 text-xs text-muted-foreground sm:text-sm"
             />
           </div>
           <Link
@@ -69,14 +69,14 @@ export function ExamsHubIeltsSection({
       </Card>
 
       <Card className="mt-4 border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 to-white">
-        <CardContent className="flex flex-wrap items-center justify-between gap-4 py-6">
-          <div>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 sm:gap-4 sm:py-5">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <EditableText
                 contentKey="exams.ielts.writing.cardTitle"
                 defaultValue={`✏️ ${writingTitle}`}
                 as="p"
-                className="text-lg font-extrabold text-amber-900"
+                className="page-section-title text-amber-900"
               />
               <IeltsModuleBadge module="ACADEMIC" size="sm" />
             </div>
@@ -85,7 +85,7 @@ export function ExamsHubIeltsSection({
               defaultValue={writingDescription}
               as="p"
               multiline
-              className="mt-1 max-w-xl text-sm font-medium text-muted-foreground"
+              className="mt-0.5 text-xs text-muted-foreground sm:text-sm"
             />
           </div>
           <Link
@@ -130,7 +130,7 @@ export function ExamsHubIeltsSection({
         </CardContent>
       </Card>
 
-      <p className="mt-8 text-center text-sm font-medium text-muted-foreground">
+      <p className="mt-6 text-center text-xs text-muted-foreground sm:mt-8 sm:text-sm">
         <EditableText
           contentKey="exams.footer.placementHint"
           defaultValue="Muốn biết trình độ?"

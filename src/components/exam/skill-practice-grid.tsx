@@ -137,7 +137,7 @@ export function SkillPracticeGrid({ skills, mockLockedHint }: SkillPracticeGridP
                 {skill.skillEmoji}
               </span>
               <div className="min-w-0 flex-1">
-                <h3 className="text-lg font-extrabold text-purple-900">{skill.skillLabel}</h3>
+                <h3 className="text-base font-extrabold text-purple-900 sm:text-lg">{skill.skillLabel}</h3>
               </div>
               {hasNew && (
                 <Sparkles className="h-4 w-4 shrink-0 text-sky-500" aria-label="Có bài mới" />

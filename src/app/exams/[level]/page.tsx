@@ -96,23 +96,23 @@ export default async function ExamsLevelPage({
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className={`mb-6 rounded-3xl border-2 ${theme.border} ${theme.bg} p-6 shadow-md`}>
+    <div className="page-shell">
+      <div className={`mb-5 rounded-2xl border-2 sm:mb-6 sm:rounded-3xl ${theme.border} ${theme.bg} p-4 shadow-md sm:p-5`}>
         <Link
           href="/exams"
-          className="mb-3 inline-flex text-sm font-bold text-purple-600 hover:underline"
+          className="mb-2 inline-flex text-sm font-bold text-purple-600 hover:underline"
         >
-          ← Đổi level khác
+          ← Đổi level
         </Link>
-        <div className="flex items-center gap-4">
-          <span className="text-5xl">{theme.emoji}</span>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <span className="text-4xl sm:text-5xl">{theme.emoji}</span>
           <div>
             <CambridgeLevelHubHeader level={level} levelLabel={formatExamLevel(level)} />
           </div>
         </div>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-violet-100 bg-violet-50/40 px-4 py-3 text-sm">
+      <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-violet-100 bg-violet-50/40 px-3 py-2.5 text-xs sm:gap-x-6 sm:px-4 sm:py-3 sm:text-sm">
         <span>
           <span className="font-bold text-violet-900">Luyện:</span>{" "}
           {formatQuotaRatio(usage.practiceCount, usage.practiceLimit)}
@@ -133,8 +133,8 @@ export default async function ExamsLevelPage({
       </div>
 
       {fullMocks.length > 0 && (
-        <section className="mb-10">
-          <h2 className="mb-4 text-lg font-extrabold text-amber-700">🏆 Full Mock</h2>
+        <section className="mb-8 sm:mb-10">
+          <h2 className="page-section-title mb-3 text-amber-700 sm:mb-4">🏆 Full Mock</h2>
           <FullMockGrid
             papers={fullMocks.map((p) => ({
               id: p.id,
@@ -151,10 +151,10 @@ export default async function ExamsLevelPage({
         </section>
       )}
 
-      <section className="mb-10">
+      <section className="mb-8 sm:mb-10">
         <Card className="border-2 border-rose-200 bg-gradient-to-br from-rose-50/60 to-white">
-          <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
-            <p className="text-lg font-extrabold text-rose-800">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 sm:gap-4 sm:py-5">
+            <p className="page-section-title text-rose-800">
               🎤 Speaking {formatExamLevel(level)}
             </p>
             <Link
@@ -167,10 +167,10 @@ export default async function ExamsLevelPage({
         </Card>
       </section>
 
-      <section className="mb-10">
+      <section className="mb-8 sm:mb-10">
         <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50/60 to-white">
-          <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
-            <p className="text-lg font-extrabold text-amber-900">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 sm:gap-4 sm:py-5">
+            <p className="page-section-title text-amber-900">
               ✏️ Writing {formatExamLevel(level)}
             </p>
             <Link
@@ -184,7 +184,7 @@ export default async function ExamsLevelPage({
       </section>
 
       <section>
-        <h2 className="mb-4 text-lg font-extrabold text-purple-900">Luyện theo kỹ năng</h2>
+        <h2 className="page-section-title mb-3 text-purple-900 sm:mb-4">Luyện theo kỹ năng</h2>
         <SkillPracticeGrid
           skills={gridSkills}
           mockLockedHint="Đã hết lượt mock test hôm nay — quay lại ngày mai"

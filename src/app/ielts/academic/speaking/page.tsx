@@ -12,8 +12,8 @@ export default async function IeltsAcademicSpeakingPage() {
   const data = await loadIeltsSpeakingHub("ACADEMIC");
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex flex-wrap items-center gap-4">
+    <div className="page-shell">
+      <div className="page-hero">
         <CambaMascot size="lg" mood="wave" />
         <div>
           <Link href="/exams" className="text-sm font-semibold text-purple-600 hover:underline">
@@ -22,7 +22,7 @@ export default async function IeltsAcademicSpeakingPage() {
           <IeltsAcademicHubHeader
             skill="speaking"
             defaultTitle={data.meta.hubTitle("Speaking")}
-            defaultDescription={`${data.meta.description} · Mỗi lần luyện 1 câu ngẫu nhiên · AI chấm band ngay · mock full Part 1+2+3`}
+            defaultDescription="Part 1–3 · AI chấm band ngay"
             badge={<IeltsModuleBadge module={data.module} />}
           />
         </div>

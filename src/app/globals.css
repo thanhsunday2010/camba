@@ -67,6 +67,24 @@
   .kid-section-title {
     @apply text-2xl font-extrabold tracking-tight md:text-3xl;
   }
+  .page-shell {
+    @apply container mx-auto px-4 py-6 sm:px-5 sm:py-8;
+  }
+  .page-hero {
+    @apply mb-6 flex flex-wrap items-center gap-3 sm:mb-8 sm:gap-4;
+  }
+  .page-title {
+    @apply text-2xl font-extrabold tracking-tight kid-gradient-text sm:text-3xl;
+  }
+  .page-subtitle {
+    @apply mt-1 max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground sm:text-base;
+  }
+  .page-section-title {
+    @apply text-base font-extrabold sm:text-lg;
+  }
+  .page-stat-value {
+    @apply text-2xl font-extrabold tabular-nums sm:text-3xl;
+  }
   .mcq-option-kid {
     @apply flex cursor-pointer items-center gap-2.5 rounded-xl border-2 p-2.5 text-sm transition-all duration-200 hover:shadow-sm active:scale-[0.99];
   }

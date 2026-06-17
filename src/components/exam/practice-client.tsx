@@ -568,7 +568,7 @@ export function PracticeClient({
 
   return (
     <div
-      className="container mx-auto px-4 py-6"
+      className="page-shell"
       onPointerDown={() => unlockListeningAudio()}
     >
       <ConfettiBurst active={showConfetti} />
@@ -576,7 +576,7 @@ export function PracticeClient({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-extrabold kid-gradient-text">{paperTitle}</h1>
+            <h1 className="text-xl font-extrabold kid-gradient-text sm:text-2xl">{paperTitle}</h1>
             {ieltsModule && <IeltsModuleBadge module={ieltsModule} size="sm" />}
           </div>
           {currentSection && (

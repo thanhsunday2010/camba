@@ -12,8 +12,8 @@ export default async function IeltsAcademicWritingPage() {
   const data = await loadIeltsWritingHub("ACADEMIC");
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex flex-wrap items-center gap-4">
+    <div className="page-shell">
+      <div className="page-hero">
         <CambaMascot size="lg" mood="wave" />
         <div>
           <Link href="/exams" className="text-sm font-semibold text-purple-600 hover:underline">
@@ -22,7 +22,7 @@ export default async function IeltsAcademicWritingPage() {
           <IeltsAcademicHubHeader
             skill="writing"
             defaultTitle={data.meta.hubTitle("Writing")}
-            defaultDescription={`${data.meta.description} · Task 1 Academic (biểu đồ/bản đồ/sơ đồ) + Task 2 Essay · AI chấm band ngay`}
+            defaultDescription="Task 1 + Task 2 · AI chấm band ngay"
             badge={<IeltsModuleBadge module={data.module} />}
           />
         </div>

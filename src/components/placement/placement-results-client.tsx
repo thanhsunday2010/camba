@@ -175,8 +175,8 @@ export function PlacementResultsClient({
 
   if (!report) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-muted-foreground">
+      <div className="page-shell">
+        <p className="text-sm text-muted-foreground sm:text-base">
           Không thể tạo báo cáo placement. Vui lòng thử lại hoặc liên hệ hỗ trợ.
         </p>
         <PlacementOpenButton className="mt-4">Quay lại</PlacementOpenButton>
@@ -185,13 +185,13 @@ export function PlacementResultsClient({
   }
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-8 text-center">
-        <Badge className="mb-3" variant="secondary">
+    <div className="page-shell max-w-3xl">
+      <div className="mb-6 text-center sm:mb-8">
+        <Badge className="mb-2" variant="secondary">
           Bài test trình độ
         </Badge>
-        <h1 className="text-3xl font-extrabold kid-gradient-text">Kết quả đánh giá trình độ</h1>
-        <p className="mt-2 font-semibold text-muted-foreground">{attempt.paper.title}</p>
+        <h1 className="page-title">Kết quả đánh giá trình độ</h1>
+        <p className="page-subtitle mx-auto">{attempt.paper.title}</p>
         {(attempt.guestFullName || attempt.guestPhone) && (
           <p className="mt-1 text-sm font-medium text-purple-700">
             {attempt.guestFullName}

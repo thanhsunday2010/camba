@@ -5,6 +5,7 @@ import { CambaMascot } from "@/components/kids/camba-mascot";
 import { PlacementOpenButton } from "@/components/placement/placement-open-button";
 import { usePlacementPicker } from "@/components/placement/placement-picker-provider";
 import type { PlacementPickerPreset } from "@/lib/placement/picker-url";
+import { PlacementPageHero } from "@/components/inline-edit/page-editable-sections";
 
 export function PlacementPageClient({ initialPreset }: { initialPreset?: PlacementPickerPreset }) {
   const { openPlacementPicker } = usePlacementPicker();
@@ -17,14 +18,11 @@ export function PlacementPageClient({ initialPreset }: { initialPreset?: Placeme
   }, [openPlacementPicker, initialPreset]);
 
   return (
-    <div className="mb-10 flex flex-col items-center text-center">
-      <CambaMascot size="lg" mood="think" className="mb-4" />
-      <h1 className="text-3xl font-extrabold kid-gradient-text">Test trình độ</h1>
-      <p className="mt-2 max-w-lg font-semibold text-muted-foreground">
-        Chọn chương trình và loại đề trong hộp thoại — làm bài ngay, không cần duyệt danh sách.
-      </p>
-      <PlacementOpenButton className="mt-6 kid-btn-fun rounded-full" size="lg" preset={initialPreset}>
-        🎯 Chọn & bắt đầu test
+    <div className="mb-8 flex flex-col items-center text-center sm:mb-10">
+      <CambaMascot size="lg" mood="think" className="mb-3 sm:mb-4" />
+      <PlacementPageHero />
+      <PlacementOpenButton className="mt-5 kid-btn-fun rounded-full sm:mt-6" size="lg" preset={initialPreset}>
+        🎯 Chọn & bắt đầu
       </PlacementOpenButton>
     </div>
   );
