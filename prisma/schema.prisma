@@ -38,6 +38,11 @@ enum QuestionType {
   SPEAKING_PROMPT
 }
 
+enum ContentSource {
+  CURATED
+  GENERATED
+}
+
 enum AttemptStatus {
   IN_PROGRESS
   SUBMITTED
@@ -192,6 +197,7 @@ model Question {
   audioUrl      String?
   placementSlug String?
   placementPool String?
+  contentSource ContentSource?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -201,6 +207,7 @@ model Question {
   aiFeedbacks    AIFeedback[]
 
   @@index([placementSlug, placementPool])
+  @@index([level, skill, contentSource])
 }
 
 model ExamPaper {

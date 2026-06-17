@@ -4,7 +4,7 @@ import { seedAllBulkContent } from "../prisma/seed/bulk-seed";
 const db = new PrismaClient();
 
 async function main() {
-  console.log("Reseeding practice & mock content (keeping PLACEMENT papers)...\n");
+  console.log("Reseeding curated-only practice banks (keeping PLACEMENT papers)...\n");
 
   const placementPapers = await db.examPaper.findMany({
     where: { paperKind: PaperKind.PLACEMENT },
@@ -72,6 +72,7 @@ async function main() {
   ]);
 
   console.log(`\nDone. ${papers} practice/mock papers, ${questions} total questions in DB.`);
+  console.log("Chạy: npm run content:migrate-practice-pools — cập nhật mô tả đề pool.");
   console.log("Chạy: npm run audio:generate — cập nhật file MP3 listening nếu cần.");
 }
 

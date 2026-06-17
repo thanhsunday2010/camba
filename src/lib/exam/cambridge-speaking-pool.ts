@@ -15,6 +15,7 @@ import {
   pickDiverseQuestionIds,
   type QuestionPickMeta,
 } from "@/lib/exam/question-diversity";
+import { curatedPoolWhere } from "@/lib/exam/content-source";
 
 const speakingPoolPickSelect = {
   id: true,
@@ -34,6 +35,7 @@ export async function getCambridgeSpeakingPoolQuestions(
       skill: Skill.SPEAKING,
       type: QuestionType.SPEAKING_PROMPT,
       placementSlug: null,
+      ...curatedPoolWhere(),
       AND: [
         { content: { path: ["examTrack"], equals: "CAMBRIDGE" } },
         { content: { path: ["cambridgePart"], equals: part } },

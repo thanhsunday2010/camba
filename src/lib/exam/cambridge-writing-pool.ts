@@ -15,6 +15,7 @@ import {
   pickDiverseQuestionIds,
   type QuestionPickMeta,
 } from "@/lib/exam/question-diversity";
+import { curatedPoolWhere } from "@/lib/exam/content-source";
 
 const writingPoolPickSelect = {
   id: true,
@@ -34,6 +35,7 @@ export async function getCambridgeWritingPoolQuestions(
       skill: Skill.WRITING,
       type: QuestionType.FREE_TEXT,
       placementSlug: null,
+      ...curatedPoolWhere(),
       AND: [
         { content: { path: ["examTrack"], equals: "CAMBRIDGE" } },
         { content: { path: ["cambridgeWritingPart"], equals: part } },

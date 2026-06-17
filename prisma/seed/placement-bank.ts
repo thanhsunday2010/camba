@@ -1,4 +1,4 @@
-import { PrismaClient, Skill } from "@prisma/client";
+import { ContentSource, PrismaClient, Skill } from "@prisma/client";
 import {
   PLACEMENT_SLUG_BY_TITLE,
   type PlacementPool,
@@ -22,6 +22,8 @@ import {
   type QuestionBankMeta,
 } from "./helpers";
 
+const PLACEMENT_CURATED = { contentSource: ContentSource.CURATED };
+
 function bankMeta(slug: string, pool: PlacementPool): QuestionBankMeta {
   return { placementSlug: slug, placementPool: pool };
 }
@@ -44,7 +46,8 @@ async function seedFormPools(
     test.level,
     Skill.READING,
     reading,
-    bankMeta(slug, "reading")
+    bankMeta(slug, "reading"),
+    PLACEMENT_CURATED
   );
 
   await createListenings(
@@ -52,7 +55,8 @@ async function seedFormPools(
     test.level,
     listening,
     500,
-    bankMeta(slug, "listening")
+    bankMeta(slug, "listening"),
+    PLACEMENT_CURATED
   );
 
   if (test.grammarMcq?.length) {
@@ -61,14 +65,16 @@ async function seedFormPools(
       test.level,
       Skill.USE_OF_ENGLISH,
       variantMcqs(test.grammarMcq, formIndex),
-      bankMeta(slug, "grammarMcq")
+      bankMeta(slug, "grammarMcq"),
+      PLACEMENT_CURATED
     );
   } else if (test.grammar.length) {
     await createGaps(
       db,
       test.level,
       variantGaps(test.grammar, formIndex),
-      bankMeta(slug, "grammar")
+      bankMeta(slug, "grammar"),
+      PLACEMENT_CURATED
     );
   }
 
@@ -77,7 +83,8 @@ async function seedFormPools(
       db,
       test.level,
       variantWritings(test.writing, formIndex),
-      bankMeta(slug, "writing")
+      bankMeta(slug, "writing"),
+      PLACEMENT_CURATED
     );
   }
 
@@ -86,7 +93,8 @@ async function seedFormPools(
       db,
       test.level,
       variantSpeakings(test.speaking, formIndex),
-      bankMeta(slug, "speaking")
+      bankMeta(slug, "speaking"),
+      PLACEMENT_CURATED
     );
   }
 }

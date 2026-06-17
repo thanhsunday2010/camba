@@ -59,19 +59,29 @@ async function main() {
       const title = `${practiceSkillLabel(level, skill)} — ${LEVEL_LABEL[level]} Luyện tập`;
 
       const poolCount = await db.question.count({
-        where: { level, skill, placementSlug: null },
+        where: {
+          level,
+          skill,
+          placementSlug: null,
+          contentSource: "CURATED",
+        },
       });
 
       const existing = await db.examPaper.findUnique({
         where: { practicePoolKey: poolKey },
       });
 
+      const poolLabel =
+        poolCount > 0
+          ? `${poolCount} câu curated`
+          : "0 câu (chạy content:reseed-practice)";
+
       if (existing) {
         await db.examPaper.update({
           where: { id: existing.id },
           data: {
             title,
-            description: `10 câu ngẫu nhiên từ ngân hàng ${poolCount} câu — không lặp cho đến khi hết pool`,
+            description: `10 câu ngẫu nhiên từ ngân hàng ${poolLabel} — chất lượng curated, không lặp cho đến khi hết pool`,
             published: true,
             isMockTest: false,
             paperKind: PaperKind.PRACTICE,
@@ -83,7 +93,7 @@ async function main() {
         await db.examPaper.create({
           data: {
             title,
-            description: `10 câu ngẫu nhiên từ ngân hàng ${poolCount} câu — không lặp cho đến khi hết pool`,
+            description: `10 câu ngẫu nhiên từ ngân hàng ${poolLabel} — chất lượng curated, không lặp cho đến khi hết pool`,
             level,
             skill,
             paperKind: PaperKind.PRACTICE,
@@ -108,7 +118,7 @@ async function main() {
       });
       unpublished += result.count;
 
-      console.log(`${poolKey}: ngân hàng ${poolCount} câu`);
+      console.log(`${poolKey}: ngân hàng ${poolLabel}`);
     }
   }
 

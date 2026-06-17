@@ -14,6 +14,7 @@ export type RequiredPoolSizes = {
   uoe: number;
 };
 
+/** @deprecated Pool giờ seed curated-only — xem seed-curated-bank.ts */
 export const PRACTICE_PAPERS_PER_LEVEL = 100;
 export const MOCK_SKILL_PAPERS_PER_SKILL = 5;
 export const MOCK_FULL_PAPERS_PER_LEVEL = 5;

@@ -15,6 +15,7 @@ import {
   pickReadingPassageQuestionIds,
   type QuestionPickMeta,
 } from "@/lib/exam/question-diversity";
+import { curatedPoolWhere } from "@/lib/exam/content-source";
 
 /** Số câu mỗi lần luyện tập (pool động) */
 export const PRACTICE_POOL_SIZE = 10;
@@ -101,6 +102,7 @@ export async function getPracticePoolQuestionsForPick(
       level,
       skill,
       placementSlug: null,
+      ...curatedPoolWhere(),
     },
     select: poolQuestionPickSelect,
     orderBy: { id: "asc" },

@@ -18,6 +18,7 @@ import {
   type IeltsWritingTask,
 } from "@/lib/exam/ielts-writing-config";
 import type { IeltsModule } from "@/lib/exam/ielts-module";
+import { curatedPoolWhere } from "@/lib/exam/content-source";
 
 export type BankStats = {
   questionCount: number;
@@ -50,7 +51,7 @@ export async function countSkillPoolQuestions(
   skill: Skill
 ): Promise<number> {
   return db.question.count({
-    where: { level, skill, placementSlug: null },
+    where: { level, skill, placementSlug: null, ...curatedPoolWhere() },
   });
 }
 
@@ -83,6 +84,7 @@ export async function countCambridgeSpeakingPartQuestions(
       skill: Skill.SPEAKING,
       type: QuestionType.SPEAKING_PROMPT,
       placementSlug: null,
+      ...curatedPoolWhere(),
       AND: [
         { content: { path: ["examTrack"], equals: "CAMBRIDGE" } },
         { content: { path: ["cambridgePart"], equals: part } },
@@ -102,6 +104,7 @@ export async function countCambridgeWritingPartQuestions(
       skill: Skill.WRITING,
       type: QuestionType.FREE_TEXT,
       placementSlug: null,
+      ...curatedPoolWhere(),
       AND: [
         { content: { path: ["examTrack"], equals: "CAMBRIDGE" } },
         { content: { path: ["cambridgeWritingPart"], equals: part } },

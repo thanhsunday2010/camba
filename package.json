@@ -22,6 +22,7 @@
     "content:generate-explanations": "node scripts/generate-explanations.mjs",
     "content:audit-images": "tsx scripts/audit-question-images.ts",
     "content:audit-pools": "tsx scripts/audit-pool-counts.ts",
+    "content:audit-quality": "tsx scripts/audit-practice-content-quality.ts",
     "content:supplement-bank": "tsx scripts/supplement-question-bank.ts",
     "content:supplement-to-100": "tsx scripts/supplement-pools-to-100.ts",
     "content:audit-below-100": "tsx scripts/audit-pools-below-100.ts",

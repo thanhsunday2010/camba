@@ -5,6 +5,7 @@ import {
   QuestionType,
   PaperKind,
   Prisma,
+  ContentSource,
 } from "@prisma/client";
 import type { PaperSection } from "../../src/lib/exam/paper-sections";
 import {
@@ -84,12 +85,17 @@ export type QuestionBankMeta = {
   placementPool: string;
 };
 
+export type SeedCreateOptions = {
+  contentSource?: ContentSource;
+};
+
 export async function createMcqs(
   db: PrismaClient,
   level: ExamLevel,
   skill: Skill,
   items: McqSeed[],
-  bank?: QuestionBankMeta
+  bank?: QuestionBankMeta,
+  options?: SeedCreateOptions
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -115,6 +121,7 @@ export async function createMcqs(
         orderIndex: i,
         placementSlug: bank?.placementSlug,
         placementPool: bank?.placementPool,
+        contentSource: options?.contentSource,
       },
     });
     ids.push(q.id);
@@ -126,7 +133,8 @@ export async function createGaps(
   db: PrismaClient,
   level: ExamLevel,
   items: GapSeed[],
-  bank?: QuestionBankMeta
+  bank?: QuestionBankMeta,
+  options?: SeedCreateOptions
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -150,6 +158,7 @@ export async function createGaps(
         orderIndex: i,
         placementSlug: bank?.placementSlug,
         placementPool: bank?.placementPool,
+        contentSource: options?.contentSource,
       },
     });
     ids.push(q.id);
@@ -164,6 +173,7 @@ export type WritingCreateMeta = {
   ieltsModule?: "ACADEMIC" | "GENERAL";
   ieltsTask1Format?: "chart" | "map" | "process" | "letter";
   startOrderIndex?: number;
+  contentSource?: ContentSource;
 };
 
 export async function createWritings(
@@ -201,6 +211,7 @@ export async function createWritings(
         orderIndex: (meta?.startOrderIndex ?? 0) + i,
         placementSlug: bank?.placementSlug,
         placementPool: bank?.placementPool,
+        contentSource: meta?.contentSource,
       },
     });
     ids.push(q.id);
@@ -213,7 +224,8 @@ export async function createListenings(
   level: ExamLevel,
   items: ListeningSeed[],
   startIndex = 0,
-  bank?: QuestionBankMeta
+  bank?: QuestionBankMeta,
+  options?: SeedCreateOptions
 ) {
   const ids: string[] = [];
   for (let i = 0; i < items.length; i++) {
@@ -242,6 +254,7 @@ export async function createListenings(
         orderIndex: startIndex + i,
         placementSlug: bank?.placementSlug,
         placementPool: bank?.placementPool,
+        contentSource: options?.contentSource,
       },
     });
     ids.push(q.id);
@@ -255,6 +268,7 @@ export type SpeakingCreateMeta = {
   ieltsPart?: 1 | 2 | 3;
   ieltsModule?: "ACADEMIC" | "GENERAL";
   startOrderIndex?: number;
+  contentSource?: ContentSource;
 };
 
 export async function createSpeakings(
@@ -296,6 +310,7 @@ export async function createSpeakings(
         orderIndex: (meta?.startOrderIndex ?? 0) + i,
         placementSlug: bank?.placementSlug,
         placementPool: bank?.placementPool,
+        contentSource: meta?.contentSource,
       },
     });
     await db.question.update({
