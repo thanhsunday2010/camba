@@ -15,7 +15,7 @@ import {
 
 export function HomeHero() {
   return (
-    <section className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white">
+    <section className="relative overflow-x-clip bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white">
       <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-20">
         <div className="absolute left-10 top-10 h-20 w-20 rounded-full bg-yellow-300 blur-xl animate-float" />
         <div
@@ -27,36 +27,49 @@ export function HomeHero() {
           style={{ animationDelay: "2s" }}
         />
       </div>
-      <div className="container relative mx-auto px-4 py-14 md:py-20 lg:py-24">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="container relative mx-auto px-4 py-10 sm:py-14 md:py-20 lg:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 sm:gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="min-w-0 w-full text-center lg:text-left">
             <EditableText
               contentKey="home.hero.title"
               defaultValue="Giỏi Tiếng Anh cùng Camba!"
               as="h1"
-              className="text-2xl font-extrabold tracking-tight md:text-5xl lg:text-6xl lg:leading-tight"
+              className="text-2xl font-extrabold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl lg:leading-tight"
             />
             <EditableText
               contentKey="home.hero.subtitle"
               defaultValue="App học Tiếng Anh miễn phí có AI chấm sửa."
               as="p"
               multiline
-              className="mt-6 max-w-xl text-lg font-semibold text-white/90 md:text-xl lg:mx-0 lg:mt-8"
+              className="mx-auto mt-4 max-w-xl text-base font-semibold text-white/90 sm:mt-6 sm:text-lg md:text-xl lg:mx-0 lg:mt-8"
             />
-            <div className="mt-10 flex flex-wrap justify-center gap-4 lg:justify-start">
-              <PlacementOpenButton size="lg" variant="fun" className="rounded-full">
+            <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4 lg:justify-start">
+              <PlacementOpenButton
+                size="lg"
+                variant="fun"
+                className="w-full rounded-full sm:w-auto"
+              >
                 🎯 Test trình độ
               </PlacementOpenButton>
-              <Button asChild size="lg" className="rounded-full bg-rose-600 font-bold hover:bg-rose-700">
+              <Button
+                asChild
+                size="lg"
+                className="w-full rounded-full bg-rose-600 font-bold hover:bg-rose-700 sm:w-auto"
+              >
                 <Link href={IELTS_SPEAKING_URL}>🎤 {IELTS_SPEAKING_CTA_LABEL}</Link>
               </Button>
-              <Button asChild size="lg" variant="secondary" className="kid-btn-fun rounded-full text-purple-800">
+              <Button
+                asChild
+                size="lg"
+                variant="secondary"
+                className="kid-btn-fun w-full rounded-full text-purple-800 sm:w-auto"
+              >
                 <Link href={CAMBRIDGE_COURSES_URL}>📚 {CAMBRIDGE_COURSES_CTA_LABEL}</Link>
               </Button>
               <Button
                 asChild
                 size="default"
-                className="rounded-full border-2 border-white bg-white/10 font-normal text-white hover:bg-white/20"
+                className="w-full rounded-full border-2 border-white bg-white/10 font-normal text-white hover:bg-white/20 sm:w-auto"
               >
                 <a href={VTEN_COURSE_URL} target="_blank" rel="noopener noreferrer">
                   👩‍🏫 {VTEN_COURSE_LABEL}

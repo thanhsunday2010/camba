@@ -21,6 +21,7 @@ import {
 import { GamificationCelebrationCard } from "@/components/gamification/gamification-celebration-card";
 import type { GamificationSnapshot } from "@/lib/gamification/types";
 import { QuestionExplanationPanel } from "@/components/exam/question-explanation-panel";
+import { AiGradeRetryButton } from "@/components/exam/ai-grade-retry-button";
 import {
   formatCorrectAnswerDisplay,
   formatExplanationForStudent,
@@ -274,6 +275,28 @@ export function ResultsClient({
                     }}
                     transcript={aiFb.transcript ?? aiFb.inputText}
                   />
+                ) : answer.question.type === "FREE_TEXT" || answer.question.type === "SPEAKING_PROMPT" ? (
+                  <div className="space-y-3">
+                    <div className="rounded-lg bg-slate-50 p-3 text-sm whitespace-pre-wrap">
+                      <strong>Trả lời:</strong>{" "}
+                      {typeof answer.answer === "string"
+                        ? answer.answer
+                        : JSON.stringify(answer.answer)}
+                    </div>
+                    <p className="text-sm font-medium text-amber-800">
+                      AI chưa chấm được bài này — có thể do tạm thời quá tải. Thử chấm lại nhé.
+                    </p>
+                    {typeof answer.answer === "string" && answer.answer.trim().length >= 10 && (
+                      <AiGradeRetryButton
+                        attemptId={attempt.id}
+                        questionId={answer.question.id}
+                        feedbackType={
+                          answer.question.type === "FREE_TEXT" ? "writing" : "speaking"
+                        }
+                        studentAnswer={answer.answer}
+                      />
+                    )}
+                  </div>
                 ) : (
                   <>
                     <div className="rounded-lg bg-slate-50 p-3 text-sm">
@@ -295,8 +318,6 @@ export function ResultsClient({
                             correctAnswer={answer.question.correctAnswer}
                           />
                         ) : (
-                          answer.question.type !== "FREE_TEXT" &&
-                          answer.question.type !== "SPEAKING_PROMPT" &&
                           !hasStoredExplanation(answer.question.content) && (
                             <p className="text-sm text-muted-foreground">
                               Chưa có lời giải chi tiết cho câu này trong ngân hàng đề (đáp án

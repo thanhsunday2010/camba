@@ -33,7 +33,7 @@ export async function gradeWriting(params: {
   for (let i = 0; i < 2; i++) {
     try {
       const raw = await callGeminiJson(system, user, GEMINI_MODELS.writing, {
-        maxOutputTokens: 768,
+        maxOutputTokens: 2048,
         temperature: 0.25,
       });
       const feedback = writingFeedbackSchema.parse(normalizeWritingFeedback(raw));
@@ -111,7 +111,7 @@ export async function gradeSpeaking(params: {
   for (let i = 0; i < 2; i++) {
     try {
       const raw = await callGeminiJson(system, user, GEMINI_MODELS.speaking, {
-        maxOutputTokens: 512,
+        maxOutputTokens: 1024,
         temperature: 0.25,
       });
       const feedback = speakingFeedbackSchema.parse(normalizeSpeakingFeedback(raw));

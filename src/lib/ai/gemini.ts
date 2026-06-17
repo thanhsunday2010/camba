@@ -6,6 +6,7 @@ import {
   requireGeminiApiKey,
   isVertexAiEnabled,
 } from "./config";
+import { isGeminiRetryableError } from "./gemini-errors";
 
 let clientInstance: GoogleGenAI | null = null;
 
@@ -36,7 +37,6 @@ export function getGeminiClient(): GoogleGenAI {
   const apiKey = requireGeminiApiKey();
   const credentialType = detectCredentialType(apiKey);
 
-  // Auth-scoped (AQ.) and standard (AIza) keys both use apiKey with @google/genai
   clientInstance = new GoogleGenAI({ apiKey });
 
   if (process.env.NODE_ENV === "development") {
@@ -60,14 +60,15 @@ function parseJsonResponse(text: string): unknown {
   return JSON.parse(jsonStr);
 }
 
-type GeminiTextResponse = {
+type GeminiGenerateResponse = {
   text?: string;
   candidates?: Array<{
+    finishReason?: string;
     content?: { parts?: Array<{ text?: string }> };
   }>;
 };
 
-function extractText(response: GeminiTextResponse): string {
+function extractText(response: GeminiGenerateResponse): string {
   const direct = response.text?.trim();
   if (direct) return direct;
 
@@ -80,6 +81,10 @@ function extractText(response: GeminiTextResponse): string {
   throw new Error("Empty Gemini response");
 }
 
+function getFinishReason(response: GeminiGenerateResponse): string | undefined {
+  return response.candidates?.[0]?.finishReason;
+}
+
 /** Strip optional models/ prefix from env overrides */
 export function normalizeGeminiModelName(modelName: string): string {
   return modelName.replace(/^models\//, "").trim();
@@ -90,15 +95,19 @@ type GeminiCallOptions = {
   temperature?: number;
 };
 
-export async function callGeminiJson(
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function generateGeminiJsonOnce(
   system: string,
   user: string,
   modelName: string,
-  options: GeminiCallOptions = {}
-): Promise<unknown> {
+  options: GeminiCallOptions
+): Promise<{ raw: unknown; text: string; finishReason?: string }> {
   const ai = getGeminiClient();
   const model = normalizeGeminiModelName(modelName);
-  const response = await ai.models.generateContent({
+  const response = (await ai.models.generateContent({
     model,
     contents: user,
     config: {
@@ -109,9 +118,64 @@ export async function callGeminiJson(
         ? { maxOutputTokens: options.maxOutputTokens }
         : {}),
     },
-  });
+  })) as GeminiGenerateResponse;
 
-  return parseJsonResponse(extractText(response));
+  const text = extractText(response);
+  return {
+    raw: response,
+    text,
+    finishReason: getFinishReason(response),
+  };
+}
+
+export async function callGeminiJson(
+  system: string,
+  user: string,
+  modelName: string,
+  options: GeminiCallOptions = {}
+): Promise<unknown> {
+  const baseTokens = options.maxOutputTokens ?? 1024;
+  const tokenSteps = [baseTokens, Math.min(baseTokens * 2, 4096)].filter(
+    (value, index, arr) => index === 0 || value > arr[index - 1]!
+  );
+
+  let lastError: Error | null = null;
+
+  for (const maxOutputTokens of tokenSteps) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const { text, finishReason } = await generateGeminiJsonOnce(system, user, modelName, {
+          ...options,
+          maxOutputTokens,
+        });
+
+        try {
+          return parseJsonResponse(text);
+        } catch (parseError) {
+          const truncated =
+            finishReason === "MAX_TOKENS" ||
+            (parseError instanceof SyntaxError && /json|JSON/i.test(parseError.message));
+          lastError = parseError instanceof Error ? parseError : new Error("JSON parse failed");
+          if (truncated && maxOutputTokens < tokenSteps[tokenSteps.length - 1]!) {
+            break;
+          }
+          throw lastError;
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (isGeminiRetryableError(error) && attempt === 0) {
+          await sleep(800);
+          continue;
+        }
+        if (maxOutputTokens < tokenSteps[tokenSteps.length - 1]!) {
+          break;
+        }
+        throw lastError;
+      }
+    }
+  }
+
+  throw lastError ?? new Error("Gemini JSON call failed");
 }
 
 export async function callGeminiText(
@@ -130,7 +194,7 @@ export async function callGeminiText(
     },
   });
 
-  return extractText(response) || "Không thể giải thích.";
+  return extractText(response as GeminiGenerateResponse) || "Không thể giải thích.";
 }
 
 export async function transcribeAudioWithGemini(
@@ -152,7 +216,7 @@ export async function transcribeAudioWithGemini(
     config: { temperature: 0 },
   });
 
-  return extractText(response);
+  return extractText(response as GeminiGenerateResponse);
 }
 
 /** @deprecated Use getGeminiClient — kept for internal clarity */

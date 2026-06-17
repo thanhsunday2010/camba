@@ -16,8 +16,12 @@ export function MascotHero({
 }) {
   return (
     <div className={cn("flex w-full min-w-0 max-w-full flex-col items-center gap-4 sm:flex-row sm:items-end", className)}>
-      <CambaMascot size="xl" mood={mood} />
-      <div className="relative w-full max-w-sm rounded-3xl rounded-bl-sm border-2 border-white/40 bg-white/20 px-5 py-4 backdrop-blur-sm">
+      <CambaMascot
+        size="lg"
+        mood={mood}
+        className="h-36 w-36 sm:h-44 sm:w-44 lg:h-52 lg:w-52"
+      />
+      <div className="relative w-full max-w-[min(100%,18rem)] rounded-3xl rounded-bl-sm border-2 border-white/40 bg-white/20 px-4 py-3 backdrop-blur-sm sm:max-w-sm sm:px-5 sm:py-4">
         {messageSlot ?? (
           <p className="text-base font-extrabold leading-snug text-white md:text-lg">{message}</p>
         )}

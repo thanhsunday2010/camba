@@ -47,8 +47,10 @@ export function PlacementShareLink({ preset, label }: PlacementShareLinkProps) {
 
   return (
     <div className="rounded-xl border-2 border-sky-100 bg-sky-50/60 p-2.5 sm:p-3">
-      <p className="text-[11px] font-bold text-sky-900 sm:text-xs">Chia sẻ link bài test đã chọn</p>
-      <p className="mt-0.5 truncate font-mono text-[10px] text-sky-800/80 sm:text-[11px]">{shareUrl}</p>
+      <p className="text-[11px] font-bold text-sky-900 sm:text-xs">Chia sẻ link bài test</p>
+      <p className="mt-0.5 hidden break-all font-mono text-[10px] text-sky-800/80 sm:block sm:text-[11px]">
+        {shareUrl}
+      </p>
       <div className="mt-2 flex gap-2">
         <Button
           type="button"

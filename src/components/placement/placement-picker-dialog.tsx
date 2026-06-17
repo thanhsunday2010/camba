@@ -164,14 +164,7 @@ export function PlacementPickerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="
-          max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-lg gap-3 overflow-y-auto p-3 pt-7
-          sm:gap-4 sm:p-6 sm:pt-6
-          max-sm:bottom-0 max-sm:left-0 max-sm:top-auto max-sm:translate-x-0 max-sm:translate-y-0
-          max-sm:rounded-b-none max-sm:rounded-t-2xl
-          max-sm:data-[state=closed]:slide-out-to-bottom
-          max-sm:data-[state=open]:slide-in-from-bottom
-        "
+        className="max-h-[min(82dvh,560px)] gap-3 overflow-y-auto overscroll-contain p-4 sm:gap-4 sm:p-6"
       >
         <DialogHeader className="space-y-0.5 sm:space-y-1.5">
           <DialogTitle className="text-base sm:text-lg">🎯 Test trình độ</DialogTitle>
@@ -275,10 +268,8 @@ export function PlacementPickerDialog({
               </>
             ) : (
               <div className="space-y-2 rounded-xl border-2 border-purple-100 bg-purple-50/50 p-2.5 sm:space-y-3 sm:p-4">
-                <p className="text-xs font-bold text-purple-900 sm:text-sm">
-                  Khách (không cần đăng ký)
-                </p>
-                <p className="text-[11px] font-medium text-muted-foreground sm:text-xs">
+                <p className="text-xs font-bold text-purple-900 sm:text-sm">Khách (không cần đăng ký)</p>
+                <p className="hidden text-[11px] font-medium text-muted-foreground sm:block sm:text-xs">
                   1 lượt/tháng theo SĐT. Bài dở tiếp tục khi nhập lại cùng SĐT.
                 </p>
                 <div>

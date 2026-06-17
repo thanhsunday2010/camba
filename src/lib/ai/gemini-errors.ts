@@ -22,6 +22,19 @@ export function getGeminiErrorStatus(error: unknown): number | undefined {
   return undefined;
 }
 
+export function isGeminiRetryableError(error: unknown): boolean {
+  const status = getGeminiErrorStatus(error);
+  if (status === 503 || status === 500 || status === 502) return true;
+
+  const msg = error instanceof Error ? error.message : String(error);
+  return (
+    msg.includes("503") ||
+    msg.includes("UNAVAILABLE") ||
+    msg.toLowerCase().includes("high demand") ||
+    msg.toLowerCase().includes("try again later")
+  );
+}
+
 export function isGeminiQuotaError(error: unknown): boolean {
   const status = getGeminiErrorStatus(error);
   if (status === 429) return true;

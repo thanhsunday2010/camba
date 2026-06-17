@@ -5,6 +5,7 @@ import { AttemptStatus } from "@prisma/client";
 import { finalizeAttemptGrading } from "@/lib/exam/finalize-attempt";
 import { gradeWriting } from "@/lib/ai/grading";
 import { getGeminiApiKey } from "@/lib/ai/config";
+import { isGeminiRetryableError } from "@/lib/ai/gemini-errors";
 import { checkWritingAIRateLimit } from "@/lib/ai/rate-limit";
 import { formatAiGradingQuotaExceededMessage } from "@/lib/subscription/quota-messages";
 import { getWritingTaskPrompt } from "@/lib/exam/scoring";
@@ -198,11 +199,15 @@ export async function POST(req: NextRequest) {
     console.error(e);
     const detail = e instanceof Error ? e.message : "unknown";
     const message =
-      detail.includes("Parse") || detail.includes("parse")
+      detail.includes("Parse") ||
+      detail.includes("parse") ||
+      detail.includes("JSON")
         ? "AI trả lời không đúng định dạng. Vui lòng thử lại."
-        : detail.includes("quota") || detail.includes("429")
-          ? formatAiGradingQuotaExceededMessage()
-          : "Không thể chấm bài viết bằng AI. Thử lại sau vài giây.";
+        : isGeminiRetryableError(e)
+          ? "Gemini đang quá tải. Thử chấm lại sau vài giây."
+          : detail.includes("quota") || detail.includes("429")
+            ? formatAiGradingQuotaExceededMessage()
+            : "Không thể chấm bài viết bằng AI. Thử lại sau vài giây.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

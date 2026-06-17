@@ -190,7 +190,7 @@ export function HomeMainContent() {
                       <Card
                         className={`kid-card border-2 bg-gradient-to-br ${track.bg} ${track.border} transition-all group-hover:-translate-y-0.5`}
                       >
-                        <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
+                        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:py-5">
                           <div className="flex min-w-0 flex-1 items-start gap-3">
                             <span className="text-3xl">{track.emoji}</span>
                             <div>
@@ -216,7 +216,7 @@ export function HomeMainContent() {
                             </div>
                           </div>
                           <span
-                            className={`kid-btn-fun inline-flex shrink-0 items-center gap-1 rounded-full px-4 py-2 text-sm font-bold text-white ${track.accent}`}
+                            className={`kid-btn-fun inline-flex w-full shrink-0 items-center justify-center gap-1 rounded-full px-4 py-2.5 text-sm font-bold text-white sm:w-auto ${track.accent}`}
                           >
                             <EditableText
                               contentKey={`home.ielts.tracks.${index}.cta`}

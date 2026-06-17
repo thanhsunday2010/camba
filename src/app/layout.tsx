@@ -44,7 +44,7 @@ export default function RootLayout({
                 <PlacementPickerBootstrap>
                   <Navbar />
                   <InlineEditBootstrap>
-                    <main className="flex-1">{children}</main>
+                    <main className="flex-1 overflow-x-clip">{children}</main>
                   </InlineEditBootstrap>
                   <SiteFooter />
                 </PlacementPickerBootstrap>

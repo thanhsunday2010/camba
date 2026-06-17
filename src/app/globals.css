@@ -33,14 +33,16 @@
   }
   html {
     font-size: 100%; /* desktop: 16px chuẩn */
+    overflow-x: clip;
   }
   @media (max-width: 767px) {
     html {
-      font-size: 137.5%; /* ~22px body trên mobile */
+      font-size: 112.5%; /* ~18px — đủ lớn cho trẻ em, vẫn vừa màn hình */
     }
   }
   body {
     @apply bg-background text-base text-foreground;
+    overflow-x: clip;
     background-image:
       radial-gradient(circle at 10% 20%, rgba(255, 182, 193, 0.15) 0%, transparent 40%),
       radial-gradient(circle at 90% 10%, rgba(135, 206, 250, 0.15) 0%, transparent 40%),
